@@ -7,6 +7,7 @@ import type { IConversation } from './types'
 import { Conversation } from './components/cvi/components/conversation'
 import { useRequestPermissions } from './components/cvi/hooks/use-request-permissions';
 import { SimpleWeatherHandler } from './components/SimpleWeatherHandler';
+import { CTBTOHandler } from './components/CTBTOHandler';
 import { SimpleConversationLogger } from './components/SimpleConversationLogger';
 
 function App() {
@@ -91,6 +92,17 @@ function App() {
                 console.log('🌤️ Weather update received in App:', weather);
                 // Optional: Display weather info in UI
               }} 
+            />
+            <CTBTOHandler
+              conversationId={conversation.conversation_id}
+              onCTBTOUpdate={(ctbtoData: any) => {
+                console.log('🏛️ CTBTO update received in App:', ctbtoData);
+                // Optional: Display CTBTO info in UI
+              }}
+              onSpeakerUpdate={(speakerData: any) => {
+                console.log('👤 Speaker update received in App:', speakerData);
+                // Optional: Display speaker info in UI
+              }}
             />
             <SimpleConversationLogger 
               conversationId={conversation.conversation_id}

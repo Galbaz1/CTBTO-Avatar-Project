@@ -8,11 +8,13 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "weather": "bun weather-server.js",
+    "weather": "node weather-server.cjs",
     "weather:test": "curl http://localhost:3001/api/weather/vienna",
     "weather:health": "curl http://localhost:3001/health",
     "rosa": "./start-rosa.sh",
-    "rosa:dev": "bun weather-server.js & bun dev"
+    "rosa:complete": "./start-rosa-complete.sh",
+    "rosa:dev": "node weather-server.cjs & bun dev",
+    "rosa:check": "./check-rosa-services.sh"
   },
   "dependencies": {
     "@daily-co/daily-js": "^0.80.0",
