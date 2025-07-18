@@ -1,0 +1,173 @@
+# Tavus Function Calling Integration
+
+## Architecture Overview
+Tavus supports OpenAI-style function calling to bridge avatar conversations to backend logic. Rosa uses **Python backend function calling** (not native Tavus models) for complex diplomatic logic.
+
+## Rosa Function Calling Flow
+1. **User speaks** → Tavus CVI → Function call detected
+2. **Frontend handler** → HTTP request to Python backend (Agent1.py)
+3. **Python processes** → Returns app-message + response text
+4. **Frontend updates** → Split-screen UI shows dynamic content
+
+## Implementation Pattern
+
+### 1. Python Backend Function (Agent1.py)
+```python
+# ✅ Rosa function pattern - extend Agent1.py
+def show_speaker_info(speaker_name: str) -> tuple[dict, str]:
+    """Display speaker information on split-screen UI."""
+    
+    # Input validation
+    if not speaker_name:
+        return None, "Please specify a speaker name."
+    
+    # Data lookup
+    speaker_data = find_speaker_by_name(speaker_name)
+    if not speaker_data:
+        return None, f"Speaker '{speaker_name}' not found."
+    
+    # Return app-message for frontend + response
+    app_message = {
+        "event": "show_speaker_info", 
+        "data": {"speaker_id": speaker_data["id"]}
+    }
+    
+    response = f"Here's information about {speaker_name} on your screen."
+    return app_message, response
+```
+
+### 2. Persona Tool Definition (createConversation.ts)
+```typescript
+// ✅ Function definition in persona
+{
+  "persona_name": "Rosa",
+  "layers": {
+    "llm": {
+      "model": "tavus-gpt-4o",
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "show_speaker_info",
+            "description": "Display speaker profile and session information",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "speaker_name": {
+                  "type": "string", 
+                  "description": "Name of speaker to display"
+                }
+              },
+              "required": ["speaker_name"]
+            }
+          }
+        }
+      ],
+      "speculative_inference": true
+    }
+  }
+}
+```
+
+### 3. React Handler Component
+```typescript
+// ✅ Tool call handler pattern
+import { useDailyEvent } from '@daily-co/daily-react';
+
+export const ConferenceHandler = () => {
+  useDailyEvent('app-message', useCallback(async (event: any) => {
+    const data = event.data;
+    
+    if (data?.event_type === 'conversation.tool_call') {
+      const toolName = data.properties?.name;
+      const args = JSON.parse(data.properties?.arguments || '{}');
+      
+      if (toolName === 'show_speaker_info') {
+        try {
+          console.log('🎤 Getting speaker info:', args.speaker_name);
+          
+          // Call Python backend
+          const response = await fetch('http://localhost:8000/api/speaker-info', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ speaker_name: args.speaker_name })
+          });
+          
+          if (!response.ok) throw new Error(`API error: ${response.status}`);
+          
+          const result = await response.json();
+          console.log('✅ Speaker info retrieved');
+          
+          // Frontend can handle app_message via another useDailyEvent listener
+        } catch (error) {
+          console.error('❌ Speaker info failed:', error);
+        }
+      }
+    }
+  }, []));
+
+  return null; // Event handler only - no UI
+};
+```
+
+### 4. App Integration Pattern
+```typescript
+// ✅ Integration in main app
+import { ConferenceHandler } from './components/ConferenceHandler';
+import { WeatherHandler } from './components/WeatherHandler';
+import { CTBTOHandler } from './components/CTBTOHandler';
+
+function App() {
+  return (
+    <CVIProvider key={conversationId}>
+      {/* Multiple handlers can coexist */}
+      <WeatherHandler />
+      <CTBTOHandler />
+      <ConferenceHandler />
+      <Conversation conversationUrl={conversationUrl} />
+    </CVIProvider>
+  );
+}
+```
+
+## Working Examples Reference
+- **Weather Handler**: `src/components/SimpleWeatherHandler.tsx` - Proven working pattern
+- **CTBTO Handler**: `src/components/CTBTOHandler.tsx` - Backend integration example
+- **E-commerce Tools**: `examples/cvi-frontend-backend-tools/` - Multi-tool example
+- **Backend Functions**: `examples/cvi-ui-conversation/backend/Agent1.py`
+
+## Key Events & Properties
+```typescript
+// ✅ Event handling patterns
+useDailyEvent('app-message', (event) => {
+  // Tool calls
+  if (event.data?.event_type === 'conversation.tool_call') {
+    const toolName = event.data.properties?.name;
+    const args = JSON.parse(event.data.properties?.arguments || '{}');
+  }
+  
+  // Speech events - CRITICAL: Use properties.speech not properties.text
+  if (event.data?.event_type === 'conversation.utterance') {
+    const speech = event.data.properties?.speech;
+    const role = event.data.properties?.role; // 'user' | 'replica'
+  }
+  
+  // App messages from backend
+  if (event.data?.event === 'show_speaker_info') {
+    const speakerData = event.data.data;
+    // Update UI with speaker info
+  }
+});
+```
+
+## Performance Requirements
+- **<200ms backend response**: Keep Python functions optimized
+- **Error handling**: Always handle tool call failures gracefully
+- **Stateless**: No persistent state between function calls
+- **Multilingual**: Support 6 UN languages in all functions
+
+## Rosa Integration Notes
+- **Extend Agent1.py**: Don't create separate services
+- **Test incrementally**: Weather → CTBTO → New functions
+- **Copy working patterns**: Reference existing handlers
+- **Split-screen ready**: Structure data for UI display + QR codes

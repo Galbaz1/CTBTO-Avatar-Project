@@ -1,0 +1,134 @@
+---
+description: 
+globs: ["*.ts", "*.tsx", "*.js", "*.jsx", "*.py", "*.md", "**/src/**/*", "**/components/**/*", "**/backend/**/*"]
+alwaysApply: false
+---
+
+# Coding Standards & Best Practices
+
+## Core Principles (2025 Standards)
+- **Functional Programming**: Prefer pure functions over classes/OOP
+- **Type Safety First**: TypeScript strict mode, no `any` types
+- **Early Returns**: Use guard clauses, avoid nested conditionals
+- **Explicit Everything**: No default parameters, named imports only
+- **DRY + KISS**: No code duplication, simple solutions over complex ones
+
+## Code Style
+```typescript
+// ✅ Functional component pattern
+const ComponentName = ({ prop1, prop2 }: ComponentProps) => {
+  // Early returns for error conditions
+  if (!prop1) return <ErrorState />;
+  
+  // Main logic last (happy path)
+  return <MainUI />;
+};
+
+// ✅ Pure function pattern  
+const processData = (input: InputType): OutputType => {
+  // No side effects, clear input/output
+  return transformedData;
+};
+```
+
+## TypeScript Rules
+- **Interfaces over types**: `interface ComponentProps {}` not `type ComponentProps = {}`
+- **Strict mode enabled**: No implicit any, strict null checks
+- **Explicit exports**: `export const Component = () => {}` 
+- **No enums**: Use `const` objects or string literals instead
+- **Function keyword**: Use `function` for pure functions, `const` for components
+
+## Error Handling
+- **Fail fast**: Handle errors at function start
+- **Specific errors**: `throw new ValidationError()` not generic `Error`
+- **No silent failures**: Always log and/or propagate errors
+- **User-friendly messages**: Clear, actionable error text
+
+## Performance Patterns
+- **Minimize re-renders**: Use `useCallback`, `useMemo` appropriately
+- **Code splitting**: Dynamic imports for non-critical components
+- **Early returns**: Exit functions early on error conditions
+- **Avoid useEffect**: Prefer event handlers and derived state
+
+## File Organization
+- **Lowercase with dashes**: `examples/cvi-ui-conversation/`
+- **Named exports**: `export const MyComponent` not default exports
+- **Colocation**: Keep related files together
+- **Clear naming**: `handleClick`, `isLoading`, `hasError` patterns
+
+## Security & Validation
+- **Validate inputs**: Use Zod or similar for data validation
+- **Sanitize outputs**: Prevent XSS/injection attacks
+- **Environment variables**: Use `NEXT_PUBLIC_` for client-side access
+- **No hardcoded secrets**: Use environment configuration
+
+## Rosa-Specific Patterns
+- **Bun commands**: Use `bun install`, `bun dev` (not npm)
+- **Function calling**: Extend Python backend, don't create separate services
+- **Component extension**: Extend existing CVI components, don't modify core
+- **Event handling**: Use `useDailyEvent('app-message')` for Tavus events
+- **Memory management**: Always clean up conversations in useEffect
+# Coding Standards & Best Practices
+
+## Core Principles (2025 Standards)
+- **Functional Programming**: Prefer pure functions over classes/OOP
+- **Type Safety First**: TypeScript strict mode, no `any` types
+- **Early Returns**: Use guard clauses, avoid nested conditionals
+- **Explicit Everything**: No default parameters, named imports only
+- **DRY + KISS**: No code duplication, simple solutions over complex ones
+
+## Code Style
+```typescript
+// ✅ Functional component pattern
+const ComponentName = ({ prop1, prop2 }: ComponentProps) => {
+  // Early returns for error conditions
+  if (!prop1) return <ErrorState />;
+  
+  // Main logic last (happy path)
+  return <MainUI />;
+};
+
+// ✅ Pure function pattern  
+const processData = (input: InputType): OutputType => {
+  // No side effects, clear input/output
+  return transformedData;
+};
+```
+
+## TypeScript Rules
+- **Interfaces over types**: `interface ComponentProps {}` not `type ComponentProps = {}`
+- **Strict mode enabled**: No implicit any, strict null checks
+- **Explicit exports**: `export const Component = () => {}` 
+- **No enums**: Use `const` objects or string literals instead
+- **Function keyword**: Use `function` for pure functions, `const` for components
+
+## Error Handling
+- **Fail fast**: Handle errors at function start
+- **Specific errors**: `throw new ValidationError()` not generic `Error`
+- **No silent failures**: Always log and/or propagate errors
+- **User-friendly messages**: Clear, actionable error text
+
+## Performance Patterns
+- **Minimize re-renders**: Use `useCallback`, `useMemo` appropriately
+- **Code splitting**: Dynamic imports for non-critical components
+- **Early returns**: Exit functions early on error conditions
+- **Avoid useEffect**: Prefer event handlers and derived state
+
+## File Organization
+- **Lowercase with dashes**: `examples/cvi-ui-conversation/`
+- **Named exports**: `export const MyComponent` not default exports
+- **Colocation**: Keep related files together
+- **Clear naming**: `handleClick`, `isLoading`, `hasError` patterns
+
+## Security & Validation
+- **Validate inputs**: Use Zod or similar for data validation
+- **Sanitize outputs**: Prevent XSS/injection attacks
+- **Environment variables**: Use `NEXT_PUBLIC_` for client-side access
+- **No hardcoded secrets**: Use environment configuration
+
+## Rosa-Specific Patterns
+- **Bun commands**: Use `bun install`, `bun dev` (not npm)
+- **Function calling**: Extend Python backend, don't create separate services
+- **Component extension**: Extend existing CVI components, don't modify core
+- **Event handling**: Use `useDailyEvent('app-message')` for Tavus events
+- **Memory management**: Always clean up conversations in useEffect

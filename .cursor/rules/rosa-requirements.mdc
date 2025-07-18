@@ -1,5 +1,6 @@
 ---
-description: use this rule if you need to see the project requirements
+description: Reference for Rosa project requirements, technical constraints, and success metrics. Use when you need detailed project specifications, performance targets, or compliance requirements.
+globs: 
 alwaysApply: false
 ---
 # Rosa Project Requirements

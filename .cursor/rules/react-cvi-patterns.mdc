@@ -1,5 +1,7 @@
 ---
-globs: *.ts,*.tsx,*.js,*.jsx
+description: DEPRECATED - Content moved to ts-rules/react-typescript-auto.mdc and ui-rules/split-screen-development-agent.mdc. This rule provides legacy compatibility for CVI-specific patterns only.
+globs: ["*.ts", "*.tsx", "*.js", "*.jsx"]
+alwaysApply: false
 ---
 
 # React CVI Development Patterns

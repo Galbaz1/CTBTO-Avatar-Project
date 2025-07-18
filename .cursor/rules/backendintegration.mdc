@@ -1,4 +1,6 @@
 ---
+description: Comprehensive backend integration analysis and implementation patterns for Rosa. Use when implementing complex backend architecture, comparing integration patterns, or planning multi-agent systems. Contains detailed FastAPI setup, architecture comparisons, and implementation roadmaps.
+globs: 
 alwaysApply: false
 ---
 # Tavus Backend Integration Patterns: Comprehensive Analysis

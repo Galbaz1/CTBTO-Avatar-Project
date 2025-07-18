@@ -1,0 +1,206 @@
+---
+description: 
+globs: ["*.ts", "*.tsx", "*.js", "*.jsx"]
+alwaysApply: false
+---
+
+# React + TypeScript Development Rules
+
+## Component Patterns
+```typescript
+// ✅ Correct: Functional component with interface
+interface ComponentProps {
+  data: DataType;
+  onAction: (id: string) => void;
+  isLoading?: boolean;
+}
+
+const Component = ({ data, onAction, isLoading = false }: ComponentProps) => {
+  // Early return pattern
+  if (!data) return <LoadingSpinner />;
+  
+  // Event handlers with 'handle' prefix
+  const handleItemClick = useCallback((id: string) => {
+    onAction(id);
+  }, [onAction]);
+  
+  return <UIContent />;
+};
+```
+
+## Hooks & State Management
+- **Minimal useState**: Prefer derived state over stored state
+- **useCallback for event handlers**: Prevent unnecessary re-renders  
+- **useMemo for expensive calculations**: Not for simple values
+- **Custom hooks**: Extract reusable logic into custom hooks
+- **No useRef for state**: Use useState instead
+
+## Rosa CVI Patterns
+```typescript
+// ✅ Tavus event handling
+const useTavusEvents = () => {
+  useDailyEvent('app-message', useCallback((ev: any) => {
+    console.log('🎭 Tool call:', ev.data);
+    
+    if (ev.data?.event === 'show_speaker_info') {
+      // Handle speaker info display
+      showSpeakerPanel(ev.data.data);
+    }
+  }, []));
+};
+
+// ✅ CVIProvider wrapper pattern
+{conversationId && (
+  <CVIProvider key={conversationId}>
+    <Conversation 
+      conversationUrl={conversationUrl} 
+      onLeave={handleEndConversation} 
+    />
+  </CVIProvider>
+)}
+```
+
+## Import/Export Rules
+```typescript
+// ✅ Named exports only
+export const MyComponent = () => {};
+export const useMyHook = () => {};
+
+// ✅ Explicit imports
+import { useState, useCallback, useMemo } from 'react';
+import { CVIProvider } from '@/components/cvi/components/cvi-provider';
+
+// ❌ Avoid default exports
+export default MyComponent; // Don't do this
+```
+
+## Error Handling in Components
+```typescript
+// ✅ Error boundaries and graceful failures
+const Component = ({ data }: Props) => {
+  // Input validation first
+  if (!data) {
+    console.warn('Component: Missing required data prop');
+    return <ErrorState message="Data not available" />;
+  }
+  
+  try {
+    return <MainContent data={data} />;
+  } catch (error) {
+    console.error('Component render error:', error);
+    return <ErrorBoundaryFallback />;
+  }
+};
+```
+
+## Performance Optimization
+- **Memo strategically**: Only memo expensive components
+- **Avoid inline objects**: `style={{}}` and `className` objects cause re-renders
+- **Batch state updates**: Group related state changes
+- **Lazy load heavy components**: Use `React.lazy()` for non-critical components
+
+## Rosa Integration Requirements
+- **Function calls via backend**: Never call Tavus models directly for complex logic
+- **Clean up effects**: Always clean up timers, subscriptions, conversations
+- **Handle language switching**: Components must support dynamic language changes
+- **QR code ready**: Ensure content can be converted to QR codes when needed
+# React + TypeScript Development Rules
+
+## Component Patterns
+```typescript
+// ✅ Correct: Functional component with interface
+interface ComponentProps {
+  data: DataType;
+  onAction: (id: string) => void;
+  isLoading?: boolean;
+}
+
+const Component = ({ data, onAction, isLoading = false }: ComponentProps) => {
+  // Early return pattern
+  if (!data) return <LoadingSpinner />;
+  
+  // Event handlers with 'handle' prefix
+  const handleItemClick = useCallback((id: string) => {
+    onAction(id);
+  }, [onAction]);
+  
+  return <UIContent />;
+};
+```
+
+## Hooks & State Management
+- **Minimal useState**: Prefer derived state over stored state
+- **useCallback for event handlers**: Prevent unnecessary re-renders  
+- **useMemo for expensive calculations**: Not for simple values
+- **Custom hooks**: Extract reusable logic into custom hooks
+- **No useRef for state**: Use useState instead
+
+## Rosa CVI Patterns
+```typescript
+// ✅ Tavus event handling
+const useTavusEvents = () => {
+  useDailyEvent('app-message', useCallback((ev: any) => {
+    console.log('🎭 Tool call:', ev.data);
+    
+    if (ev.data?.event === 'show_speaker_info') {
+      // Handle speaker info display
+      showSpeakerPanel(ev.data.data);
+    }
+  }, []));
+};
+
+// ✅ CVIProvider wrapper pattern
+{conversationId && (
+  <CVIProvider key={conversationId}>
+    <Conversation 
+      conversationUrl={conversationUrl} 
+      onLeave={handleEndConversation} 
+    />
+  </CVIProvider>
+)}
+```
+
+## Import/Export Rules
+```typescript
+// ✅ Named exports only
+export const MyComponent = () => {};
+export const useMyHook = () => {};
+
+// ✅ Explicit imports
+import { useState, useCallback, useMemo } from 'react';
+import { CVIProvider } from '@/components/cvi/components/cvi-provider';
+
+// ❌ Avoid default exports
+export default MyComponent; // Don't do this
+```
+
+## Error Handling in Components
+```typescript
+// ✅ Error boundaries and graceful failures
+const Component = ({ data }: Props) => {
+  // Input validation first
+  if (!data) {
+    console.warn('Component: Missing required data prop');
+    return <ErrorState message="Data not available" />;
+  }
+  
+  try {
+    return <MainContent data={data} />;
+  } catch (error) {
+    console.error('Component render error:', error);
+    return <ErrorBoundaryFallback />;
+  }
+};
+```
+
+## Performance Optimization
+- **Memo strategically**: Only memo expensive components
+- **Avoid inline objects**: `style={{}}` and `className` objects cause re-renders
+- **Batch state updates**: Group related state changes
+- **Lazy load heavy components**: Use `React.lazy()` for non-critical components
+
+## Rosa Integration Requirements
+- **Function calls via backend**: Never call Tavus models directly for complex logic
+- **Clean up effects**: Always clean up timers, subscriptions, conversations
+- **Handle language switching**: Components must support dynamic language changes
+- **QR code ready**: Ensure content can be converted to QR codes when needed
