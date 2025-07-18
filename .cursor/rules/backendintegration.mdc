@@ -1,8 +1,6 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
-
-
 # Tavus Backend Integration Patterns: Comprehensive Analysis
 
 > **Executive Summary**: For Rosa's diplomatic conference assistant requiring <200ms response times, **Pattern 2 (Function Calling Hybrid)** is recommended over Pattern 1 (Direct Custom LLM) due to superior latency characteristics for routine queries while maintaining sophisticated backend capabilities for complex operations.

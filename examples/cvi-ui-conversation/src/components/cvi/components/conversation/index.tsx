@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import {
 	DailyAudio,
 	DailyVideo,
@@ -13,6 +13,10 @@ import { useLocalScreenshare } from "../../hooks/use-local-screenshare";
 import { useReplicaIDs } from "../../hooks/use-replica-ids";
 import { useCVICall } from "../../hooks/use-cvi-call";
 import { AudioWave } from "../audio-wave";
+import { GreenScreenVideo } from "../green-screen-video";
+import { WebGLGreenScreenVideo } from "../webgl-green-screen-video";
+import { RawVideoTest } from "../raw-video-test";
+import { GreenScreenDebugger } from "../../../GreenScreenDebugger";
 
 import styles from "./conversation.module.css";
 
@@ -61,6 +65,37 @@ const PreviewVideos = React.memo(() => {
 });
 
 const MainVideo = React.memo(() => {
+	const [debugSettings, setDebugSettings] = useState({
+		debugMode: true,
+		disableGreenScreen: false,
+		useWebGL: true, // Try WebGL first, fallback to Canvas2D
+		showRawVideo: false // Emergency test mode
+	});
+	const [webglParameters, setWebglParameters] = useState({
+		similarity: 0.4,  // Slightly stricter green detection
+		smoothness: 0.07, // Sharper edges for better blouse definition
+		spill: 0.6, // More spill suppression for cleaner edges
+		edgeSoftness: 0.05
+	});
+
+	const handleParametersChange = useCallback((params: any) => {
+		setWebglParameters({
+			similarity: params.similarity,
+			smoothness: params.smoothness,
+			spill: params.spill,
+			edgeSoftness: params.edgeSoftness
+		});
+	}, []);
+
+	const handleManualParametersChange = useCallback((params: { similarity: number; smoothness: number; spill: number }) => {
+		setWebglParameters({
+			similarity: params.similarity,
+			smoothness: params.smoothness,
+			spill: params.spill,
+			edgeSoftness: webglParameters.edgeSoftness // Keep current edge softness
+		});
+	}, [webglParameters.edgeSoftness]);
+
 	const replicaIds = useReplicaIDs();
 	const localId = useLocalSessionId();
 	const videoState = useVideoTrack(replicaIds[0]);
@@ -68,11 +103,13 @@ const MainVideo = React.memo(() => {
 	const isScreenSharing = !screenVideoState.isOff;
 	// This is one-to-one call, so we can use the first replica id
 	const replicaId = replicaIds[0];
+	
+
 
 	if (!replicaId) {
 		return (
 			<div className={styles.waitingContainer}>
-				<p>Connecting...</p>
+				<p>Connecting to Rosa...</p>
 			</div>
 		);
 	}
@@ -82,14 +119,56 @@ const MainVideo = React.memo(() => {
 		<div
 			className={`${styles.mainVideoContainer} ${isScreenSharing ? styles.mainVideoContainerScreenSharing : ''}`}
 		>
-			<DailyVideo
-				automirror
-				sessionId={isScreenSharing ? localId : replicaId}
-				type={isScreenSharing ? "screenVideo" : "video"}
-				className={`${styles.mainVideo}
-				${isScreenSharing ? styles.mainVideoScreenSharing : ''}
-				${videoState.isOff ? styles.mainVideoHidden : ''}`}
-			/>
+			{isScreenSharing ? (
+				// Use regular Daily video for screen sharing
+				<DailyVideo
+					automirror
+					sessionId={localId}
+					type="screenVideo"
+					className={`${styles.mainVideo} ${styles.mainVideoScreenSharing}`}
+				/>
+			) : (
+				// Use GreenScreenVideo for Rosa replica with transparent background
+				<>
+					{debugSettings.showRawVideo ? (
+						// Emergency test mode - show raw video without any processing
+						<RawVideoTest
+							sessionId={replicaId}
+							className={`${styles.mainVideo} ${videoState.isOff ? styles.mainVideoHidden : ''}`}
+						/>
+					) : debugSettings.useWebGL ? (
+											<WebGLGreenScreenVideo
+						sessionId={replicaId}
+						className={`${styles.mainVideo} ${videoState.isOff ? styles.mainVideoHidden : ''}`}
+						onVideoLoad={() => console.log('🌹 Rosa is ready with WebGL transparent background!')}
+						debugMode={debugSettings.debugMode}
+						disableGreenScreen={debugSettings.disableGreenScreen}
+						keyColor={[0.0, 0.9, 0.2]} // Tavus green screen color
+						similarity={webglParameters.similarity}
+						smoothness={webglParameters.smoothness}
+						spill={webglParameters.spill}
+					/>
+					) : (
+						<GreenScreenVideo
+							sessionId={replicaId}
+							className={`${styles.mainVideo} ${videoState.isOff ? styles.mainVideoHidden : ''}`}
+							onVideoLoad={() => console.log('🌹 Rosa is ready with Canvas2D transparent background!')}
+							debugMode={debugSettings.debugMode}
+							disableGreenScreen={debugSettings.disableGreenScreen}
+						/>
+					)}
+					<GreenScreenDebugger 
+					onSettingsChange={setDebugSettings} 
+					onParametersChange={handleParametersChange}
+					onManualParametersChange={handleManualParametersChange}
+					currentParameters={{
+						similarity: webglParameters.similarity,
+						smoothness: webglParameters.smoothness,
+						spill: webglParameters.spill
+					}}
+				/>
+				</>
+			)}
 		</div>
 	);
 });
