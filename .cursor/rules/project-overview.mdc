@@ -1,0 +1,30 @@
+---
+alwaysApply: true
+---
+
+# Tavus CVI Project Overview
+
+This workspace contains Tavus Conversational Video Interface (CVI) examples and documentation for developing Rosa, a diplomatic-grade multilingual conference assistant.
+
+## Key Documentation
+- **Tavus API Documentation**: [dev_docs/tavus.txt](mdc:dev_docs/tavus.txt) - Complete Tavus CVI documentation including function calling, personas, and layers
+- **Product Requirements**: [dev_docs/PRD.md](mdc:dev_docs/PRD.md) - Rosa project specifications for CTBTO SnT 2025 conference
+
+## Project Structure
+- **Main Development**: [examples/cvi-ui-conversation/](mdc:examples/cvi-ui-conversation) - Primary development environment using modern @tavus/cvi-ui components
+- **Reference Examples**: 
+  - [examples/cvi-frontend-backend-tools/](mdc:examples/cvi-frontend-backend-tools) - Function calling with e-commerce tools
+  - [examples/cvi-hover-over-website/](mdc:examples/cvi-hover-over-website) - Click interaction tools
+  - [examples/cvi-custom-llm-with-backend/](mdc:examples/cvi-custom-llm-with-backend) - Custom LLM integration
+
+## Rosa Project Context
+- Building a multilingual (6 UN languages) diplomatic conference assistant
+- Requires function calling for Python backend integration
+- Split-screen UI: avatar + dynamic content (QR codes, maps, bios)
+- Strict "red zone" filtering and <200ms response times
+- Touchless, voice-only interaction for kiosk deployment
+
+## Architecture
+- **Frontend**: React + Tavus CVI UI components + Daily.co
+- **Backend**: Python multi-agent system accessible via function calls
+- **Integration**: Tavus function calling bridges React UI to Python logic

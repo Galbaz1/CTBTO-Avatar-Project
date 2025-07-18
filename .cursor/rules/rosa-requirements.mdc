@@ -1,0 +1,46 @@
+---
+description: Rosa project specific requirements and implementation guidelines
+---
+
+# Rosa Project Requirements
+
+## Project Overview
+Rosa is a diplomatic-grade multilingual conference assistant for CTBTO SnT 2025 in Vienna, serving 1,500+ attendees across 3 kiosk terminals.
+
+## Critical Requirements
+
+### UI/UX Specifications
+- **Split-screen layout**: Left = Rosa avatar video, Right = dynamic content
+- **Touchless operation**: Voice-only interaction, no keyboard/touch
+- **Wake word**: "Hi Rosa" in any of 6 UN languages
+- **QR code output**: Complex information delivered as scannable codes
+- **Language switching**: Mid-conversation language changes supported
+
+### Technical Constraints
+- **Response time**: <200ms first response for 95% of queries
+- **Languages**: Arabic, Chinese, English, French, Russian, Spanish
+- **Error handling**: Zero "red zone" violations (99.9% compliance)
+- **Reliability**: <2% session error/drop rate, 24/7 uptime
+
+### Content Safety
+- **Red zone filtering**: Diplomatic content safety at input/processing/output
+- **Cultural sensitivity**: Language and context-aware filtering
+- **Privacy compliance**: CTBTO/UN data protection standards
+- **Audit logging**: All violations and sessions logged
+
+### Architecture Requirements
+- **Multi-agent backend**: Python orchestration with specialized agents
+- **Function calling**: Tavus ↔ Python integration via function calls
+- **Speculative streaming**: Pre-emptive responses, update if needed
+- **Session management**: Stateless, no persistent user data
+
+## Implementation Notes
+- Current development base: [examples/cvi-ui-conversation/](mdc:examples/cvi-ui-conversation)
+- Function calling examples: [examples/cvi-frontend-backend-tools/](mdc:examples/cvi-frontend-backend-tools)
+- Custom LLM patterns: [examples/cvi-custom-llm-with-backend/](mdc:examples/cvi-custom-llm-with-backend)
+
+## Key Success Metrics
+- Multilingual accuracy >98% across all 6 languages
+- User satisfaction >95% in post-event surveys
+- Zero diplomatic incidents or cultural violations
+- Meeting all latency and reliability targets

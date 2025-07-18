@@ -14,7 +14,14 @@ export const createConversation = async (
         'x-api-key': apiKey,
       },
       body: JSON.stringify({
-        persona_id: 'p48fdf065d6b', // Stock Demo Persona
+        persona_id: 'pc50ef44d21c', // ROSA persona ID
+        replica_id: 'rb67667672ad', // ROSA replica ID (green screen)
+        conversation_name: 'ROSA - Diplomatic Conference Assistant',
+        properties: {
+          apply_greenscreen: true, // Enable green screen for custom backgrounds
+          max_call_duration: 1800, // 30 minutes max
+          participant_left_timeout: 60, // End call 60s after participant leaves
+        }
       }),
     });
 
