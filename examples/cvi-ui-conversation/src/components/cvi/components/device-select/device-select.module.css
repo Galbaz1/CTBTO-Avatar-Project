@@ -3,10 +3,10 @@
 	height: 3rem;
 	width: 5.5rem;
 	border-radius: 9999px;
-	background-color: rgba(255, 255, 255, 0.2);
+	background-color: transparent;
 	padding: 0 0.75rem;
-	border: 1px solid rgba(255, 255, 255, 0.2);
-	backdrop-filter: blur(10px);
+	border: none;
+	backdrop-filter: none;
 	color: transparent;
 	padding-right: 2rem; /* space for arrow */
 	box-sizing: border-box;
@@ -14,6 +14,8 @@
 	-moz-appearance: none;
 	appearance: none;
 	cursor: pointer;
+	font-size: 0; /* Hide text content */
+	text-indent: -9999px; /* Move text off-screen */
 }
 
 .selectDevice::-ms-expand {
@@ -23,6 +25,8 @@
 .selectDevice option {
 	color: transparent;
 	background-color: transparent;
+	font-size: 0;
+	text-indent: -9999px;
 }
 
 .selectDevice:focus {

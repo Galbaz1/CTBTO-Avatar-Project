@@ -15,21 +15,103 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
     welcome: {
       title: "Welcome to CTBTO SnT 2025",
       content: (
-        <div style={{ padding: '20px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', borderRadius: '12px', color: 'white', height: '400px' }}>
-          <h2 style={{ marginTop: 0 }}>Comprehensive Nuclear-Test-Ban Treaty Organization</h2>
-          <p style={{ fontSize: '18px', lineHeight: '1.6' }}>
-            Science and Technology Conference 2025<br/>
-            Vienna International Centre
-          </p>
-          <div style={{ marginTop: '40px' }}>
-            <h3>Conference Topics:</h3>
-            <ul style={{ fontSize: '16px' }}>
-              <li>Nuclear Verification Technologies</li>
-              <li>Seismic Monitoring Systems</li>
-              <li>Radionuclide Detection</li>
-              <li>Hydroacoustic Monitoring</li>
-              <li>International Monitoring System</li>
-            </ul>
+        <div style={{ 
+          margin: '0 60px',
+          padding: '60px 40px',
+          background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 50%, rgba(255,255,255,0.95) 100%)',
+          border: '1px solid rgba(225, 232, 237, 0.5)',
+          borderRadius: '24px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 25px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+          minHeight: '500px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          backdropFilter: 'blur(20px)',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {/* Subtle inner glow */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(ellipse at top, rgba(59, 130, 246, 0.03) 0%, transparent 70%)',
+            borderRadius: '24px',
+            pointerEvents: 'none'
+          }}></div>
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <div style={{ 
+              width: '80px', 
+              height: '80px', 
+              background: '#2563eb', 
+              borderRadius: '50%', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              margin: '0 auto 24px',
+              fontSize: '32px'
+            }}>
+              🏛️
+            </div>
+            <h2 style={{ 
+              margin: 0, 
+              color: '#1e293b', 
+              fontSize: '28px', 
+              fontWeight: '600',
+              letterSpacing: '-0.5px',
+              marginBottom: '12px'
+            }}>
+              Comprehensive Nuclear-Test-Ban Treaty Organization
+            </h2>
+            <p style={{ 
+              fontSize: '18px', 
+              color: '#64748b', 
+              margin: 0,
+              fontWeight: '400'
+            }}>
+              Science and Technology Conference 2025<br/>
+              Vienna International Centre
+            </p>
+          </div>
+          
+          <div style={{ background: '#f8fafc', padding: '32px', borderRadius: '12px' }}>
+            <h3 style={{ 
+              margin: '0 0 24px 0', 
+              color: '#334155', 
+              fontSize: '20px',
+              fontWeight: '600',
+              textAlign: 'center'
+            }}>
+              Conference Focus Areas
+            </h3>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr 1fr',
+              gap: '16px'
+            }}>
+              {[
+                'Nuclear Verification Technologies',
+                'Seismic Monitoring Systems', 
+                'Radionuclide Detection',
+                'Hydroacoustic Monitoring',
+                'International Monitoring System'
+              ].map((topic, index) => (
+                <div key={index} style={{
+                  background: '#ffffff',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid #e2e8f0',
+                  fontSize: '14px',
+                  color: '#475569',
+                  fontWeight: '500',
+                  textAlign: 'center'
+                }}>
+                  {topic}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )
@@ -119,146 +201,292 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
       )
     }
   };
-
   return (
     <CVIProvider key={conversation.conversation_id}>
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: '1fr 1fr', 
-        height: '100vh', 
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-        overflow: 'hidden'
-      }}>
-        {/* Left Panel - Rosa with Transparent Background */}
-        <div style={{ 
-          position: 'relative', 
-          background: 'transparent',
+      <div
+        style={{
+          position: 'fixed',
+          left: 0,
+          top: 0,
           display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {/* Rosa Title */}
-          <div style={{ 
-            padding: '20px', 
-            background: 'rgba(255, 255, 255, 0.95)', 
-            backdropFilter: 'blur(10px)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
-            zIndex: 10
-          }}>
-            <h1 style={{ margin: 0, color: '#2c3e50', fontSize: '24px', fontWeight: 'bold' }}>
-              🌹 ROSA
-            </h1>
-            <p style={{ margin: '5px 0 0 0', color: '#7f8c8d', fontSize: '14px' }}>
-              Diplomatic Conference Assistant
-            </p>
-          </div>
-
-          {/* Rosa Video - Transparent Background */}
-          <div style={{ 
-            flex: 1, 
+          width: '100vw',
+          height: '100vh',
+          margin: 0,
+          padding: 0,
+          overflow: 'hidden',
+          zIndex: 1000,
+        }}
+      >
+        {/* Left Panel - Avatar with background image */}
+        <div
+          className="rosa-portrait-container"
+          style={{
+            width: '50vw',
+            height: '100vh',
+            backgroundImage: `url('/background.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundColor: '#2563eb', // Fallback color if image doesn't load
             position: 'relative',
-            background: 'transparent' // This allows Rosa to overlay on the gradient
-          }}>
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Semi-transparent overlay to ensure avatar visibility */}
+          <div
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.15)',
+              zIndex: 1,
+              pointerEvents: 'none',
+            }}
+          />
+          <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
             <Conversation
               conversationUrl={conversation.conversation_url}
               onLeave={onLeave}
             />
           </div>
-
-          {/* Quick Actions */}
-          <div style={{ 
-            padding: '20px', 
-            background: 'rgba(255, 255, 255, 0.95)', 
-            backdropFilter: 'blur(10px)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-            zIndex: 10
-          }}>
-            <div style={{ fontSize: '14px', color: '#7f8c8d', marginBottom: '10px' }}>
-              Try asking Rosa about:
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-              {['CTBTO', 'Nuclear verification', 'Vienna weather', 'Conference speakers'].map((topic) => (
-                <button
-                  key={topic}
-                  style={{
-                    padding: '6px 12px',
-                    background: '#3498db',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '16px',
-                    fontSize: '12px',
-                    cursor: 'pointer'
-                  }}
-                  onMouseOver={(e) => e.target.style.background = '#2980b9'}
-                  onMouseOut={(e) => e.target.style.background = '#3498db'}
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
-          </div>
+          <style>{`
+            /* Global reset to eliminate browser margins */
+            body, html, #root, main {
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: hidden !important;
+            }
+            
+            /* Avatar container sizing (perfect, don't change) */
+            .rosa-portrait-container div[class*="container"] {
+              aspect-ratio: unset !important;
+              max-height: none !important;
+              height: 100vh !important;
+              width: 100% !important;
+              border-radius: 0 !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              background: transparent !important;
+              background-color: transparent !important;
+            }
+            
+            /* Video containers */
+            .rosa-portrait-container div[class*="videoContainer"],
+            .rosa-portrait-container div[class*="mainVideoContainer"] {
+              width: 100% !important;
+              height: 100% !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              background: transparent !important;
+              background-color: transparent !important;
+            }
+            
+            /* Video element */
+            .rosa-portrait-container div[class*="mainVideo"] {
+              aspect-ratio: unset !important;
+              object-fit: cover !important;
+              width: 100% !important;
+              height: 100% !important;
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
+              background: transparent !important;
+            }
+            
+            /* Canvas element - ensure transparency */
+            .rosa-portrait-container canvas {
+              aspect-ratio: unset !important;
+              object-fit: cover !important;
+              width: 100% !important;
+              height: 100% !important;
+              background-color: transparent !important;
+              mix-blend-mode: screen !important;
+            }
+            
+            /* Remove all grey backgrounds from CVI components */
+            .rosa-portrait-container div {
+              background-color: transparent !important;
+              background: transparent !important;
+            }
+            
+            /* Target specific grey backgrounds */
+            .rosa-portrait-container div[style*="background-color: rgb(55, 65, 81)"],
+            .rosa-portrait-container div[style*="background-color: #374151"],
+            .rosa-portrait-container div[style*="background: rgb(55, 65, 81)"],
+            .rosa-portrait-container div[style*="background: #374151"] {
+              background-color: transparent !important;
+              background: transparent !important;
+            }
+            
+            /* Control buttons as floating overlay */
+            .rosa-portrait-container div[class*="footer"] {
+              position: absolute !important;
+              bottom: 20px !important;
+              left: 20px !important;
+              background: transparent !important;
+              border-radius: 12px !important;
+              padding: 12px !important;
+              z-index: 200 !important;
+              backdrop-filter: none !important;
+              box-shadow: none !important;
+            }
+            
+            /* Style the control buttons */
+            .rosa-portrait-container div[class*="footerControls"] {
+              gap: 8px !important;
+            }
+            
+            /* Hide ghost audio wave visualization */
+            .rosa-portrait-container div[class*="audioWave"],
+            .rosa-portrait-container div[class*="waveContainer"] {
+              display: none !important;
+            }
+            
+            /* Hide user camera preview since avatar won't see user */
+            .rosa-portrait-container div[class*="previewVideo"],
+            .rosa-portrait-container div[class*="selfView"] {
+              display: none !important;
+            }
+            
+            /* Hide device selection dropdowns (mic/camera device pickers) */
+            .rosa-portrait-container div[class*="deviceSelect"],
+            .rosa-portrait-container div[class*="device-select"] {
+              display: none !important;
+            }
+          `}</style>
         </div>
+                 {/* Right Panel - Content, edge-to-edge, but padded for readability */}
+         <div
+           style={{
+             width: '50vw',
+             height: '100vh',
+             background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%)',
+             backgroundSize: '400% 400%',
+             animation: 'diplomaticGlow 20s ease-in-out infinite',
+             borderLeft: '3px solid #3498db',
+             display: 'flex',
+             flexDirection: 'column',
+             position: 'relative',
+             overflow: 'hidden'
+           }}
+         >
+           {/* Subtle overlay for added depth */}
+           <div style={{
+             position: 'absolute',
+             top: 0,
+             left: 0,
+             right: 0,
+             bottom: 0,
+             background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.02) 100%)',
+             pointerEvents: 'none',
+             zIndex: 1
+           }}></div>
+           
+           {/* Top spacing */}
+           <div style={{ 
+             height: '40px',
+             background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(249,250,251,0.8) 100%)',
+             position: 'relative',
+             zIndex: 2
+           }}></div>
 
-        {/* Right Panel - Dynamic Content */}
-        <div style={{ 
-          background: '#ffffff', 
-          borderLeft: '3px solid #3498db',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          {/* Content Navigation */}
-          <div style={{ 
-            padding: '20px', 
-            borderBottom: '1px solid #ecf0f1',
-            background: '#ffffff'
-          }}>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-              {Object.keys(contentData).map((key) => (
-                <button
-                  key={key}
-                  onClick={() => setCurrentContent(key as any)}
-                  style={{
-                    padding: '8px 16px',
-                    background: currentContent === key ? '#3498db' : '#ecf0f1',
-                    color: currentContent === key ? 'white' : '#2c3e50',
-                    border: 'none',
-                    borderRadius: '20px',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    textTransform: 'capitalize'
-                  }}
-                >
-                  {key === 'welcome' ? '🏛️ Welcome' : 
-                   key === 'speaker' ? '👨‍🎓 Speaker' :
-                   key === 'location' ? '📍 Location' : '🌤️ Weather'}
-                </button>
-              ))}
-            </div>
-            <h2 style={{ margin: 0, color: '#2c3e50', fontSize: '20px' }}>
-              {contentData[currentContent].title}
-            </h2>
-          </div>
+           {/* Content Navigation */}
+           <div style={{ 
+             padding: '24px 32px', 
+             borderBottom: '1px solid rgba(229, 231, 235, 0.6)',
+             background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(249,250,251,0.8) 100%)',
+             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1)',
+             backdropFilter: 'blur(10px)',
+             position: 'relative',
+             zIndex: 2
+           }}>
+             <div style={{ 
+               display: 'flex', 
+               gap: '16px', 
+               justifyContent: 'center',
+               alignItems: 'center',
+               height: '60px'
+             }}>
+               {Object.keys(contentData).map((key) => (
+                 <button
+                   key={key}
+                   onClick={() => setCurrentContent(key as any)}
+                   style={{
+                     padding: '16px 28px',
+                     background: currentContent === key 
+                       ? 'linear-gradient(145deg, #1e40af 0%, #3730a3 50%, #1e3a8a 100%)' 
+                       : 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
+                     color: currentContent === key ? '#ffffff' : '#374151',
+                     border: currentContent === key ? 'none' : '1px solid rgba(229, 231, 235, 0.6)',
+                     borderRadius: '12px',
+                     fontSize: '15px',
+                     fontWeight: '600',
+                     cursor: 'pointer',
+                     textTransform: 'none',
+                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                     boxShadow: currentContent === key 
+                       ? '0 8px 25px rgba(30, 64, 175, 0.3), 0 3px 10px rgba(30, 64, 175, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
+                       : '0 4px 15px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
+                     letterSpacing: '0.025em',
+                     minWidth: '120px',
+                     position: 'relative',
+                     overflow: 'hidden'
+                   }}
+                   onMouseOver={(e) => {
+                     if (currentContent !== key) {
+                       e.currentTarget.style.background = 'linear-gradient(145deg, #f3f4f6 0%, #e5e7eb 50%, #d1d5db 100%)';
+                       e.currentTarget.style.transform = 'translateY(-2px)';
+                       e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.12), 0 4px 15px rgba(0, 0, 0, 0.08)';
+                     }
+                   }}
+                   onMouseOut={(e) => {
+                     if (currentContent !== key) {
+                       e.currentTarget.style.background = 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)';
+                       e.currentTarget.style.transform = 'translateY(0)';
+                       e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)';
+                     }
+                   }}
+                 >
+                   {key === 'welcome' ? 'Schedule' : 
+                    key === 'speaker' ? 'Speakers' :
+                    key === 'location' ? 'Venue' : 'Weather'}
+                 </button>
+               ))}
+             </div>
+           </div>
 
-          {/* Dynamic Content Area */}
-          <div style={{ 
-            flex: 1, 
-            padding: '20px',
-            overflow: 'auto'
-          }}>
-            {contentData[currentContent].content}
-          </div>
+           {/* Dynamic Content Area */}
+           <div style={{ 
+             flex: 1, 
+             padding: '30px 20px 40px 20px',
+             overflow: 'auto',
+             position: 'relative',
+             zIndex: 2
+           }}>
+             {contentData[currentContent].content}
+           </div>
 
-          {/* Footer */}
-          <div style={{ 
-            padding: '15px 20px', 
-            background: '#f8f9fa',
-            borderTop: '1px solid #ecf0f1',
-            fontSize: '12px',
-            color: '#7f8c8d',
-            textAlign: 'center'
-          }}>
-            CTBTO Science & Technology Conference 2025 • Vienna International Centre
-          </div>
-        </div>
+           {/* Footer */}
+           <div style={{ 
+             padding: '20px 20px 25px 20px', 
+             background: 'linear-gradient(180deg, rgba(248,249,250,0.9) 0%, rgba(241,245,249,0.95) 100%)',
+             borderTop: '1px solid rgba(236, 240, 241, 0.6)',
+             fontSize: '12px',
+             color: '#7f8c8d',
+             textAlign: 'center',
+             backdropFilter: 'blur(10px)',
+             boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)',
+             position: 'relative',
+             zIndex: 2
+           }}>
+             CTBTO Science & Technology Conference 2025 • Vienna International Centre
+           </div>
+         </div>
       </div>
     </CVIProvider>
   );
