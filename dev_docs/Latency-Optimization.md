@@ -1,477 +1,189 @@
-# Tavus Avatar Latency Optimization & Seamless Transition Strategy
+# Tavus Avatar Latency Optimization - Background Agent Task Index
 
-*A comprehensive technical guide for optimizing Tavus avatar loading performance and implementing seamless preloaded content transitions to eliminate perceived latency in the ROSA diplomatic assistant.*
+*Parallel background agent execution plans designed for sequential merging with minimal conflicts*
 
-## 🎯 Executive Summary
+## 🎯 **Task Execution Strategy**
 
-**Core Issue**: Tavus avatars have a "warm-up period" where initial loading is slow and quality is degraded for the first few seconds. Even with optimizations, there's still a **2-second warm boot period** where avatar quality is suboptimal.
-
-**Breakthrough Strategy**: Implement **preloaded avatar content** using Tavus Video Generation API to create seamless transitions that eliminate perceived latency entirely.
-
-**Performance Targets**:
-- **Zero perceived latency** through preloaded transitions
-- **Sub-200ms response** after warm-up period
-- **Professional quality** from the first frame users see
+**Parallel Execution**: All agents run simultaneously on separate branches
+**Sequential Merge**: Merge in numerical order (1→2→3→4→5) to minimize conflicts
+**File Isolation**: Each task targets different files/directories to prevent conflicts
 
 ---
 
-## 📊 Current Performance Baseline (From Tavus Documentation)
+## **Agent Task 1: Core Performance Configuration** 
+**Priority**: Foundation (Merge First)
+**Files**: `examples/cvi-ui-conversation/src/api/createConversation.ts`
+**Estimated Time**: 30 minutes
+**Dependencies**: None
 
-### **May 17, 2025 - Phoenix 3 Enhancements** ⭐
-```
-Reference: dev_docs/tavus.txt lines 800-1100
-```
+### Task: Enable speculative_inference and optimize conversation properties
 
-- **Reduced Phoenix warm boot time by 60% (from 5s to 2s)** 
-- **Resolved blurriness and choppiness at conversation start**
-- Enhanced listening mode with more natural micro expressions
-- Greenscreen mode speed boosted by ~1.5fps
+**Objective**: Add critical performance flags to conversation creation without changing UI or other components.
 
-### **June 3, 2025 - Conversation Boot Optimization** ⭐
-```
-Reference: dev_docs/tavus.txt lines 1000-1200
-```
+**Critical Files/Anchors**:
+- @file/examples/cvi-ui-conversation/src/api/createConversation.ts#createConversation
+- @file/dev_docs/tavus.txt#search="speculative_inference"
+- @file/dev_docs/tavus.txt#search="conversation properties"
 
-- **Reduced conversation boot time by 58% (p50)**
-- Improved overall conversation initialization speed
+**Constraints**:
+- Only modify createConversation.ts - no other files
+- Preserve existing API interface
+- Add performance flags as documented in tavus.txt
+- No UI changes
 
-### **Current Bottlenecks in ROSA App**
-```
-Reference: examples/cvi-ui-conversation/src/api/createConversation.ts
-```
-
-**Complex Setup vs Simple Examples**:
-- ROSA: Persona patching + tool definitions + complex configuration
-- Simple examples: Minimal conversation creation (faster loading)
-
-**Configuration Differences**:
-```typescript
-// ❌ ROSA (slower) - Complex setup
-const conversation = await createConversation({
-  persona_id: "p48fdf065d6b",  
-  // + Additional persona patching for tools
-  // + Complex function calling setup
-  // + Multiple layer configurations
-});
-
-// ✅ Simple examples (faster) - Minimal setup  
-const conversation = await createConversation({
-  persona_id: "p48fdf065d6b",
-  // Clean, minimal configuration
-});
-```
+**Verification**:
+- speculative_inference: true added to properties
+- max_call_duration and participant_left_timeout configured
+- Existing functionality unchanged
 
 ---
 
-## 🚀 **Performance Optimization Strategies**
+## **Agent Task 2: Preloaded Video Infrastructure**
+**Priority**: Independent System (Merge Second) 
+**Files**: New files in `examples/cvi-ui-conversation/src/api/`
+**Estimated Time**: 45 minutes
+**Dependencies**: None (creates new files)
 
-### **1. Speculative Inference Optimization** ⭐⭐⭐
-```
-Reference: dev_docs/tavus.txt lines 3450-3550
-```
+### Task: Create preloaded avatar video generation system
 
-**Critical Performance Flag**: Enable `speculative_inference: true` for dramatic speed improvements.
+**Objective**: Build video generation infrastructure for loading screen content using Tavus /v2/videos endpoint.
 
-```typescript
-// Implementation: examples/cvi-ui-conversation/src/api/createConversation.ts
-const conversation = await fetch('https://tavusapi.com/v2/conversations', {
-  method: 'POST',
-  headers: { 'x-api-key': API_KEY },
-  body: JSON.stringify({
-    persona_id: "your-persona-id",
-    properties: {
-      speculative_inference: true, // ⭐ Key performance boost
-      max_call_duration: 1800, // Optimize for session length
-      participant_left_timeout: 30
-    }
-  })
-});
-```
+**Critical Files/Anchors**:
+- @file/dev_docs/tavus.txt#search="/v2/videos"
+- @file/dev_docs/tavus.txt#search="transparent_background"
+- @file/examples/cvi-ui-conversation/src/api/createConversation.ts (reference only - do not modify)
 
-### **2. Conversation Properties Optimization**
-```
-Reference: dev_docs/tavus.txt conversation properties section
-```
+**Constraints**:
+- Create new files only: preloadAvatarContent.ts, videoCache.ts
+- No modifications to existing files
+- Use Tavus video generation API as documented
+- Implement caching and error handling
 
-**Optimize conversation setup**:
-```typescript
-// Add to: examples/cvi-ui-conversation/src/api/createConversation.ts
-properties: {
-  speculative_inference: true,
-  pipeline_mode: "full", // Use full pipeline for best performance
-  max_call_duration: 1800, // 30 minutes for conference sessions
-  participant_left_timeout: 30 // Quick timeout for efficiency
-}
-```
-
-### **3. Replica/Persona Selection Optimization**
-```
-Reference: examples/cvi-quickstart-react/src/api/createConversation.ts
-Reference: examples/cvi-transparent-background/src/api/createConversation.ts
-```
-
-**Use Phoenix-3 PRO Replicas**: Optimized for low-latency, real-time applications.
-
-```typescript
-// Current ROSA setup uses: p48fdf065d6b
-// Verify this is a Phoenix-3 PRO replica for optimal performance
-```
+**Verification**:
+- New files created with video generation functions
+- No existing files modified
+- API integration follows tavus.txt documentation
 
 ---
 
-## 🎬 **Breakthrough: Preloaded Avatar Strategy**
+## **Agent Task 3: Seamless Transition Component**
+**Priority**: UI Enhancement (Merge Third)
+**Files**: `examples/cvi-ui-conversation/src/components/RosaDemo.tsx`
+**Estimated Time**: 60 minutes  
+**Dependencies**: Task 2 (preload infrastructure)
 
-### **The Revolutionary Approach**
-Instead of waiting for live avatar warm-up, use Tavus's **Video Generation API** to create seamless preloaded content.
+### Task: Implement seamless video transition in RosaDemo component
 
-### **Technical Architecture**
+**Objective**: Add smooth transition logic between preloaded and live avatar without affecting existing split-screen layout.
 
-#### **Phase 1: Pre-Generate Loading Videos**
-```
-Reference: dev_docs/tavus.txt /v2/videos endpoint documentation
-```
+**Critical Files/Anchors**:
+- @file/examples/cvi-ui-conversation/src/components/RosaDemo.tsx#split-screen
+- @file/examples/cvi-ui-conversation/src/api/preloadAvatarContent.ts (created in Task 2)
+- @file/dev_docs/rosa-split-screen-simple-implementation.md
 
-```typescript
-// Add to: examples/cvi-ui-conversation/src/api/
-// New file: preloadAvatarContent.ts
+**Constraints**:
+- Preserve existing split-screen layout completely
+- Only add transition logic, no layout changes
+- Use React hooks pattern from existing codebase
+- Maintain current green screen functionality
 
-export async function generateLoadingVideos() {
-  const loadingScripts = [
-    "Welcome to the CTBTO conference. I'm Rosa, preparing your session...",
-    "Loading speaker information and venue details...", 
-    "Connecting to conference systems...",
-    "Your diplomatic assistant is ready. Let's begin."
-  ];
-
-  const videos = await Promise.all(
-    loadingScripts.map(script => 
-      fetch('https://tavusapi.com/v2/videos', {
-        method: 'POST',
-        headers: { 'x-api-key': API_KEY },
-        body: JSON.stringify({
-          replica_id: "your-replica-id",
-          script: script,
-          transparent_background: true, // ✅ Works for videos!
-          fast: true, // Fast generation mode
-          properties: {
-            start_with_wave: false // Clean start
-          }
-        })
-      })
-    )
-  );
-  
-  return videos;
-}
-```
-
-#### **Phase 2: Seamless Transition Implementation**
-```typescript
-// Add to: examples/cvi-ui-conversation/src/components/RosaDemo.tsx
-
-const useSeamlessAvatarTransition = () => {
-  const [phase, setPhase] = useState<'preloaded' | 'transitioning' | 'live'>('preloaded');
-  const [preloadedVideoUrl, setPreloadedVideoUrl] = useState<string>();
-  const [liveConversationReady, setLiveConversationReady] = useState(false);
-
-  useEffect(() => {
-    // Start live conversation in background while showing preloaded content
-    startLiveConversation().then(() => {
-      setLiveConversationReady(true);
-      // Wait for perfect transition moment (end of sentence, pause)
-      scheduleSeamlessTransition();
-    });
-  }, []);
-
-  const scheduleSeamlessTransition = () => {
-    // Transition at natural speaking pause for imperceptible switch
-    setTimeout(() => {
-      setPhase('transitioning');
-      setTimeout(() => setPhase('live'), 200); // Quick fade
-    }, 1500); // After preloaded content establishes
-  };
-
-  return { phase, preloadedVideoUrl, liveConversationReady };
-};
-```
-
-#### **Phase 3: Green Screen Optimization**
-```
-Reference: dev_docs/rosa-green-screen-transparency-guide.md
-Reference: examples/cvi-ui-conversation/src/components/cvi/components/webgl-green-screen-video/
-```
-
-**For Conversations** (NOT videos):
-```typescript
-// Modify: examples/cvi-ui-conversation/src/api/createConversation.ts
-const conversation = await fetch('https://tavusapi.com/v2/conversations', {
-  body: JSON.stringify({
-    persona_id: "your-persona-id",
-    apply_greenscreen: true, // ✅ For conversations, use this
-    properties: {
-      speculative_inference: true
-    }
-  })
-});
-```
-
-**For Pre-generated Videos**:
-```typescript
-// In preloadAvatarContent.ts
-const video = await fetch('https://tavusapi.com/v2/videos', {
-  body: JSON.stringify({
-    replica_id: "your-replica-id", 
-    script: script,
-    transparent_background: true // ✅ Works for videos!
-  })
-});
-```
+**Verification**:
+- Transition logic added without breaking existing UI
+- Split-screen layout unchanged
+- Compatible with existing WebGL green screen
 
 ---
 
-## 🌐 **Advanced Web Optimization Techniques**
+## **Agent Task 4: Green Screen Optimization** 
+**Priority**: Performance Enhancement (Merge Fourth)
+**Files**: `examples/cvi-ui-conversation/src/components/cvi/components/webgl-green-screen-video/`
+**Estimated Time**: 40 minutes
+**Dependencies**: None (isolated optimization)
 
-### **1. WebRTC Latency Optimization**
-*Based on web research findings*
+### Task: Optimize WebGL green screen performance for faster rendering
 
-```typescript
-// Add to: examples/cvi-ui-conversation/src/components/cvi/hooks/use-cvi-call.tsx
+**Objective**: Enhance GPU processing and chroma key parameters for better real-time performance.
 
-// VP9 encoder optimization (inspired by Hopp achieving <100ms)
-const optimizeWebRTCSettings = () => {
-  daily.setVideoProcessor({
-    codec: 'VP9', // Better compression than H.264
-    maxBitrate: 2500000, // 2.5 Mbps for quality
-    adaptiveBitrate: true
-  });
-  
-  // Network preloading
-  daily.preAuth(); // Authenticate early
-  daily.load(); // Preload Daily.co resources
-};
-```
+**Critical Files/Anchors**:
+- @file/examples/cvi-ui-conversation/src/components/cvi/components/webgl-green-screen-video/index.tsx
+- @file/dev_docs/rosa-green-screen-transparency-guide.md#search="WebGL optimization"
+- @file/dev_docs/rosa-green-screen-transparency-guide.md#search="chroma key parameters"
 
-### **2. ConvoCache Strategy Implementation**
-*Based on research showing 89% latency reduction*
+**Constraints**:
+- Only modify WebGL green screen components
+- Preserve existing API and functionality  
+- Focus on performance optimizations only
+- No breaking changes to component interface
 
-```typescript
-// Add to: examples/cvi-ui-conversation/src/utils/conversationCache.ts
-
-class ConversationCache {
-  private kvcache = new Map<string, any>();
-  
-  // Cache frequent conversation starters
-  async warmUpCommonResponses() {
-    const commonPrompts = [
-      "Hello, welcome to the conference",
-      "Please tell me about today's agenda", 
-      "Show me the venue map",
-      "Who are today's speakers?"
-    ];
-    
-    // Pre-warm responses using background requests
-    commonPrompts.forEach(prompt => this.precomputeResponse(prompt));
-  }
-  
-  private async precomputeResponse(prompt: string) {
-    // Use Tavus API to pre-generate likely responses
-    // Store in cache for instant retrieval
-  }
-}
-```
-
-### **3. Edge Computing & CDN Optimization**
-*Research showed 59% latency reduction with edge caching*
-
-```typescript
-// Add to: examples/cvi-ui-conversation/src/api/edgeOptimization.ts
-
-const optimizeForEdgeDelivery = () => {
-  // Cloudflare/AWS CloudFront configuration
-  const edgeConfig = {
-    // Pre-position avatar content at edge locations
-    preloadRegions: ['eu-central-1', 'us-east-1'], // Vienna + global
-    cachingStrategy: 'aggressive',
-    compressionLevel: 'high'
-  };
-  
-  // Geographic optimization for Vienna conference
-  const viennaOptimization = {
-    primaryRegion: 'eu-central-1',
-    fallbackRegions: ['eu-west-1', 'eu-north-1']
-  };
-};
-```
+**Verification**:
+- Optimized chroma key parameters applied
+- WebGPU fallback implemented where supported
+- Existing functionality preserved
 
 ---
 
-## 🔧 **Interactions Protocol Optimization**
+## **Agent Task 5: WebRTC Latency Optimization**
+**Priority**: Network Enhancement (Merge Fifth)
+**Files**: `examples/cvi-ui-conversation/src/components/cvi/hooks/use-cvi-call.tsx`
+**Estimated Time**: 35 minutes
+**Dependencies**: None (isolated hook optimization)
 
-### **Current Implementation Analysis**
-```
-Reference: examples/cvi-ui-conversation/src/components/SimpleWeatherHandler.tsx
-Reference: examples/cvi-ui-conversation/src/components/CTBTOHandler.tsx
-```
+### Task: Optimize WebRTC settings for reduced conversation latency
 
-**Optimized App-Message Handler Pattern**:
-```typescript
-// Extend: examples/cvi-ui-conversation/src/components/CTBTOHandler.tsx
+**Objective**: Configure VP9 encoding and network preloading for sub-100ms response times.
 
-const useOptimizedAppMessages = () => {
-  const sendAppMessage = useAppMessage();
-  
-  // Batch multiple updates to reduce message overhead
-  const batchedUpdate = useDeferredValue(appMessages);
-  
-  // Pre-cache common conference data
-  useEffect(() => {
-    preloadConferenceData();
-  }, []);
-  
-  const sendOptimizedMessage = useCallback((content: any) => {
-    // Compress large payloads
-    const compressed = compressIfLarge(content);
-    sendAppMessage(compressed);
-  }, [sendAppMessage]);
-  
-  return { sendOptimizedMessage };
-};
-```
+**Critical Files/Anchors**:
+- @file/examples/cvi-ui-conversation/src/components/cvi/hooks/use-cvi-call.tsx#daily
+- @file/dev_docs/tavus.txt#search="Daily.co"
+- @file/examples/cvi-ui-conversation/src/components/SimpleWeatherHandler.tsx (reference pattern)
 
-### **WebGL Green Screen Performance**
-```
-Reference: examples/cvi-ui-conversation/src/components/cvi/components/webgl-green-screen-video/
-```
+**Constraints**:
+- Only modify use-cvi-call.tsx hook
+- Preserve existing Daily.co integration
+- Add VP9 encoder and network optimizations only
+- No changes to component interfaces
 
-**GPU-Accelerated Processing**:
-```typescript
-// Enhance: webgl-green-screen-video/index.tsx
-
-const useWebGLOptimization = () => {
-  // WebGPU fallback for better performance (where supported)
-  const preferredAPI = 'webgpu' in navigator ? 'webgpu' : 'webgl2';
-  
-  // Optimize chroma key parameters for real-time performance
-  const chromaKeyOptimization = {
-    threshold: 0.4, // Balanced for speed vs quality
-    smoothing: 0.1,  // Minimal for performance
-    spillSuppression: 0.8 // Good balance
-  };
-  
-  return { preferredAPI, chromaKeyOptimization };
-};
-```
+**Verification**:
+- VP9 encoder configuration added
+- Network preloading implemented
+- Existing Daily.co functionality unchanged
 
 ---
 
-## 📋 **Implementation Roadmap**
+## **Agent Task 6: Performance Monitoring System**
+**Priority**: Observability (Merge Last)
+**Files**: New files in `examples/cvi-ui-conversation/src/utils/`
+**Estimated Time**: 30 minutes
+**Dependencies**: All previous tasks (monitors their performance)
 
-### **Phase 1: Immediate Optimizations (1-2 days)**
-1. **Enable `speculative_inference: true`** in conversation creation
-   - File: `examples/cvi-ui-conversation/src/api/createConversation.ts`
-   - Expected: 30-50% loading speed improvement
+### Task: Create performance monitoring and metrics collection
 
-2. **Optimize conversation properties**
-   - Add performance-focused configuration
-   - Expected: Additional 20% improvement
+**Objective**: Build monitoring system to track avatar loading times and transition performance.
 
-### **Phase 2: Preloaded Avatar System (3-5 days)**
-1. **Create preloaded video generation system**
-   - New file: `src/api/preloadAvatarContent.ts`
-   - Generate 3-4 loading videos with generic content
+**Critical Files/Anchors**:
+- @file/examples/cvi-ui-conversation/src/utils/logger.ts (reference pattern)
+- Create new: performanceMonitoring.ts, latencyMetrics.ts
 
-2. **Implement seamless transition component**  
-   - Enhance: `src/components/RosaDemo.tsx`
-   - Add smooth video switching logic
+**Constraints**:
+- Create new files only - no modifications to existing code
+- Use existing logger.ts pattern for consistency
+- Implement non-intrusive monitoring
+- Export metrics for analysis
 
-3. **Test transition timing and quality**
-   - Ensure imperceptible switch from preloaded to live
-
-### **Phase 3: Advanced Optimizations (1 week)**
-1. **WebRTC optimization**
-   - VP9 encoder configuration
-   - Network preloading strategies
-
-2. **ConvoCache implementation**
-   - Pre-warm common responses
-   - Cache frequent conference queries
-
-3. **Edge delivery optimization**
-   - CDN configuration for Vienna region
-   - Geographic performance tuning
+**Verification**:
+- Performance monitoring utilities created
+- Metrics collection implemented
+- No impact on existing functionality
 
 ---
 
-## 🎯 **Expected Performance Improvements**
+## 🔄 **Merge Strategy**
 
-### **Current vs Optimized Performance**
+1. **Task 1** (Foundation) → Creates performance base
+2. **Task 2** (Infrastructure) → Adds video generation (no conflicts)
+3. **Task 3** (UI) → Uses Task 2 infrastructure
+4. **Task 4** (WebGL) → Isolated component optimization  
+5. **Task 5** (WebRTC) → Isolated hook optimization
+6. **Task 6** (Monitoring) → Observes all previous improvements
 
-| Metric | Current | With Optimizations | Improvement |
-|--------|---------|-------------------|-------------|
-| **Avatar Boot Time** | 5-7 seconds | **Perceived: 0 seconds** | **100% elimination** |
-| **First Quality Frame** | 2-3 seconds | **Immediate** | **100% elimination** |
-| **Response Latency** | 300-500ms | **<100ms** | **60-80% reduction** |
-| **Conversation Start** | Blurry/choppy | **Perfect quality** | **Professional grade** |
-
-### **User Experience Impact**
-- **Zero perceived loading time** through preloaded content
-- **Professional quality** from first interaction
-- **Sub-200ms response times** for conference interactions  
-- **Seamless transitions** users never notice
-
----
-
-## 🔍 **Monitoring & Testing**
-
-### **Performance Metrics to Track**
-```typescript
-// Add to: examples/cvi-ui-conversation/src/utils/performanceMonitoring.ts
-
-const performanceMetrics = {
-  avatarLoadTime: performance.now(), // Conversation start to first frame
-  firstQualityFrame: performance.now(), // Until crisp video
-  responseLatency: [], // Array of response times
-  transitionSeamlessness: 0, // User perception score
-  networkLatency: 0 // Regional performance
-};
-```
-
-### **A/B Testing Framework**
-1. **Control**: Current implementation
-2. **Test A**: Speculative inference + optimizations  
-3. **Test B**: Full preloaded avatar system
-4. **Measure**: User perception, actual performance metrics
-
----
-
-## 📚 **References & Code Locations**
-
-### **Tavus Documentation References**
-- **Performance improvements**: `dev_docs/tavus.txt` lines 800-1200
-- **Speculative inference**: `dev_docs/tavus.txt` lines 3450-3550  
-- **Video generation**: `dev_docs/tavus.txt` /v2/videos section
-- **Interactions protocol**: `dev_docs/tavus.txt` interactions section
-
-### **ROSA Codebase References**
-- **Main conversation creation**: `examples/cvi-ui-conversation/src/api/createConversation.ts`
-- **Split-screen layout**: `examples/cvi-ui-conversation/src/components/RosaDemo.tsx`
-- **Green screen processing**: `examples/cvi-ui-conversation/src/components/cvi/components/webgl-green-screen-video/`
-- **App message handlers**: `examples/cvi-ui-conversation/src/components/CTBTOHandler.tsx`
-- **Performance documentation**: `dev_docs/rosa-green-screen-transparency-guide.md`
-
-### **Example Patterns to Follow**
-- **Simple setup**: `examples/cvi-quickstart-react/src/api/createConversation.ts`
-- **Optimized configuration**: `examples/cvi-transparent-background/src/api/createConversation.ts`
-- **Function calling**: `examples/cvi-frontend-backend-tools/`
-
----
-
-## 🚀 **Next Steps**
-
-1. **Implement speculative inference immediately** - Quick win for 30-50% improvement
-2. **Start preloaded video generation** - Revolutionary approach for zero perceived latency  
-3. **Test seamless transitions** - Ensure professional quality experience
-4. **Monitor Vienna conference performance** - Real-world validation
-5. **Iterate based on user feedback** - Continuous optimization
-
-*This strategy transforms the ROSA avatar from a loading bottleneck into an instant, professional-grade diplomatic assistant that impresses from the very first interaction.* 
+Each task works on different files/directories, ensuring clean sequential merges with minimal conflicts. 
