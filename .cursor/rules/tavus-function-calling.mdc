@@ -1,7 +1,6 @@
 ---
-description: Guide for implementing Tavus CVI function calling and tool integration
+alwaysApply: true
 ---
-
 # Tavus Function Calling Guide
 
 ## Function Calling Architecture
@@ -39,10 +38,11 @@ Tavus supports OpenAI-style function calling to bridge the avatar conversation t
 ```
 
 ### Event Handling
-- Listen for `conversation.tool_call` events
+- Listen for `conversation.tool_call` events via `useDailyEvent('app-message')`
 - Extract function name and arguments from event data
-- Call corresponding Python functions
-- Return responses in OpenAI chat completion format
+- Call corresponding API functions (Python, Express, etc.)
+- **Key Events**: `conversation.utterance` (user/ROSA speech), `conversation.tool_call` (function calls)
+- **Critical**: Use `properties.speech` and `properties.role` for conversation logging
 
 ## Reference Examples
 - **E-commerce Tools**: [examples/cvi-frontend-backend-tools/spawn_room.py](mdc:examples/cvi-frontend-backend-tools/spawn_room.py)

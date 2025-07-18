@@ -44,7 +44,14 @@ Follow this progression:
 - Use `speculative_inference: true` for performance testing
 - Test all 6 languages iteratively
 
-### 5. File Organization
+### 5. Debugging & Logging
+- Use SimpleConversationLogger for user/ROSA/tool call debugging
+- Key event properties: `conversation.utterance` uses `properties.speech` (not text)
+- Monitor tool calls: `conversation.tool_call` with `properties.name` and `properties.arguments`
+- Test conversation flow with console logging before production
+- Run external services (Express API) in separate terminal for debugging
+
+### 6. File Organization
 - Keep Rosa-specific logic separate from base CVI components
 - Use clear naming conventions for function calls
 - Document any deviations from example patterns
