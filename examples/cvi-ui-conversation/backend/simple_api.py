@@ -33,12 +33,12 @@ async def ask_ctbto(request: QueryRequest):
     """
     Simple endpoint to test our CTBTO agent
     """
-    # Use our existing agent
-    response = ctbto_agent.process_query(request.message)
+    # Use our existing agent (updated for Responses API)
+    result = ctbto_agent.process_query(request.message)
     is_related = ctbto_agent.is_ctbto_related(request.message)
     
     return QueryResponse(
-        response=response,
+        response=result["text"],
         is_ctbto_related=is_related
     )
 

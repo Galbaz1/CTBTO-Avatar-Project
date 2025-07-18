@@ -1,0 +1,32 @@
+#!/bin/bash
+
+echo "🧪 Rosa Parameter Testing Helper"
+echo "================================"
+echo ""
+echo "This script will help you test different WebGL green screen parameters."
+echo ""
+echo "Instructions:"
+echo "1. Make sure Rosa backend is running (./start-rosa.sh)"
+echo "2. Run this script to start the frontend"
+echo "3. Join a conversation with Rosa"
+echo "4. Click '🧪 Start Parameter Testing' in the debugger"
+echo "5. Take screenshots of each of the 10 parameter sets"
+echo "6. Each set shows for 10 seconds with clear labels"
+echo ""
+echo "Parameter Sets Tested:"
+echo "• Set 1: Current OBS (baseline)"
+echo "• Set 2: Softer Edges"
+echo "• Set 3: Stricter Green Detection"
+echo "• Set 4: Looser Green Detection"
+echo "• Set 5: High Spill Suppression"
+echo "• Set 6: Low Spill Suppression"
+echo "• Set 7: Ultra Soft Edges"
+echo "• Set 8: Sharp & Clean"
+echo "• Set 9: Balanced Plus"
+echo "• Set 10: Conservative"
+echo ""
+echo "Starting frontend in 3 seconds..."
+sleep 3
+
+cd "$(dirname "$0")"
+bun run dev 

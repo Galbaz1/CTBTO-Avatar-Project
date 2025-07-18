@@ -42,19 +42,22 @@ import sys
 sys.path.append('${__dirname}')
 from Agent1 import CTBTOAgent
 import json
+from datetime import datetime
 
 agent = CTBTOAgent()
 query = """${query.replace(/"/g, '\\"')}"""
 
 try:
-    response = agent.process_query(query)
+    # Use the new Responses API format
+    agent_result = agent.process_query(query)
     is_related = agent.is_ctbto_related(query)
     
     result = {
-        "response": response,
+        "response": agent_result["text"],
+        "response_id": agent_result.get("response_id"),
         "is_ctbto_related": is_related,
         "query": query,
-        "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
         "status": "success"
     }
     
@@ -88,10 +91,12 @@ except Exception as e:
       if (code === 0) {
         try {
           const result = JSON.parse(output.trim());
-          console.log(`✅ CTBTO Agent Response: ${result.response?.substring(0, 100)}...`);
+          const responsePreview = result.response ? result.response.substring(0, 100) : 'No response text';
+          console.log(`✅ CTBTO Agent Response: ${responsePreview}...`);
           resolve(result);
         } catch (parseError) {
           console.error('❌ Failed to parse agent response:', parseError);
+          console.error('Raw output:', output);
           reject(new Error(`Failed to parse agent response: ${parseError.message}`));
         }
       } else {

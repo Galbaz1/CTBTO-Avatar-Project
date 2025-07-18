@@ -171,7 +171,7 @@ export const createConversation = async (
       replica_id: 'rb67667672ad', // ROSA replica ID (green screen)
       conversation_name: 'ROSA - Diplomatic Conference Assistant',
       properties: {
-        apply_greenscreen: true, // Enable green screen for custom backgrounds
+        apply_greenscreen: true, // Enable green screen for frontend background removal
         max_call_duration: 1800, // 30 minutes max
         participant_left_timeout: 60, // End call 60s after participant leaves
       }

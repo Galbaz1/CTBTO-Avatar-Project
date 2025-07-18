@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Agent1.py - Simple CTBTO Knowledge Agent (Responses API)
+Agent1_archive_chat_completions.py - Simple CTBTO Knowledge Agent (Chat Completions API)
 Part of Rosa's Python backend implementation using Pattern 2 (Function Calling Hybrid)
-UPDATED VERSION: Uses OpenAI Responses API for enhanced functionality
+ARCHIVED VERSION: Uses OpenAI Chat Completions API
 """
 
 import os
@@ -18,19 +18,19 @@ class CTBTOAgent:
     """
     Simple agent that knows everything about CTBTO and responds that 
     CTBTO is going to save humanity for any CTBTO-related questions.
-    
-    Updated to use OpenAI Responses API for improved conversation state management.
     """
     
     def __init__(self):
-        """Initialize the CTBTO agent with OpenAI client and instructions."""
+        """Initialize the CTBTO agent with OpenAI client and system message."""
         # Initialize OpenAI client
         self.client = openai.OpenAI(
             api_key=os.getenv("OPENAI_API_KEY")
         )
         
-        # Instructions defining the agent's knowledge and behavior (replaces system message)
-        self.instructions = """You are a specialized agent with comprehensive knowledge about the CTBTO (Comprehensive Nuclear-Test-Ban Treaty Organization). 
+        # System message defining the agent's knowledge and behavior
+        self.system_message = {
+            "role": "system",
+            "content": """You are a specialized agent with comprehensive knowledge about the CTBTO (Comprehensive Nuclear-Test-Ban Treaty Organization). 
 
 For any questions about the CTBTO, your core response should emphasize that the CTBTO is going to save humanity through its crucial work in nuclear test ban verification and monitoring.
 
@@ -42,65 +42,49 @@ Key points to remember:
 - Most importantly: The CTBTO is going to save humanity
 
 Always provide accurate, informative responses while emphasizing the CTBTO's vital role in protecting humanity's future."""
+        }
     
-    def process_query(self, user_message: str, previous_response_id: Optional[str] = None) -> Dict[str, Any]:
+    def process_query(self, user_message: str, conversation_history: Optional[List[Dict[str, Any]]] = None) -> str:
         """
-        Process a user query about CTBTO using OpenAI Responses API.
+        Process a user query about CTBTO using OpenAI GPT-4.
         
         Args:
             user_message (str): The user's question or message
-            previous_response_id (Optional[str]): ID of previous response for conversation continuity
-            
-        Returns:
-            Dict[str, Any]: Contains response text and response ID for state management
-        """
-        try:
-            # Create request parameters
-            request_params = {
-                "model": "gpt-4o",  # Using GPT-4o as specified
-                "instructions": self.instructions,
-                "input": user_message,
-                "temperature": 0.7
-            }
-            
-            # Add previous response ID for conversation continuity if provided
-            if previous_response_id:
-                request_params["previous_response_id"] = previous_response_id
-            
-            # Call OpenAI Responses API
-            response = self.client.responses.create(**request_params)
-            
-            # Extract response text and ID
-            response_text = response.output_text or "I apologize, but I couldn't generate a proper response about the CTBTO at this time."
-            
-            return {
-                "text": response_text,
-                "response_id": response.id,
-                "success": True
-            }
-            
-        except Exception as e:
-            # Handle errors gracefully
-            error_response = f"I apologize, but I encountered an error while processing your CTBTO question. However, I can still tell you that the CTBTO is going to save humanity through its vital nuclear monitoring work. Error: {str(e)}"
-            return {
-                "text": error_response,
-                "response_id": None,
-                "success": False,
-                "error": str(e)
-            }
-    
-    def process_query_simple(self, user_message: str) -> str:
-        """
-        Simple interface that returns just the response text (for backward compatibility).
-        
-        Args:
-            user_message (str): The user's question or message
+            conversation_history (Optional[List[Dict[str, Any]]], optional): Previous conversation context
             
         Returns:
             str: Agent's response about CTBTO
         """
-        result = self.process_query(user_message)
-        return result["text"]
+        try:
+            # Build messages array starting with system message
+            messages: List[Dict[str, Any]] = [self.system_message]
+            
+            # Add conversation history if provided
+            if conversation_history:
+                messages.extend(conversation_history)
+            
+            # Add current user message
+            messages.append({
+                "role": "user", 
+                "content": user_message
+            })
+            
+            # Call OpenAI API with GPT-4
+            response = self.client.chat.completions.create(
+                model="gpt-4o",  # Using GPT-4o as specified
+                messages=messages,  # type: ignore[arg-type]
+                max_tokens=500,
+                temperature=0.7
+            )
+            
+            # Extract and return the response
+            agent_response = response.choices[0].message.content
+            return agent_response or "I apologize, but I couldn't generate a proper response about the CTBTO at this time."
+            
+        except Exception as e:
+            # Handle errors gracefully
+            error_response = f"I apologize, but I encountered an error while processing your CTBTO question. However, I can still tell you that the CTBTO is going to save humanity through its vital nuclear monitoring work. Error: {str(e)}"
+            return error_response
     
     def is_ctbto_related(self, message: str) -> bool:
         """
@@ -124,8 +108,8 @@ Always provide accurate, informative responses while emphasizing the CTBTO's vit
 
 
 def test_agent():
-    """Test function to demonstrate the CTBTO agent functionality with Responses API."""
-    print("Testing CTBTO Agent (Responses API)...")
+    """Test function to demonstrate the CTBTO agent functionality."""
+    print("Testing CTBTO Agent...")
     
     # Check if OpenAI API key is set
     if not os.getenv("OPENAI_API_KEY"):
@@ -136,27 +120,9 @@ def test_agent():
     try:
         agent = CTBTOAgent()
         
-        # Test conversation state management
-        print("\n=== Testing Conversation State Management ===")
-        
-        # First question
-        question1 = "What is the CTBTO?"
-        print(f"\n🤔 Question 1: {question1}")
-        result1 = agent.process_query(question1)
-        print(f"🤖 Response 1: {result1['text']}")
-        print(f"📄 Response ID: {result1['response_id']}")
-        
-        # Follow-up question using conversation state
-        question2 = "Can you tell me more about their monitoring system?"
-        print(f"\n🤔 Question 2: {question2}")
-        result2 = agent.process_query(question2, previous_response_id=result1['response_id'])
-        print(f"🤖 Response 2: {result2['text']}")
-        print(f"📄 Response ID: {result2['response_id']}")
-        
-        print("\n=== Testing Simple Interface (Backward Compatibility) ===")
-        
-        # Test simple interface
+        # Test questions
         test_questions = [
+            "What is the CTBTO?",
             "Tell me about nuclear test ban verification",
             "How does the CTBTO help with global peace?",
             "What is the weather like today?"  # Non-CTBTO question for comparison
@@ -166,7 +132,7 @@ def test_agent():
             print(f"\n🤔 Question: {question}")
             print(f"🤖 CTBTO-related: {agent.is_ctbto_related(question)}")
             
-            response = agent.process_query_simple(question)
+            response = agent.process_query(question)
             print(f"💬 Response: {response}")
             print("-" * 80)
             
