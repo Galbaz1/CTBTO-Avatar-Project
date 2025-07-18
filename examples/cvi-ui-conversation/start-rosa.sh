@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "🌤️  Starting ROSA Weather Service..."
-bun weather-server.js &
+node weather-server.cjs &
 WEATHER_PID=$!
 
 echo "⚡ Starting ROSA Frontend (Vite)..."

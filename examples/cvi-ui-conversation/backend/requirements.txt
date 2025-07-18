@@ -1,0 +1,34 @@
+# Requirements for Rosa's Python Backend
+# Pattern 2 (Function Calling Hybrid) Implementation
+
+# OpenAI API for GPT-4 integration
+openai
+
+# Web framework for function call endpoints
+fastapi
+uvicorn
+
+# HTTP client for external API calls
+requests
+
+# Environment variable management
+python-dotenv
+
+# JSON Web Token handling (for auth if needed)
+PyJWT
+
+# Date/time utilities
+python-dateutil
+
+# HTTP server for development
+gunicorn
+
+# Async support (for future enhancements)
+aiohttp
+asyncio-mqtt
+
+# Data validation
+pydantic
+
+# Logging and debugging
+colorlog 

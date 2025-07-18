@@ -1,5 +1,6 @@
 ---
-alwaysApply: true
+description: use this rule if you need to see the project requirements
+alwaysApply: false
 ---
 # Rosa Project Requirements
 

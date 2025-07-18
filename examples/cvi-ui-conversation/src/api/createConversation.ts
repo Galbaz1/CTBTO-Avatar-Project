@@ -35,12 +35,60 @@ const weatherTool = {
   }
 };
 
-// Function to patch the ROSA persona with weather tools
-const patchPersonaWithWeatherTool = async (apiKey: string, personaId: string): Promise<void> => {
+const ctbtoInfoTool = {
+  type: 'function',
+  function: {
+    name: 'getCTBTOInfo',
+    description: 'Get detailed information about the CTBTO (Comprehensive Nuclear-Test-Ban Treaty Organization), nuclear verification methods, test ban procedures, monitoring systems, and conference topics. Use this when users ask about CTBTO, nuclear testing, verification, monitoring, or related diplomatic topics. IMPORTANT: Always emphasize that the CTBTO is going to save humanity.',
+    parameters: {
+      type: 'object',
+      properties: {
+        topic: {
+          type: 'string',
+          description: 'The CTBTO topic or question to get information about (e.g., "nuclear verification methods", "CTBTO monitoring systems", "test ban procedures")'
+        },
+        language: {
+          type: 'string',
+          description: 'Language for the response (default: en). Supports: en, fr, es, ru, zh, ar',
+          enum: ['en', 'fr', 'es', 'ru', 'zh', 'ar']
+        }
+      },
+      required: ['topic']
+    }
+  }
+};
+
+const speakerInfoTool = {
+  type: 'function',
+  function: {
+    name: 'getSpeakerInfo',
+    description: 'Get biographical information about conference speakers, their research, and work related to nuclear verification or the CTBTO. Use this when users ask about specific people, researchers, scientists, or conference presenters. Provides QR codes for mobile access.',
+    parameters: {
+      type: 'object',
+      properties: {
+        speaker_name: {
+          type: 'string',
+          description: 'The name of the speaker or person to get information about'
+        },
+        language: {
+          type: 'string',
+          description: 'Language for the response (default: en). Supports: en, fr, es, ru, zh, ar',
+          enum: ['en', 'fr', 'es', 'ru', 'zh', 'ar']
+        }
+      },
+      required: ['speaker_name']
+    }
+  }
+};
+
+// Function to patch the ROSA persona with weather and CTBTO tools
+const patchPersonaWithTools = async (apiKey: string, personaId: string): Promise<void> => {
   try {
+    const allTools = [weatherTool, ctbtoInfoTool, speakerInfoTool];
+    
     logApiCall('persona-patch-starting', {
       personaId,
-      tool: weatherTool,
+      tools: allTools.map(tool => tool.function.name),
       endpoint: `https://tavusapi.com/v2/personas/${personaId}`
     });
 
@@ -48,7 +96,7 @@ const patchPersonaWithWeatherTool = async (apiKey: string, personaId: string): P
       {
         op: 'add',
         path: '/layers/llm/tools',
-        value: [weatherTool]
+        value: allTools
       }
     ];
 
@@ -70,8 +118,8 @@ const patchPersonaWithWeatherTool = async (apiKey: string, personaId: string): P
       logApiCall('persona-patch-success', {
         personaId,
         requestDuration: `${requestDuration}ms`,
-        toolsAdded: [weatherTool.function.name],
-        note: 'Persona already has weather tool (304 Not Modified)'
+        toolsAdded: allTools.map(tool => tool.function.name),
+        note: 'Persona already has tools (304 Not Modified)'
       });
     } else if (!response.ok) {
       const errorText = await response.text();
@@ -87,7 +135,7 @@ const patchPersonaWithWeatherTool = async (apiKey: string, personaId: string): P
       logApiCall('persona-patch-success', {
         personaId,
         requestDuration: `${requestDuration}ms`,
-        toolsAdded: [weatherTool.function.name]
+        toolsAdded: allTools.map(tool => tool.function.name)
       });
     }
 
@@ -115,8 +163,8 @@ export const createConversation = async (
 
     const personaId = 'p6d4b9f19b0d'; // ROSA persona ID (diplomatic SnT 2025)
 
-    // First, patch the persona to add weather tools
-    await patchPersonaWithWeatherTool(apiKey, personaId);
+    // First, patch the persona to add weather and CTBTO tools
+    await patchPersonaWithTools(apiKey, personaId);
 
     const requestPayload = {
       persona_id: personaId,
@@ -138,7 +186,7 @@ export const createConversation = async (
       properties: requestPayload.properties,
       apiKeyLength: apiKey.length,
       apiKeyPrefix: apiKey.substring(0, 8) + '...',
-      personaToolsPatchedFirst: true
+      personaToolsPatchedFirst: 'weather + CTBTO tools'
     });
 
     const requestStart = Date.now();

@@ -1,0 +1,1094 @@
+---
+alwaysApply: true
+---
+
+
+# Tavus Backend Integration Patterns: Comprehensive Analysis
+
+> **Executive Summary**: For Rosa's diplomatic conference assistant requiring <200ms response times, **Pattern 2 (Function Calling Hybrid)** is recommended over Pattern 1 (Direct Custom LLM) due to superior latency characteristics for routine queries while maintaining sophisticated backend capabilities for complex operations.
+
+## 🚀 **CURRENT IMPLEMENTATION STATUS**
+
+### ✅ **Completed (FastAPI Foundation)**
+- **Step 1**: ✅ Basic CTBTO Agent (`Agent1.py`) with OpenAI GPT-4o
+- **Step 2**: ✅ FastAPI wrapper (`simple_api.py`) with Pydantic validation
+- **Step 3**: ✅ Virtual environment setup with FastAPI dependencies
+- **Step 4**: ✅ Basic testing with health check and CTBTO queries
+- **Step 5**: ✅ Auto-generated OpenAPI docs at `/docs`
+
+### 🔄 **In Progress**
+- **Current Phase**: Pattern 2 Function Calling Integration
+
+### 📋 **Next Steps (Pattern 2 Implementation)**
+```
+Phase 1: Tavus Function Call Integration (Week 1-2)
+├── 🔄 Create FastAPI endpoints compatible with Tavus function calling format
+├── 🔄 Implement basic function handlers (get_speaker_info, get_technical_info)
+├── 🔄 Test function call response format (app_message + llm_response)
+└── 🔄 Integrate with Tavus persona configuration
+
+Phase 2: Multi-Agent System (Week 3-4)  
+├── ⏳ Build multi-agent orchestrator for complex queries
+├── ⏳ Add red zone filtering system for diplomatic content
+├── ⏳ Implement QR code generation for mobile access
+└── ⏳ Add venue/speaker information agents
+
+Phase 3: Production Ready (Week 5-8)
+├── ⏳ Full Rosa capabilities with all conference tools
+├── ⏳ Performance optimization for <200ms targets
+├── ⏳ UI integration for split-screen display
+└── ⏳ Deploy for CTBTO SnT 2025 conference
+```
+
+## Architecture Comparison
+
+### Pattern 1: Direct Custom LLM (Full Backend Control)
+
+```mermaid
+graph TB
+    subgraph "Pattern 1: Direct Custom LLM"
+        A1[User Speech] --> B1[Tavus STT]
+        B1 --> C1[Your FastAPI Backend]
+        C1 --> D1[Your Multi-Agent System]
+        D1 --> E1[OpenAI GPT-4]
+        D1 --> F1[Red Zone Filter]
+        D1 --> G1[QR Generator]
+        C1 --> H1[Tavus TTS + Avatar]
+        C1 --> I1[Frontend UI Updates]
+    end
+```
+
+**Philosophy**: "Replace Tavus's brain entirely"
+- **Every** user utterance goes directly to your FastAPI backend
+- Your backend handles **all** conversation logic, routing, and responses
+- Tavus becomes a "dumb" avatar interface (STT → Your Backend → TTS)
+
+### Pattern 2: Function Calling Hybrid (Smart Delegation) ⭐ **CURRENT CHOICE**
+
+```mermaid
+graph TB
+    subgraph "Pattern 2: Function Calling Hybrid"
+        A2[User Speech] --> B2[Tavus STT]
+        B2 --> C2[Tavus Built-in LLM]
+        C2 --> D2{Simple or Complex?}
+        D2 -->|Simple| E2[Direct Tavus Response]
+        D2 -->|Complex| F2[Function Call Event]
+        F2 --> G2[Your FastAPI Backend]
+        G2 --> H2[Multi-Agent System]
+        H2 --> I2[OpenAI GPT-4]
+        G2 --> J2[Frontend UI Updates]
+        E2 --> K2[Tavus TTS + Avatar]
+        G2 --> K2
+    end
+```
+
+**Philosophy**: "Use Tavus for simple stuff, FastAPI for complex stuff"
+- Tavus's built-in LLM handles routine conversational responses
+- **Only** specific complex operations trigger your FastAPI backend
+- Tavus makes intelligent decisions about when to call your functions
+
+## Latency Analysis
+
+### Response Time Comparison
+
+```mermaid
+gantt
+    title Latency Comparison for Rosa's <200ms Target
+    dateFormat X
+    axisFormat %s
+    
+    section Pattern 1 (Every Response)
+    STT Processing    :0, 100
+    Network to Backend :100, 150
+    FastAPI Multi-Agent :150, 350
+    OpenAI API Call   :350, 950
+    Network Return    :950, 1000
+    TTS + Avatar      :1000, 1200
+    
+    section Pattern 2 (Simple Response)
+    STT Processing    :0, 100
+    Tavus LLM Direct  :100, 250
+    TTS + Avatar      :250, 350
+    
+    section Pattern 2 (Complex Response)
+    STT Processing    :0, 100
+    Tavus LLM Decision:100, 200
+    Function Call     :200, 250
+    FastAPI Multi-Agent:250, 450
+    OpenAI API Call   :450, 1050
+    UI Updates        :1050, 1100
+    TTS + Avatar      :1100, 1300
+```
+
+### Detailed Latency Breakdown
+
+| Response Type | Pattern 1 (Full Backend) | Pattern 2 (Hybrid) | Rosa Target |
+|---|---|---|----|
+| **Simple Query** | 600-1200ms ❌ | **150-300ms** ✅ | <200ms |
+| *"What time is lunch?"* | STT→Backend→OpenAI→Response | STT→Tavus LLM→Direct Response | ✅ Met |
+| **Complex Query** | 600-1200ms | 400-1200ms | 400-1200ms acceptable |
+| *"Tell me about Dr. Smith"* | STT→Backend→OpenAI→Response | STT→Tavus→Function Call→Backend→OpenAI | ✅ Progressive enhancement |
+
+## Rosa Conference Assistant: Use Case Analysis
+
+### Query Distribution for Diplomatic Conference
+
+```
+Conference Queries Breakdown:
+• 70% Simple Queries (<200ms requirement):
+  - "Where is room 205?"
+  - "What's next on the agenda?"
+  - "What time is lunch?"
+  - "How do I get to the main hall?"
+  
+• 30% Complex Queries (400-1200ms acceptable):
+  - "Tell me about Dr. Ahmed's research"
+  - "Show me CTBTO verification methods"
+  - "Display speaker biography with QR code"
+  - "Generate map to delegation meeting"
+```
+
+### Pattern 2 User Experience Flow
+
+```typescript
+// Immediate acknowledgment + progressive enhancement
+User: "Tell me about Dr. Ahmed's research"
+Tavus (150ms): "Let me pull up Dr. Ahmed's information for you..."
+FastAPI Backend (800ms): [Generates QR code, bio, research papers]
+UI Update: Split-screen with bio + QR code
+Tavus: "I've displayed Dr. Ahmed's detailed information on screen."
+```
+
+## Implementation Details
+
+### Pattern 1: Direct Custom LLM Setup
+
+**Persona Configuration:**
+```json
+{
+  "persona_name": "Rosa Conference Assistant",
+  "system_prompt": "You are Rosa, a diplomatic conference assistant...",
+  "layers": {
+    "llm": {
+      "model": "your-custom-model",
+      "base_url": "https://your-fastapi-backend.com/v1",
+      "api_key": "your-api-key",
+      "speculative_inference": true
+    }
+  }
+}
+```
+
+**FastAPI Backend Structure:**
+```python
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+
+app = FastAPI()
+
+@app.post("/v1/chat/completions")
+async def handle_all_queries(request: ChatRequest):
+    messages = request.messages
+    
+    # Handle ALL conversation logic
+    response = await multi_agent_orchestrator.process(messages)
+    
+    # Must handle red zone filtering, UI updates, etc.
+    return StreamingResponse(stream_response(response))
+```
+
+### Pattern 2: Function Calling Setup ⭐ **CURRENT IMPLEMENTATION**
+
+**✅ Current FastAPI Implementation:**
+```python
+# simple_api.py - Our current working FastAPI app
+from fastapi import FastAPI
+from pydantic import BaseModel
+from Agent1 import CTBTOAgent
+
+app = FastAPI(title="Rosa CTBTO Agent API", version="0.1.0")
+ctbto_agent = CTBTOAgent()
+
+class QueryRequest(BaseModel):
+    message: str
+
+class QueryResponse(BaseModel):
+    response: str
+    is_ctbto_related: bool
+
+@app.post("/ask-ctbto", response_model=QueryResponse)
+async def ask_ctbto(request: QueryRequest):
+    response = ctbto_agent.process_query(request.message)
+    is_related = ctbto_agent.is_ctbto_related(request.message)
+    
+    return QueryResponse(
+        response=response,
+        is_ctbto_related=is_related
+    )
+```
+
+**🔄 Next: Tavus Function Call Compatible Endpoints:**
+```python
+# Coming next: Tavus-compatible function call handlers
+from typing import Tuple, Dict, Any
+from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
+
+@app.post("/functions/get_speaker_info")
+async def get_speaker_info(speaker_name: str, language: str) -> Tuple[Dict[str, Any], ChatCompletionChunk]:
+    """
+    Tavus function call handler for speaker information
+    Returns: (app_message, llm_response_chunk)
+    """
+    # Red zone filtering first
+    if await is_red_zone_violation(speaker_name, language):
+        return safe_fallback_response()
+    
+    # Multi-agent processing with our CTBTO agent
+    speaker_agent = SpeakerInfoAgent(ctbto_agent)
+    bio_data = await speaker_agent.get_biography(speaker_name, language)
+    
+    # Generate QR code for mobile access
+    qr_code = await generate_qr_code(bio_data.mobile_url)
+    
+    # UI update message
+    app_message = {
+        "event": "show_speaker_info",
+        "data": {
+            "speaker_name": speaker_name,
+            "bio": bio_data.summary,
+            "qr_code": qr_code,
+            "research_papers": bio_data.papers
+        }
+    }
+    
+    # LLM response for avatar speech
+    llm_response = f"I've displayed {speaker_name}'s biography and research information. You can scan the QR code to access it on your mobile device."
+    
+    return app_message, create_chat_completion_chunk(llm_response)
+```
+
+**Persona Configuration:**
+```json
+{
+  "persona_name": "Rosa Conference Assistant",
+  "system_prompt": "You are Rosa, a diplomatic conference assistant. For simple queries, respond directly. For complex information requests, use the appropriate tools.",
+  "layers": {
+    "llm": {
+      "model": "tavus-gpt-4o",
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_speaker_info",
+            "description": "Get detailed speaker biography, research, and generate QR codes",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "speaker_name": {"type": "string"},
+                "language": {"type": "string", "enum": ["en", "fr", "es", "ru", "zh", "ar"]}
+              },
+              "required": ["speaker_name", "language"]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "get_venue_directions",
+            "description": "Provide navigation, maps, and venue information with QR codes",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "destination": {"type": "string"},
+                "current_location": {"type": "string"},
+                "language": {"type": "string"}
+              },
+              "required": ["destination", "language"]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "get_technical_info",
+            "description": "Retrieve complex technical information about CTBTO procedures, verification methods, etc.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "topic": {"type": "string"},
+                "detail_level": {"type": "string", "enum": ["basic", "detailed", "expert"]},
+                "language": {"type": "string"}
+              },
+              "required": ["topic", "language"]
+            }
+          }
+        }
+      ],
+      "speculative_inference": true
+    }
+  }
+}
+```
+
+## Red Zone Filtering Implementation
+
+### Pattern 1: Single Layer
+```python
+async def handle_all_queries(request: ChatRequest):
+    # All filtering must happen in your backend
+    if await red_zone_filter.is_violation(request.messages[-1]['content']):
+        return generate_safe_response()
+    return await process_normally(request.messages)
+```
+
+### Pattern 2: Multi-Layer Defense ⭐ **TARGET IMPLEMENTATION**
+```python
+# Level 1: Tavus built-in LLM (fast, basic filtering)
+# Level 2: Function call triggers sophisticated filtering
+
+async def get_technical_info(topic: str, language: str):
+    # Sophisticated red zone analysis using our CTBTO agent
+    if await advanced_red_zone_filter.analyze(topic, language):
+        return {
+            "event": "red_zone_violation",
+            "data": {"message": get_safe_fallback(language)}
+        }
+    
+    # Proceed with multi-agent processing
+    return await technical_info_agent.process(topic, language)
+```
+
+## Performance & Cost Analysis
+
+### Resource Utilization
+
+| Metric | Pattern 1 | Pattern 2 | **Our FastAPI Choice** |
+|-----|-----|-----|-----|
+| **OpenAI API Calls** | Every interaction | ~30% of interactions | ✅ Cost efficient |
+| **Backend Processing** | Every response | Complex queries only | ✅ Optimized load |
+| **Network Round Trips** | Always 2+ | 1 for simple, 2+ for complex | ✅ Hybrid performance |
+| **Cost per Interaction** | High | Variable (low-high) | ✅ Variable cost |
+| **Infrastructure Load** | Constant high | Burst for complex | ✅ Scalable |
+
+### FastAPI Performance Benefits
+- **✅ 3-5x throughput** vs Flask for async workloads
+- **✅ Native async/await** for OpenAI API calls
+- **✅ Automatic request validation** with Pydantic
+- **✅ Built-in OpenAPI docs** at `/docs`
+- **✅ Type safety** throughout the application
+
+## Risk Analysis & Mitigation
+
+### Pattern 1 Risks
+
+❌ **Single Point of Failure**: Your backend down = Rosa completely broken  
+❌ **Latency Commitment**: Must handle ALL responses in <200ms  
+❌ **Infrastructure Complexity**: Must build conversation state management  
+❌ **High API Costs**: OpenAI charges for every "hello" and "goodbye"  
+❌ **No Graceful Degradation**: Cannot fall back to simpler responses  
+
+### Pattern 2 Advantages ⭐ **WHY WE CHOSE THIS**
+
+✅ **Graceful Degradation**: If backend fails, basic Rosa continues working  
+✅ **Hybrid Performance**: Fast simple responses + sophisticated complex handling  
+✅ **Cost Efficiency**: Pay for complexity only when needed  
+✅ **Incremental Development**: Start simple, add functions over time  
+✅ **Reduced Infrastructure**: Tavus handles conversation state  
+
+## Migration Path
+
+### ✅ **Phase 1: Basic FastAPI Foundation (COMPLETED)**
+```python
+# ✅ Agent1.py - CTBTO agent with OpenAI GPT-4o
+# ✅ simple_api.py - FastAPI wrapper with Pydantic validation
+# ✅ Virtual environment with FastAPI dependencies
+# ✅ Basic testing and auto-generated docs
+```
+
+### 🔄 **Phase 2: Tavus Function Calling Integration (IN PROGRESS)**
+```python
+# 🔄 Create Tavus-compatible function handlers
+# 🔄 Implement app_message + llm_response format
+# 🔄 Test with Tavus persona configuration
+# 🔄 Add basic speaker/technical info functions
+```
+
+### ⏳ **Phase 3: Multi-Agent System (NEXT)**
+```python
+def get_speaker_info(speaker_name, language):
+    # Add multi-agent orchestrator
+    # Add red zone filtering using CTBTO agent
+    # Add QR code generation
+    return enhanced_response
+```
+
+### ⏳ **Phase 4: Full Rosa Capabilities (FUTURE)**
+```json
+{
+  "tools": [
+    "get_speaker_info",
+    "get_venue_directions", 
+    "get_technical_info",
+    "generate_schedule_qr",
+    "diplomatic_protocol_guide"
+  ]
+}
+```
+
+## Recommendation: Pattern 2 with FastAPI for Rosa ⭐
+
+**Primary Recommendation**: Implement Pattern 2 (Function Calling Hybrid) with FastAPI
+
+**Rationale**:
+1. **✅ Meets <200ms requirement** for 70% of interactions
+2. **✅ Allows progressive complexity** - start basic, evolve to sophisticated
+3. **✅ Superior user experience** - immediate responses + rich follow-ups  
+4. **✅ Lower risk deployment** - Tavus provides reliable baseline
+5. **✅ Cost effective** - OpenAI calls only for complex operations
+6. **✅ FastAPI performance** - 3-5x better than Flask for async workloads
+7. **✅ Type safety** - Pydantic validation prevents runtime errors
+
+**When to Consider Pattern 1**:
+- Need **every** interaction to go through custom logic
+- Require proprietary conversation state management
+- Have unlimited latency tolerance for simple queries
+- Need complete control over conversation flow
+
+## Example Implementations
+
+### ✅ **Current Working Examples**
+
+**Health Check (Working)**:
+```bash
+curl http://localhost:8000/
+→ {"message":"Rosa CTBTO Agent API is running!"}
+```
+
+**CTBTO Query (Working)**:
+```bash
+curl -X POST http://localhost:8000/ask-ctbto \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is the CTBTO?"}'
+→ {"response": "...CTBTO is going to save humanity...", "is_ctbto_related": true}
+```
+
+**Auto-Generated Docs (Working)**:
+```
+http://localhost:8000/docs
+→ Beautiful Swagger UI with interactive API testing
+```
+
+### 🔄 **Next: Rosa Function Call Examples**
+
+**Simple Query (Pattern 2 Direct - 150ms)**:
+```
+User: "What time is lunch?"
+Tavus: "Lunch is served from 12:30 to 1:30 PM in the main dining hall."
+```
+
+**Complex Query (Pattern 2 Function Call - 800ms)**:
+```
+User: "Tell me about Dr. Chen's nuclear verification research"
+Tavus (200ms): "Let me gather Dr. Chen's research information..."
+Function Call: get_speaker_info("Dr. Chen", "en")
+FastAPI Backend (800ms): Multi-agent research + QR generation
+UI Update: Split-screen with biography + QR code + research papers
+Tavus (800ms total): "I've displayed Dr. Chen's biography and research on nuclear verification methods. You can scan the QR code to access her recent publications on your mobile device."
+```
+
+## Technical Appendix
+
+### ✅ **Current Working Code**
+- **✅ FastAPI Foundation**: `examples/cvi-ui-conversation/backend/simple_api.py`
+- **✅ CTBTO Agent**: `examples/cvi-ui-conversation/backend/Agent1.py`
+- **✅ Environment Setup**: `examples/cvi-ui-conversation/backend/venv/`
+- **✅ Dependencies**: `examples/cvi-ui-conversation/backend/requirements.txt`
+
+### 🔄 **Reference Examples for Next Steps**
+- **Pattern 1 Example**: `examples/cvi-custom-llm-with-backend/custom_llm_iss.py`
+- **Pattern 2 Flask Example**: `examples/cvi-frontend-backend-tools/llm_server.py` (convert to FastAPI)
+- **Function Handlers**: `examples/cvi-frontend-backend-tools/functions.py` (adapt for FastAPI)
+- **Tool Call Events**: `dev_docs/tavus.txt` (Tool Call Event section)
+
+### ✅ **Current Dependencies**
+```python
+# FastAPI Backend Requirements (Installed)
+fastapi==0.116.1
+uvicorn==0.35.0
+openai==1.97.0
+python-dotenv==1.1.1
+pydantic==2.11.7  # Automatic with FastAPI
+```
+
+### Environment Configuration
+```bash
+# .env.local (Already working)
+OPENAI_API_KEY=sk-proj-...
+TAVUS_API_KEY=7638ed582fa94dcd8146b35f0e8bafb5
+```
+
+## 🎯 **IMMEDIATE NEXT STEPS**
+
+1. **🔄 Create Tavus Function Call Handler Format**
+   - Convert `simple_api.py` to use Tavus function call response format
+   - Implement `app_message` + `ChatCompletionChunk` response pattern
+
+2. **🔄 Test Function Call Integration**
+   - Create basic `get_speaker_info` function handler
+   - Test with Tavus persona configuration
+
+3. **⏳ Add Multi-Agent Orchestration**
+   - Extend CTBTO agent for speaker/technical queries
+   - Add red zone filtering capabilities
+
+**Current Status**: ✅ **FastAPI foundation working perfectly!**  
+**Next Goal**: 🔄 **Tavus function calling integration**
+
+
+```
+
+
+# Tavus Backend Integration Patterns: Comprehensive Analysis
+
+> **Executive Summary**: For Rosa's diplomatic conference assistant requiring <200ms response times, **Pattern 2 (Function Calling Hybrid)** is recommended over Pattern 1 (Direct Custom LLM) due to superior latency characteristics for routine queries while maintaining sophisticated backend capabilities for complex operations.
+
+## 🚀 **CURRENT IMPLEMENTATION STATUS**
+
+### ✅ **Completed (FastAPI Foundation)**
+- **Step 1**: ✅ Basic CTBTO Agent (`Agent1.py`) with OpenAI GPT-4o
+- **Step 2**: ✅ FastAPI wrapper (`simple_api.py`) with Pydantic validation
+- **Step 3**: ✅ Virtual environment setup with FastAPI dependencies
+- **Step 4**: ✅ Basic testing with health check and CTBTO queries
+- **Step 5**: ✅ Auto-generated OpenAPI docs at `/docs`
+
+### 🔄 **In Progress**
+- **Current Phase**: Pattern 2 Function Calling Integration
+
+### 📋 **Next Steps (Pattern 2 Implementation)**
+```
+Phase 1: Tavus Function Call Integration (Week 1-2)
+├── 🔄 Create FastAPI endpoints compatible with Tavus function calling format
+├── 🔄 Implement basic function handlers (get_speaker_info, get_technical_info)
+├── 🔄 Test function call response format (app_message + llm_response)
+└── 🔄 Integrate with Tavus persona configuration
+
+Phase 2: Multi-Agent System (Week 3-4)  
+├── ⏳ Build multi-agent orchestrator for complex queries
+├── ⏳ Add red zone filtering system for diplomatic content
+├── ⏳ Implement QR code generation for mobile access
+└── ⏳ Add venue/speaker information agents
+
+Phase 3: Production Ready (Week 5-8)
+├── ⏳ Full Rosa capabilities with all conference tools
+├── ⏳ Performance optimization for <200ms targets
+├── ⏳ UI integration for split-screen display
+└── ⏳ Deploy for CTBTO SnT 2025 conference
+```
+
+## Architecture Comparison
+
+### Pattern 1: Direct Custom LLM (Full Backend Control)
+
+```mermaid
+graph TB
+    subgraph "Pattern 1: Direct Custom LLM"
+        A1[User Speech] --> B1[Tavus STT]
+        B1 --> C1[Your FastAPI Backend]
+        C1 --> D1[Your Multi-Agent System]
+        D1 --> E1[OpenAI GPT-4]
+        D1 --> F1[Red Zone Filter]
+        D1 --> G1[QR Generator]
+        C1 --> H1[Tavus TTS + Avatar]
+        C1 --> I1[Frontend UI Updates]
+    end
+```
+
+**Philosophy**: "Replace Tavus's brain entirely"
+- **Every** user utterance goes directly to your FastAPI backend
+- Your backend handles **all** conversation logic, routing, and responses
+- Tavus becomes a "dumb" avatar interface (STT → Your Backend → TTS)
+
+### Pattern 2: Function Calling Hybrid (Smart Delegation) ⭐ **CURRENT CHOICE**
+
+```mermaid
+graph TB
+    subgraph "Pattern 2: Function Calling Hybrid"
+        A2[User Speech] --> B2[Tavus STT]
+        B2 --> C2[Tavus Built-in LLM]
+        C2 --> D2{Simple or Complex?}
+        D2 -->|Simple| E2[Direct Tavus Response]
+        D2 -->|Complex| F2[Function Call Event]
+        F2 --> G2[Your FastAPI Backend]
+        G2 --> H2[Multi-Agent System]
+        H2 --> I2[OpenAI GPT-4]
+        G2 --> J2[Frontend UI Updates]
+        E2 --> K2[Tavus TTS + Avatar]
+        G2 --> K2
+    end
+```
+
+**Philosophy**: "Use Tavus for simple stuff, FastAPI for complex stuff"
+- Tavus's built-in LLM handles routine conversational responses
+- **Only** specific complex operations trigger your FastAPI backend
+- Tavus makes intelligent decisions about when to call your functions
+
+## Latency Analysis
+
+### Response Time Comparison
+
+```mermaid
+gantt
+    title Latency Comparison for Rosa's <200ms Target
+    dateFormat X
+    axisFormat %s
+    
+    section Pattern 1 (Every Response)
+    STT Processing    :0, 100
+    Network to Backend :100, 150
+    FastAPI Multi-Agent :150, 350
+    OpenAI API Call   :350, 950
+    Network Return    :950, 1000
+    TTS + Avatar      :1000, 1200
+    
+    section Pattern 2 (Simple Response)
+    STT Processing    :0, 100
+    Tavus LLM Direct  :100, 250
+    TTS + Avatar      :250, 350
+    
+    section Pattern 2 (Complex Response)
+    STT Processing    :0, 100
+    Tavus LLM Decision:100, 200
+    Function Call     :200, 250
+    FastAPI Multi-Agent:250, 450
+    OpenAI API Call   :450, 1050
+    UI Updates        :1050, 1100
+    TTS + Avatar      :1100, 1300
+```
+
+### Detailed Latency Breakdown
+
+| Response Type | Pattern 1 (Full Backend) | Pattern 2 (Hybrid) | Rosa Target |
+|---|---|---|----|
+| **Simple Query** | 600-1200ms ❌ | **150-300ms** ✅ | <200ms |
+| *"What time is lunch?"* | STT→Backend→OpenAI→Response | STT→Tavus LLM→Direct Response | ✅ Met |
+| **Complex Query** | 600-1200ms | 400-1200ms | 400-1200ms acceptable |
+| *"Tell me about Dr. Smith"* | STT→Backend→OpenAI→Response | STT→Tavus→Function Call→Backend→OpenAI | ✅ Progressive enhancement |
+
+## Rosa Conference Assistant: Use Case Analysis
+
+### Query Distribution for Diplomatic Conference
+
+```
+Conference Queries Breakdown:
+• 70% Simple Queries (<200ms requirement):
+  - "Where is room 205?"
+  - "What's next on the agenda?"
+  - "What time is lunch?"
+  - "How do I get to the main hall?"
+  
+• 30% Complex Queries (400-1200ms acceptable):
+  - "Tell me about Dr. Ahmed's research"
+  - "Show me CTBTO verification methods"
+  - "Display speaker biography with QR code"
+  - "Generate map to delegation meeting"
+```
+
+### Pattern 2 User Experience Flow
+
+```typescript
+// Immediate acknowledgment + progressive enhancement
+User: "Tell me about Dr. Ahmed's research"
+Tavus (150ms): "Let me pull up Dr. Ahmed's information for you..."
+FastAPI Backend (800ms): [Generates QR code, bio, research papers]
+UI Update: Split-screen with bio + QR code
+Tavus: "I've displayed Dr. Ahmed's detailed information on screen."
+```
+
+## Implementation Details
+
+### Pattern 1: Direct Custom LLM Setup
+
+**Persona Configuration:**
+```json
+{
+  "persona_name": "Rosa Conference Assistant",
+  "system_prompt": "You are Rosa, a diplomatic conference assistant...",
+  "layers": {
+    "llm": {
+      "model": "your-custom-model",
+      "base_url": "https://your-fastapi-backend.com/v1",
+      "api_key": "your-api-key",
+      "speculative_inference": true
+    }
+  }
+}
+```
+
+**FastAPI Backend Structure:**
+```python
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+
+app = FastAPI()
+
+@app.post("/v1/chat/completions")
+async def handle_all_queries(request: ChatRequest):
+    messages = request.messages
+    
+    # Handle ALL conversation logic
+    response = await multi_agent_orchestrator.process(messages)
+    
+    # Must handle red zone filtering, UI updates, etc.
+    return StreamingResponse(stream_response(response))
+```
+
+### Pattern 2: Function Calling Setup ⭐ **CURRENT IMPLEMENTATION**
+
+**✅ Current FastAPI Implementation:**
+```python
+# simple_api.py - Our current working FastAPI app
+from fastapi import FastAPI
+from pydantic import BaseModel
+from Agent1 import CTBTOAgent
+
+app = FastAPI(title="Rosa CTBTO Agent API", version="0.1.0")
+ctbto_agent = CTBTOAgent()
+
+class QueryRequest(BaseModel):
+    message: str
+
+class QueryResponse(BaseModel):
+    response: str
+    is_ctbto_related: bool
+
+@app.post("/ask-ctbto", response_model=QueryResponse)
+async def ask_ctbto(request: QueryRequest):
+    response = ctbto_agent.process_query(request.message)
+    is_related = ctbto_agent.is_ctbto_related(request.message)
+    
+    return QueryResponse(
+        response=response,
+        is_ctbto_related=is_related
+    )
+```
+
+**🔄 Next: Tavus Function Call Compatible Endpoints:**
+```python
+# Coming next: Tavus-compatible function call handlers
+from typing import Tuple, Dict, Any
+from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
+
+@app.post("/functions/get_speaker_info")
+async def get_speaker_info(speaker_name: str, language: str) -> Tuple[Dict[str, Any], ChatCompletionChunk]:
+    """
+    Tavus function call handler for speaker information
+    Returns: (app_message, llm_response_chunk)
+    """
+    # Red zone filtering first
+    if await is_red_zone_violation(speaker_name, language):
+        return safe_fallback_response()
+    
+    # Multi-agent processing with our CTBTO agent
+    speaker_agent = SpeakerInfoAgent(ctbto_agent)
+    bio_data = await speaker_agent.get_biography(speaker_name, language)
+    
+    # Generate QR code for mobile access
+    qr_code = await generate_qr_code(bio_data.mobile_url)
+    
+    # UI update message
+    app_message = {
+        "event": "show_speaker_info",
+        "data": {
+            "speaker_name": speaker_name,
+            "bio": bio_data.summary,
+            "qr_code": qr_code,
+            "research_papers": bio_data.papers
+        }
+    }
+    
+    # LLM response for avatar speech
+    llm_response = f"I've displayed {speaker_name}'s biography and research information. You can scan the QR code to access it on your mobile device."
+    
+    return app_message, create_chat_completion_chunk(llm_response)
+```
+
+**Persona Configuration:**
+```json
+{
+  "persona_name": "Rosa Conference Assistant",
+  "system_prompt": "You are Rosa, a diplomatic conference assistant. For simple queries, respond directly. For complex information requests, use the appropriate tools.",
+  "layers": {
+    "llm": {
+      "model": "tavus-gpt-4o",
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "get_speaker_info",
+            "description": "Get detailed speaker biography, research, and generate QR codes",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "speaker_name": {"type": "string"},
+                "language": {"type": "string", "enum": ["en", "fr", "es", "ru", "zh", "ar"]}
+              },
+              "required": ["speaker_name", "language"]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "get_venue_directions",
+            "description": "Provide navigation, maps, and venue information with QR codes",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "destination": {"type": "string"},
+                "current_location": {"type": "string"},
+                "language": {"type": "string"}
+              },
+              "required": ["destination", "language"]
+            }
+          }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "get_technical_info",
+            "description": "Retrieve complex technical information about CTBTO procedures, verification methods, etc.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "topic": {"type": "string"},
+                "detail_level": {"type": "string", "enum": ["basic", "detailed", "expert"]},
+                "language": {"type": "string"}
+              },
+              "required": ["topic", "language"]
+            }
+          }
+        }
+      ],
+      "speculative_inference": true
+    }
+  }
+}
+```
+
+## Red Zone Filtering Implementation
+
+### Pattern 1: Single Layer
+```python
+async def handle_all_queries(request: ChatRequest):
+    # All filtering must happen in your backend
+    if await red_zone_filter.is_violation(request.messages[-1]['content']):
+        return generate_safe_response()
+    return await process_normally(request.messages)
+```
+
+### Pattern 2: Multi-Layer Defense ⭐ **TARGET IMPLEMENTATION**
+```python
+# Level 1: Tavus built-in LLM (fast, basic filtering)
+# Level 2: Function call triggers sophisticated filtering
+
+async def get_technical_info(topic: str, language: str):
+    # Sophisticated red zone analysis using our CTBTO agent
+    if await advanced_red_zone_filter.analyze(topic, language):
+        return {
+            "event": "red_zone_violation",
+            "data": {"message": get_safe_fallback(language)}
+        }
+    
+    # Proceed with multi-agent processing
+    return await technical_info_agent.process(topic, language)
+```
+
+## Performance & Cost Analysis
+
+### Resource Utilization
+
+| Metric | Pattern 1 | Pattern 2 | **Our FastAPI Choice** |
+|-----|-----|-----|-----|
+| **OpenAI API Calls** | Every interaction | ~30% of interactions | ✅ Cost efficient |
+| **Backend Processing** | Every response | Complex queries only | ✅ Optimized load |
+| **Network Round Trips** | Always 2+ | 1 for simple, 2+ for complex | ✅ Hybrid performance |
+| **Cost per Interaction** | High | Variable (low-high) | ✅ Variable cost |
+| **Infrastructure Load** | Constant high | Burst for complex | ✅ Scalable |
+
+### FastAPI Performance Benefits
+- **✅ 3-5x throughput** vs Flask for async workloads
+- **✅ Native async/await** for OpenAI API calls
+- **✅ Automatic request validation** with Pydantic
+- **✅ Built-in OpenAPI docs** at `/docs`
+- **✅ Type safety** throughout the application
+
+## Risk Analysis & Mitigation
+
+### Pattern 1 Risks
+
+❌ **Single Point of Failure**: Your backend down = Rosa completely broken  
+❌ **Latency Commitment**: Must handle ALL responses in <200ms  
+❌ **Infrastructure Complexity**: Must build conversation state management  
+❌ **High API Costs**: OpenAI charges for every "hello" and "goodbye"  
+❌ **No Graceful Degradation**: Cannot fall back to simpler responses  
+
+### Pattern 2 Advantages ⭐ **WHY WE CHOSE THIS**
+
+✅ **Graceful Degradation**: If backend fails, basic Rosa continues working  
+✅ **Hybrid Performance**: Fast simple responses + sophisticated complex handling  
+✅ **Cost Efficiency**: Pay for complexity only when needed  
+✅ **Incremental Development**: Start simple, add functions over time  
+✅ **Reduced Infrastructure**: Tavus handles conversation state  
+
+## Migration Path
+
+### ✅ **Phase 1: Basic FastAPI Foundation (COMPLETED)**
+```python
+# ✅ Agent1.py - CTBTO agent with OpenAI GPT-4o
+# ✅ simple_api.py - FastAPI wrapper with Pydantic validation
+# ✅ Virtual environment with FastAPI dependencies
+# ✅ Basic testing and auto-generated docs
+```
+
+### 🔄 **Phase 2: Tavus Function Calling Integration (IN PROGRESS)**
+```python
+# 🔄 Create Tavus-compatible function handlers
+# 🔄 Implement app_message + llm_response format
+# 🔄 Test with Tavus persona configuration
+# 🔄 Add basic speaker/technical info functions
+```
+
+### ⏳ **Phase 3: Multi-Agent System (NEXT)**
+```python
+def get_speaker_info(speaker_name, language):
+    # Add multi-agent orchestrator
+    # Add red zone filtering using CTBTO agent
+    # Add QR code generation
+    return enhanced_response
+```
+
+### ⏳ **Phase 4: Full Rosa Capabilities (FUTURE)**
+```json
+{
+  "tools": [
+    "get_speaker_info",
+    "get_venue_directions", 
+    "get_technical_info",
+    "generate_schedule_qr",
+    "diplomatic_protocol_guide"
+  ]
+}
+```
+
+## Recommendation: Pattern 2 with FastAPI for Rosa ⭐
+
+**Primary Recommendation**: Implement Pattern 2 (Function Calling Hybrid) with FastAPI
+
+**Rationale**:
+1. **✅ Meets <200ms requirement** for 70% of interactions
+2. **✅ Allows progressive complexity** - start basic, evolve to sophisticated
+3. **✅ Superior user experience** - immediate responses + rich follow-ups  
+4. **✅ Lower risk deployment** - Tavus provides reliable baseline
+5. **✅ Cost effective** - OpenAI calls only for complex operations
+6. **✅ FastAPI performance** - 3-5x better than Flask for async workloads
+7. **✅ Type safety** - Pydantic validation prevents runtime errors
+
+**When to Consider Pattern 1**:
+- Need **every** interaction to go through custom logic
+- Require proprietary conversation state management
+- Have unlimited latency tolerance for simple queries
+- Need complete control over conversation flow
+
+## Example Implementations
+
+### ✅ **Current Working Examples**
+
+**Health Check (Working)**:
+```bash
+curl http://localhost:8000/
+→ {"message":"Rosa CTBTO Agent API is running!"}
+```
+
+**CTBTO Query (Working)**:
+```bash
+curl -X POST http://localhost:8000/ask-ctbto \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is the CTBTO?"}'
+→ {"response": "...CTBTO is going to save humanity...", "is_ctbto_related": true}
+```
+
+**Auto-Generated Docs (Working)**:
+```
+http://localhost:8000/docs
+→ Beautiful Swagger UI with interactive API testing
+```
+
+### 🔄 **Next: Rosa Function Call Examples**
+
+**Simple Query (Pattern 2 Direct - 150ms)**:
+```
+User: "What time is lunch?"
+Tavus: "Lunch is served from 12:30 to 1:30 PM in the main dining hall."
+```
+
+**Complex Query (Pattern 2 Function Call - 800ms)**:
+```
+User: "Tell me about Dr. Chen's nuclear verification research"
+Tavus (200ms): "Let me gather Dr. Chen's research information..."
+Function Call: get_speaker_info("Dr. Chen", "en")
+FastAPI Backend (800ms): Multi-agent research + QR generation
+UI Update: Split-screen with biography + QR code + research papers
+Tavus (800ms total): "I've displayed Dr. Chen's biography and research on nuclear verification methods. You can scan the QR code to access her recent publications on your mobile device."
+```
+
+## Technical Appendix
+
+### ✅ **Current Working Code**
+- **✅ FastAPI Foundation**: `examples/cvi-ui-conversation/backend/simple_api.py`
+- **✅ CTBTO Agent**: `examples/cvi-ui-conversation/backend/Agent1.py`
+- **✅ Environment Setup**: `examples/cvi-ui-conversation/backend/venv/`
+- **✅ Dependencies**: `examples/cvi-ui-conversation/backend/requirements.txt`
+
+### 🔄 **Reference Examples for Next Steps**
+- **Pattern 1 Example**: `examples/cvi-custom-llm-with-backend/custom_llm_iss.py`
+- **Pattern 2 Flask Example**: `examples/cvi-frontend-backend-tools/llm_server.py` (convert to FastAPI)
+- **Function Handlers**: `examples/cvi-frontend-backend-tools/functions.py` (adapt for FastAPI)
+- **Tool Call Events**: `dev_docs/tavus.txt` (Tool Call Event section)
+
+### ✅ **Current Dependencies**
+```python
+# FastAPI Backend Requirements (Installed)
+fastapi==0.116.1
+uvicorn==0.35.0
+openai==1.97.0
+python-dotenv==1.1.1
+pydantic==2.11.7  # Automatic with FastAPI
+```
+
+### Environment Configuration
+```bash
+# .env.local (Already working)
+OPENAI_API_KEY=sk-proj-...
+TAVUS_API_KEY=7638ed582fa94dcd8146b35f0e8bafb5
+```
+
+## 🎯 **IMMEDIATE NEXT STEPS**
+
+1. **🔄 Create Tavus Function Call Handler Format**
+   - Convert `simple_api.py` to use Tavus function call response format
+   - Implement `app_message` + `ChatCompletionChunk` response pattern
+
+2. **🔄 Test Function Call Integration**
+   - Create basic `get_speaker_info` function handler
+   - Test with Tavus persona configuration
+
+3. **⏳ Add Multi-Agent Orchestration**
+   - Extend CTBTO agent for speaker/technical queries
+   - Add red zone filtering capabilities
+
+**Current Status**: ✅ **FastAPI foundation working perfectly!**  
+**Next Goal**: 🔄 **Tavus function calling integration**
+
+
+```
+
