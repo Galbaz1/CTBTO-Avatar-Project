@@ -1,0 +1,45 @@
+---
+globs: *.ts,*.tsx,*.js,*.jsx
+---
+
+# React CVI Development Patterns
+
+## Component Structure
+When working with Tavus CVI components, follow these patterns:
+
+### Core Imports
+```typescript
+import { useCVICall } from './hooks/use-cvi-call';
+import { useRequestPermissions } from './hooks/use-request-permissions';
+import { Conversation } from './components/cvi/components/conversation';
+import { CVIProvider } from './components/cvi/components/cvi-provider';
+```
+
+### App Structure Pattern
+1. **CVIProvider**: Wrap the entire app for Daily.co context
+2. **Permissions**: Request camera/mic permissions before conversation
+3. **Conversation Creation**: Use Tavus API to create conversation
+4. **Component Rendering**: Render conversation UI with proper props
+
+### Event Handling
+- Use `useAppMessage` hook for tool call events
+- Listen for `conversation.tool_call` events for function calling
+- Handle `conversation.replica.started_speaking` and `stopped_speaking` events
+
+## Key Components
+- **Conversation**: Main video interface ([examples/cvi-ui-conversation/src/components/cvi/components/conversation/index.tsx](mdc:examples/cvi-ui-conversation/src/components/cvi/components/conversation/index.tsx))
+- **CVIProvider**: Daily.co context provider
+- **Device Controls**: MicSelectBtn, CameraSelectBtn, ScreenShareButton
+- **AudioWave**: Audio visualization component
+
+## API Integration
+- **createConversation**: [examples/cvi-ui-conversation/src/api/createConversation.ts](mdc:examples/cvi-ui-conversation/src/api/createConversation.ts)
+- **endConversation**: Clean up conversations properly
+- **persona_id**: Use Rosa's persona ID for production
+
+## Best Practices
+- Always wrap with CVIProvider
+- Request permissions before starting conversations
+- Handle errors gracefully with proper user feedback
+- Clean up conversations in useEffect cleanup
+- Use TypeScript interfaces for proper type safety
