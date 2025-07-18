@@ -1,413 +1,139 @@
-# Tavus Examples
+# Tavus CVI Examples - ROSA Project
 
-A comprehensive collection of examples demonstrating Tavus's Conversational Video Interface (CVI) technology for building AI-powered video conversations.
+This repository contains Tavus Conversational Video Interface (CVI) examples and the ROSA (Diplomatic Conference Assistant) project for the CTBTO SnT 2025 conference.
 
-## 🎯 Overview
+## 🚀 Quick Start - ROSA System
 
-This repository showcases various implementations of Tavus's real-time video conversation platform, from simple quickstart examples to advanced custom backends with tool integration. Tavus enables developers to create human-like AI replicas that can see, hear, and respond in real-time video calls.
+The main ROSA development is located in `examples/cvi-ui-conversation/`. Here are the commands to start the system:
 
-## 📋 Table of Contents
-
-- [System Architecture](#-system-architecture)
-- [Quick Start](#-quick-start) 
-- [Project Structure](#-project-structure)
-- [Rosa Custom Backend](#-rosa-custom-backend-flagship-example)
-- [Reference Examples](#-reference-examples)
-- [Core Concepts](#-core-concepts)
-- [Development Guidelines](#-development-guidelines)
-- [Support](#-support)
-
-## 🏗 System Architecture
-
-The tavus-examples repository demonstrates a **polling-based generative UI architecture** for seamless integration of AI tools with video conversations:
-
-```mermaid
-graph TB
-    subgraph "Tavus Platform"
-        TP[Tavus API<br/>- Personas<br/>- Replicas<br/>- Conversations]
-    end
-    
-    subgraph "Rosa Custom Backend System"
-        subgraph "Backend (Python/FastAPI)"
-            API[Rosa Pattern API<br/>rosa_pattern1_api.py]
-            AGENT[CTBTO Agent<br/>Agent1.py]
-            TOOLS[Tool Functions<br/>- Weather<br/>- Future: RAG, Calendar]
-            SESSIONS[Session Management<br/>- Weather Data Storage<br/>- URL Mapping]
-        end
-        
-        subgraph "Frontend (React/TypeScript)"
-            APP[App.tsx<br/>Main Application]
-            DEMO[RosaDemo.tsx<br/>Conference Interface]
-            HANDLERS[Tool Handlers<br/>- WeatherHandler<br/>- ConferenceHandler]
-            CARDS[UI Cards<br/>- WeatherCard<br/>- SessionCard]
-            CVI[CVI Components<br/>Daily.co Integration]
-        end
-    end
-    
-    subgraph "Reference Examples"
-        REF1[CVI Quickstart]
-        REF2[CVI Frontend-Backend Tools]
-        REF3[CVI Hover Website]
-        REF4[Custom LLM Backend]
-        REF5[Other Examples...]
-    end
-    
-    subgraph "User Interface Flow"
-        USER[User] 
-        WELCOME[Welcome Screen<br/>API Key Entry]
-        CALL[Video Call Interface<br/>with Tools]
-    end
-    
-    %% Connections
-    USER --> WELCOME
-    WELCOME --> |API Key| CALL
-    CALL --> CVI
-    CVI --> |Daily.co WebRTC| TP
-    
-    %% Tool Integration Flow
-    TP --> |Function Calls| API
-    API --> AGENT
-    API --> TOOLS
-    TOOLS --> SESSIONS
-    SESSIONS --> |Polling Every 2s| HANDLERS
-    HANDLERS --> |Data Updates| CARDS
-    CARDS --> CALL
-    
-    %% Development Reference
-    REF1 -.-> |Pattern Reference| DEMO
-    REF2 -.-> |Architecture Reference| API
-    
-    %% Styling
-    classDef tavus fill:#e1f5fe,stroke:#01579b,stroke-width:2px
-    classDef backend fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
-    classDef frontend fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
-    classDef reference fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    classDef user fill:#ffebee,stroke:#b71c1c,stroke-width:2px
-    
-    class TP tavus
-    class API,AGENT,TOOLS,SESSIONS backend
-    class APP,DEMO,HANDLERS,CARDS,CVI frontend
-    class REF1,REF2,REF3,REF4,REF5 reference
-    class USER,WELCOME,CALL user
+### Complete ROSA System (Recommended)
+```bash
+cd examples/cvi-ui-conversation
+bun rosa:complete
+```
+**OR**
+```bash
+cd examples/cvi-ui-conversation
+./start-rosa-complete.sh
 ```
 
-### Key Architecture Principles
+This starts all four services:
+- **Python FastAPI Backend**: http://localhost:8000
+- **CTBTO Express Server**: http://localhost:3002  
+- **Weather Service**: http://localhost:3001
+- **ROSA Frontend**: http://localhost:5173
 
-1. **Polling-Based Communication**: Frontend polls backend every 2 seconds for tool updates
-2. **Session Isolation**: Each conversation maintains independent tool data
-3. **Generative UI Pattern**: Tools generate UI updates without direct event coupling
-4. **Decoupled Design**: Backend and frontend operate independently
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Node.js** (v18 or higher)
-- **Python** (v3.9 or higher)
-- **Tavus API Key** from [platform.tavus.io](https://platform.tavus.io/)
-
-### Option 1: Rosa Custom Backend (Recommended)
-
-The **Rosa Custom Backend** is our flagship example with advanced tool integration:
+### Other ROSA Commands
 
 ```bash
-# 1. Clone and navigate
-git clone <repository-url>
-cd tavus-examples/Rosa_custom_backend
+# Basic ROSA (subset of services)
+bun rosa
 
-# 2. Install dependencies
-npm install
-cd backend && pip install -r requirements.txt
+# Development mode (weather + frontend only)
+bun rosa:dev
 
-# 3. Set up environment
-echo "OPENAI_API_KEY=your_openai_key_here" > backend/.env
-echo "TAVUS_API_KEY=your_tavus_key_here" >> backend/.env
+# Check service status
+bun rosa:check
 
-# 4. Start the system
-npm run start  # Starts both backend and frontend with ngrok
+# Stop all services
+./stop-rosa.sh
 ```
 
-### Option 2: Simple Quickstart
-
-For a minimal example:
-
+### Health Checks
 ```bash
-cd refrence_only/examples/cvi-quickstart-react
-npm install
-npm run dev
+curl http://localhost:8000/        # FastAPI health
+curl http://localhost:3002/health  # CTBTO health
+curl http://localhost:3001/health  # Weather health
 ```
 
 ## 📁 Project Structure
 
-```
-tavus-examples/
-├── Rosa_custom_backend/           # 🌟 Main development environment
-│   ├── backend/                   # Python FastAPI backend
-│   │   ├── rosa_pattern1_api.py  # Core API with tool integration
-│   │   ├── Agent1.py             # CTBTO conference agent
-│   │   └── requirements.txt       # Python dependencies
-│   ├── src/                       # React frontend
-│   │   ├── components/           # UI components
-│   │   └── App.tsx              # Main application
-│   ├── dev_docs/                 # 📚 Development documentation
-│   └── package.json              # Frontend dependencies
-│
-├── refrence_only/examples/        # 📖 Reference implementations
-│   ├── cvi-quickstart-react/     # Basic CVI integration
-│   ├── cvi-frontend-backend-tools/ # Tool integration example
-│   ├── cvi-hover-over-website/   # Website overlay example
-│   └── [other examples]/         # Additional use cases
-│
-└── package.json                  # Root dependencies
-```
+### Main Development
+- **`examples/cvi-ui-conversation/`** - Primary ROSA development environment
+  - Modern React + TypeScript + Vite + Bun
+  - Tavus CVI UI components with Daily.co integration
+  - Split-screen UI: avatar + dynamic content
+  - Multilingual support (6 UN languages)
 
-## 🌟 Rosa Custom Backend (Flagship Example)
+### Reference Examples
+- **`examples/cvi-frontend-backend-tools/`** - Function calling with e-commerce tools
+- **`examples/cvi-hover-over-website/`** - Click interaction tools  
+- **`examples/cvi-custom-llm-with-backend/`** - Custom LLM integration
+- **`examples/cvi-quickstart-react/`** - Basic CVI React setup
+- **`examples/cvi-transparent-background/`** - Green screen/transparency features
 
-The **Rosa Custom Backend** demonstrates advanced Tavus integration with:
+### Documentation
+- **`dev_docs/tavus.txt`** - Complete Tavus CVI API documentation
+- **`dev_docs/PRD.md`** - ROSA project requirements and specifications
+- **`examples/cvi-ui-conversation/ROSA_PERSONA_CONFIG.md`** - ROSA persona configuration
 
-### Features
+## 🏗️ ROSA Architecture
 
-- **🤖 AI Conference Assistant**: CTBTO conference planning agent
-- **🌤️ Weather Tool Integration**: Real-time weather data with generative UI
-- **📱 Session Management**: Multi-user conversation support
-- **🔄 Polling Architecture**: Reliable tool-to-UI communication
-- **📋 Development Framework**: Extensible pattern for new tools
+**Frontend**: React + Tavus CVI UI components + Daily.co  
+**Backend**: Python multi-agent system with FastAPI  
+**Integration**: Tavus function calling bridges React UI to Python logic  
+**Deployment**: Touchless, voice-only kiosk for diplomatic conferences
 
-### Core Logic Flow
+### Key Features
+- Diplomatic-grade multilingual conference assistant
+- Function calling for Python backend integration  
+- Split-screen UI with dynamic content (QR codes, maps, bios)
+- Strict "red zone" filtering and <200ms response times
+- Vienna-first defaults for conference location queries
 
-```mermaid
-sequenceDiagram
-    participant User
-    participant Frontend
-    participant Backend
-    participant Tavus
-    participant OpenAI
+## 🛠️ Development Requirements
 
-    User->>Frontend: Join call with API key
-    Frontend->>Backend: Register session
-    Backend->>Tavus: Create conversation
-    Tavus-->>User: Video call starts
-    
-    User->>Tavus: "What's the weather in Paris?"
-    Tavus->>Backend: Function call: get_weather("Paris")
-    Backend->>OpenAI: Weather API request
-    OpenAI-->>Backend: Weather data
-    Backend->>Backend: Store in session_weather_data[session_id]
-    
-    Frontend->>Backend: Poll /latest-weather/{session_id} (every 2s)
-    Backend-->>Frontend: Return weather data
-    Frontend->>Frontend: Update WeatherCard UI
-```
+- **Bun**: JavaScript runtime and package manager (use `bun` instead of `npm`)
+- **Python 3.8+**: For backend services
+- **Node.js**: For Express servers
+- **Tavus API Key**: Required for CVI functionality
 
-### Tool Architecture
+## 📖 Getting Started
 
-Every tool follows the same proven pattern:
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd tavus-examples
+   ```
 
-**Backend (Python)**:
-1. Define OpenAI function in tools list
-2. Implement handler in `generate()` method  
-3. Store results in `session_data[session_id]`
-4. Expose via GET endpoint `/latest-{tool}/{session_id}`
+2. **Navigate to ROSA project**
+   ```bash
+   cd examples/cvi-ui-conversation
+   ```
 
-**Frontend (React)**:
-1. Create `{Tool}Handler.tsx` for polling logic
-2. Create `{Tool}Card.tsx` for UI display
-3. Use callback pattern for parent state updates
+3. **Install dependencies**
+   ```bash
+   bun install
+   ```
 
-## 📖 Reference Examples
+4. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   # Add your Tavus API keys
+   ```
 
-### Available Examples
+5. **Start the complete system**
+   ```bash
+   bun rosa:complete
+   ```
 
-| Example | Description | Technology Stack |
-|---------|-------------|------------------|
-| `cvi-quickstart-react` | Basic CVI integration | React, Daily.co |
-| `cvi-frontend-backend-tools` | Tool integration demo | React, Python, FastAPI |
-| `cvi-hover-over-website` | Website overlay CVI | React, CSS overlays |
-| `cvi-ui-conversation` | Conference planning app | React, Complex state management |
-| `cvi-transparent-background` | Green screen effects | React, WebGL |
-| `start-stop-recording` | Call recording controls | React, Daily.co recording |
+6. **Open ROSA Frontend**
+   ```
+   http://localhost:5173
+   ```
 
-### Using Reference Examples
+## 🔧 Troubleshooting
 
-Each example is self-contained:
+- **Port conflicts**: The startup script automatically kills existing services on required ports
+- **Service issues**: Use `bun rosa:check` to verify all services are running
+- **Stop services**: Use `./stop-rosa.sh` or Ctrl+C in the startup terminal
 
-```bash
-cd refrence_only/examples/[example-name]
-npm install
-npm run dev
-```
+## 📚 Additional Resources
 
-## 🧠 Core Concepts
-
-### 1. Tavus Conversation Flow
-
-1. **Create Persona**: Define AI behavior and capabilities
-2. **Create Replica**: Train visual appearance from video
-3. **Start Conversation**: Generate WebRTC room URL
-4. **Join Call**: User enters video conversation with AI
-
-### 2. Tool Integration Pattern
-
-**Generative UI**: Tools update the interface without direct event handling
-
-```typescript
-// Handler: Logic only, no UI
-const WeatherHandler = ({ onWeatherUpdate }) => {
-  useEffect(() => {
-    if (meetingState !== 'joined-meeting') return;
-    
-    const interval = setInterval(async () => {
-      const data = await fetch(`/latest-weather/${conversationId}`);
-      if (data.ok) {
-        const weather = await data.json();
-        if (weather) onWeatherUpdate(weather);
-      }
-    }, 2000);
-    
-    return () => clearInterval(interval);
-  }, [meetingState]);
-  
-  return null; // No rendering
-};
-
-// Card: UI only, no logic  
-const WeatherCard = ({ data }) => (
-  <div className="weather-card">
-    <h3>{data.location}</h3>
-    <p>{data.temperature}°F - {data.description}</p>
-  </div>
-);
-
-// Parent: Orchestration
-const App = () => {
-  const [weatherData, setWeatherData] = useState(null);
-  
-  return (
-    <>
-      <WeatherHandler onWeatherUpdate={setWeatherData} />
-      {weatherData && <WeatherCard data={weatherData} />}
-    </>
-  );
-};
-```
-
-### 3. Session Management
-
-Each conversation maintains isolated data:
-
-```python
-class RosaBackend:
-    def __init__(self):
-        self.sessions = {}  # session_id -> conversation_url
-        self.session_weather_data = {}  # session_id -> weather_data
-        self.session_rag_data = {}  # session_id -> rag_results
-        # ... other tool data stores
-```
-
-## 🛠 Development Guidelines
-
-### Adding New Tools
-
-1. **Follow the Weather Pattern**: Copy `WeatherHandler.tsx` exactly
-2. **Backend Implementation**: 
-   - Add function to tools list
-   - Implement handler in `generate()` method
-   - Create session storage
-   - Add GET endpoint
-
-3. **Frontend Implementation**:
-   - Create Handler component (polling logic)
-   - Create Card component (UI display)  
-   - Add to parent component
-
-### Strict Rules
-
-❌ **DO NOT**:
-- Modify polling intervals (keep 2 seconds)
-- Use WebSockets or real-time subscriptions
-- Create complex event systems
-- Over-engineer solutions
-
-✅ **DO**:
-- Follow established patterns exactly
-- Maintain session isolation
-- Use polling for all tool updates
-- Keep handlers and cards separate
-
-### Testing New Tools
-
-```bash
-# Test backend endpoint
-curl http://localhost:8000/latest-{toolname}/test-session
-
-# Test frontend polling
-# Check browser console for polling requests
-```
-
-## 📚 Documentation
-
-Comprehensive documentation is available in the Rosa Custom Backend:
-
-- `Rosa_custom_backend/dev_docs/ai-agent-development-plan-tools.md` - Development guidelines
-- `Rosa_custom_backend/dev_docs/generative-ui-pattern-explanation.md` - Architecture explanation  
-- `Rosa_custom_backend/dev_docs/tavus.txt` - Complete Tavus API documentation
-
-## 🔧 Environment Setup
-
-### Required Environment Variables
-
-```bash
-# Rosa Custom Backend (.env in backend/)
-OPENAI_API_KEY=your_openai_key_here
-TAVUS_API_KEY=your_tavus_key_here
-NODE_ENV=development
-
-# Frontend (stored in localStorage)
-VITE_TAVUS_API_KEY=your_tavus_key_here
-```
-
-### Development Tools
-
-- **ngrok**: Exposes local backend for Tavus webhook integration
-- **Daily.co**: WebRTC infrastructure (handled automatically by Tavus)
-- **FastAPI**: Backend framework with automatic API documentation
-- **React + TypeScript**: Frontend with type safety
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Polling Not Working**: Check if `meetingState === 'joined-meeting'`
-2. **Tool Data Missing**: Verify session registration and storage
-3. **CORS Errors**: Ensure backend CORS configuration includes your frontend URL
-4. **Function Calls Failing**: Check OpenAI API key and function definitions
-
-### Debug Mode
-
-```bash
-# Enable detailed logging
-export DEBUG=1
-npm run start
-```
-
-## 🤝 Support
-
-### Getting Help
-
-1. **Documentation**: Check `dev_docs/` folder in Rosa Custom Backend
-2. **Examples**: Browse `refrence_only/examples/` for patterns
-3. **API Reference**: Complete Tavus documentation in `tavus.txt`
-
-### Contributing
-
-When contributing new examples or tools:
-
-1. Follow the established weather tool pattern
-2. Maintain session isolation
-3. Use polling architecture (no WebSockets)
-4. Include comprehensive documentation
-5. Test with multiple concurrent sessions
+- **Tavus Documentation**: [dev_docs/tavus.txt](dev_docs/tavus.txt)
+- **ROSA Requirements**: [dev_docs/PRD.md](dev_docs/PRD.md)  
+- **Weather Setup**: [examples/cvi-ui-conversation/WEATHER_SETUP.md](examples/cvi-ui-conversation/WEATHER_SETUP.md)
 
 ---
 
-**🚀 Ready to build AI-powered video conversations? Start with the Rosa Custom Backend for the complete development experience!** 
+**Built for CTBTO SnT 2025 Conference - Vienna, Austria** 
