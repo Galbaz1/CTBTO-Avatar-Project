@@ -4,11 +4,14 @@ import ReactPlugin from '@stagewise-plugins/react'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { createConversation, endConversation } from './api'
 import type { IConversation } from './types'
-import { Conversation } from './components/cvi/components/conversation'
+
 import { useRequestPermissions } from './components/cvi/hooks/use-request-permissions';
 import { SimpleWeatherHandler } from './components/SimpleWeatherHandler';
 import { CTBTOHandler } from './components/CTBTOHandler';
 import { SimpleConversationLogger } from './components/SimpleConversationLogger';
+import { RosaDemo } from './components/RosaDemo';
+import { SimpleConferenceHandler } from './components/conference/SimpleConferenceHandler';
+import { Toaster } from "@/components/ui/toaster";
 
 function App() {
   const [apiKey, setApiKey] = useState<string | null>(null)
@@ -82,35 +85,40 @@ function App() {
         }}
       />
       {screen === 'welcome' && <WelcomeScreen onStart={handleJoin} loading={loading} />}
-      <div>
-        {screen === 'call' && conversation && (
-          <>
-            <Conversation conversationUrl={conversation.conversation_url} onLeave={handleEnd} />
-            <SimpleWeatherHandler 
-              conversationId={conversation.conversation_id}
-              onWeatherUpdate={(weather: any) => {
-                console.log('🌤️ Weather update received in App:', weather);
-                // Optional: Display weather info in UI
-              }} 
-            />
-            <CTBTOHandler
-              conversationId={conversation.conversation_id}
-              onCTBTOUpdate={(ctbtoData: any) => {
-                console.log('🏛️ CTBTO update received in App:', ctbtoData);
-                // Optional: Display CTBTO info in UI
-              }}
-              onSpeakerUpdate={(speakerData: any) => {
-                console.log('👤 Speaker update received in App:', speakerData);
-                // Optional: Display speaker info in UI
-              }}
-            />
-            <SimpleConversationLogger 
-              conversationId={conversation.conversation_id}
-              enabled={true}
-            />
-          </>
-        )}
-      </div>
+      {screen === 'call' && conversation && (
+        <>
+          <RosaDemo conversation={conversation} onLeave={handleEnd} />
+          
+          {/* Add conference handler */}
+          <SimpleConferenceHandler />
+          
+          {/* Keep existing handlers */}
+          <SimpleWeatherHandler 
+            conversationId={conversation.conversation_id}
+            onWeatherUpdate={(weather: any) => {
+              console.log('🌤️ Weather update received in App:', weather);
+              // Optional: Display weather info in UI
+            }} 
+          />
+          <CTBTOHandler
+            conversationId={conversation.conversation_id}
+            onCTBTOUpdate={(ctbtoData: any) => {
+              console.log('🏛️ CTBTO update received in App:', ctbtoData);
+              // Optional: Display CTBTO info in UI
+            }}
+            onSpeakerUpdate={(speakerData: any) => {
+              console.log('👤 Speaker update received in App:', speakerData);
+              // Optional: Display speaker info in UI
+            }}
+          />
+          <SimpleConversationLogger 
+            conversationId={conversation.conversation_id}
+            enabled={true}
+          />
+        </>
+      )}
+      
+      <Toaster />
     </main>
   )
 }

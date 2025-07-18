@@ -180,8 +180,6 @@ export const Conversation = React.memo(({ onLeave, conversationUrl }: Conversati
 					</button>
 				</div>
 			</div>
-
-			<DailyAudio />
 		</div>
 	);
 });
