@@ -1,0 +1,36 @@
+{
+  "name": "rosa-weather-service",
+  "version": "1.0.0",
+  "description": "Weather API service for ROSA diplomatic conference assistant",
+  "main": "weather-server.js",
+  "scripts": {
+    "start": "bun weather-server.js",
+    "dev": "bun weather-server.js",
+    "test": "curl -X POST http://localhost:3001/api/weather -H 'Content-Type: application/json' -d '{\"location\":\"Vienna\"}'",
+    "test-vienna": "curl http://localhost:3001/api/weather/vienna",
+    "test-custom": "curl -X POST http://localhost:3001/api/weather -H 'Content-Type: application/json' -d '{\"location\":\"New York\"}'",
+    "health": "curl http://localhost:3001/health"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": [
+    "weather",
+    "api",
+    "tavus",
+    "rosa",
+    "conference",
+    "diplomacy",
+    "vienna",
+    "ctbto"
+  ],
+  "author": "ROSA Development Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.0.0",
+    "bun": ">=1.0.0"
+  },
+  "preferredRuntime": "bun"
+} 
