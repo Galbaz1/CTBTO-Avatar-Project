@@ -10,6 +10,7 @@ import openai
 from typing import List, Dict, Any, Optional
 import json
 from dotenv import load_dotenv
+from speakers_data import CTBTO_SPEAKERS, get_speaker_by_id, search_speakers_by_topic, get_all_speakers
 
 # Load environment variables from .env.local file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
@@ -121,6 +122,113 @@ Always provide accurate, informative responses while emphasizing the CTBTO's vit
         
         message_lower = message.lower()
         return any(keyword in message_lower for keyword in ctbto_keywords)
+    
+    def find_speakers_by_topic(self, topic: str, language: str = "en") -> Dict[str, Any]:
+        """
+        Find speakers matching a topic using AI-powered matching.
+        
+        Args:
+            topic (str): Topic to search for
+            language (str): Response language (default: "en")
+            
+        Returns:
+            Dict[str, Any]: Structured speaker data for frontend
+        """
+        try:
+            # Use simple keyword matching for now
+            matching_speakers = search_speakers_by_topic(topic)
+            
+            if not matching_speakers:
+                return {
+                    "success": False,
+                    "message": f"No speakers found for topic: {topic}",
+                    "speakers": [],
+                    "search_topic": topic
+                }
+            
+            # Format speakers for frontend
+            formatted_speakers = []
+            for speaker in matching_speakers:
+                formatted_speakers.append({
+                    "id": speaker["id"],
+                    "name": speaker["profile"]["name"],
+                    "title": speaker["profile"]["title"],
+                    "organization": speaker["profile"]["organization"],
+                    "photo_url": speaker["profile"]["photo_url"],
+                    "session_topic": speaker["session"]["topic"],
+                    "session_time": speaker["session"]["time"],
+                    "session_room": speaker["session"]["room_name"],
+                    "expertise": speaker["ai_metadata"]["expertise"],
+                    "bio_summary": speaker["ai_metadata"]["bio_summary"]
+                })
+            
+            return {
+                "success": True,
+                "message": f"Found {len(matching_speakers)} speaker(s) for topic: {topic}",
+                "speakers": formatted_speakers,
+                "search_topic": topic,
+                "save_humanity_message": "These CTBTO experts are working to save humanity through nuclear test ban verification!"
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Error searching speakers: {str(e)}",
+                "speakers": [],
+                "search_topic": topic
+            }
+    
+    def get_speaker_by_id(self, speaker_id: str) -> Dict[str, Any]:
+        """
+        Get specific speaker details by ID.
+        
+        Args:
+            speaker_id (str): Speaker ID to retrieve
+            
+        Returns:
+            Dict[str, Any]: Complete speaker profile for UI display
+        """
+        try:
+            speaker = get_speaker_by_id(speaker_id)
+            
+            if not speaker:
+                return {
+                    "success": False,
+                    "message": f"Speaker not found: {speaker_id}",
+                    "speaker": None
+                }
+            
+            # Format complete speaker profile
+            formatted_speaker = {
+                "id": speaker["id"],
+                "name": speaker["profile"]["name"],
+                "title": speaker["profile"]["title"],
+                "organization": speaker["profile"]["organization"],
+                "photo_url": speaker["profile"]["photo_url"],
+                "session": {
+                    "topic": speaker["session"]["topic"],
+                    "time": speaker["session"]["time"],
+                    "room": speaker["session"]["room_name"],
+                    "room_id": speaker["session"]["room_id"]
+                },
+                "expertise": speaker["ai_metadata"]["expertise"],
+                "bio_summary": speaker["ai_metadata"]["bio_summary"],
+                "conference_relevance": speaker["ai_metadata"]["conference_relevance"]
+            }
+            
+            return {
+                "success": True,
+                "message": f"Speaker profile retrieved: {speaker['profile']['name']}",
+                "speaker": formatted_speaker,
+                "save_humanity_message": f"{speaker['profile']['name']} is helping the CTBTO save humanity!"
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Error retrieving speaker: {str(e)}",
+                "speaker": None
+            }
 
 
 def test_agent():

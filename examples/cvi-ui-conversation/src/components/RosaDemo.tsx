@@ -1,14 +1,275 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useRef, useCallback } from 'react';
 import { Conversation } from './cvi/components/conversation';
 import { CVIProvider } from './cvi/components/cvi-provider';
+import { SimpleConversationLogger } from './SimpleConversationLogger';
+import { SimpleWeatherHandler } from './SimpleWeatherHandler';
+import { CTBTOHandler } from './CTBTOHandler';
+import { SpeakerHandler } from './SpeakerHandler';
+import { useLocalSessionId, useAudioLevelObserver, useActiveSpeakerId } from '@daily-co/daily-react';
 
 interface RosaDemoProps {
   conversation: any;
   onLeave: () => void;
+  costSavingMode?: boolean; // ✅ New prop for audio-only mode
 }
 
-export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => {
-  const [currentContent, setCurrentContent] = useState<'welcome' | 'speaker' | 'location' | 'weather'>('welcome');
+// ✅ Enhanced Audio Wave Visualization using Daily's audio level observer
+const EnhancedAudioWave: React.FC<{ conversationId: string }> = memo(({ conversationId }) => {
+  const localSessionId = useLocalSessionId();
+  const activeSpeakerId = useActiveSpeakerId();
+  const isUserSpeaking = activeSpeakerId === localSessionId;
+  
+  // Refs for the 5 bars
+  const bar1Ref = useRef<HTMLDivElement>(null);
+  const bar2Ref = useRef<HTMLDivElement>(null);
+  const bar3Ref = useRef<HTMLDivElement>(null);
+  const bar4Ref = useRef<HTMLDivElement>(null);
+  const bar5Ref = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | undefined>(undefined);
+  
+  // Use Daily's audio level observer for accurate audio detection
+  useAudioLevelObserver(
+    localSessionId || '',
+    useCallback((volume) => {
+      // Cancel any pending animation frame to prevent accumulation
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+
+      // Use requestAnimationFrame to batch DOM updates for smooth performance
+      animationFrameRef.current = requestAnimationFrame(() => {
+        const scaledVolume = Number(Math.max(0.01, volume).toFixed(2));
+        
+        if (bar1Ref.current && bar2Ref.current && bar3Ref.current && bar4Ref.current && bar5Ref.current) {
+          // Different scaling for each bar to create a more dynamic wave pattern
+          const minHeight = 8;
+          const maxHeight = 32;
+          
+          // Create varied heights based on volume with different multipliers
+          const heights = [
+            Math.min(maxHeight, minHeight + (scaledVolume * 30)), // Bar 1: moderate
+            Math.min(maxHeight, minHeight + (scaledVolume * 45)), // Bar 2: higher
+            Math.min(maxHeight, minHeight + (scaledVolume * 60)), // Bar 3: highest (center)
+            Math.min(maxHeight, minHeight + (scaledVolume * 45)), // Bar 4: higher
+            Math.min(maxHeight, minHeight + (scaledVolume * 30)), // Bar 5: moderate
+          ];
+          
+          bar1Ref.current.style.height = `${heights[0]}px`;
+          bar2Ref.current.style.height = `${heights[1]}px`;
+          bar3Ref.current.style.height = `${heights[2]}px`;
+          bar4Ref.current.style.height = `${heights[3]}px`;
+          bar5Ref.current.style.height = `${heights[4]}px`;
+        }
+      });
+    }, [])
+  );
+
+  return (
+    <div style={{
+      position: 'absolute',
+      bottom: '100px',
+      left: '50%',
+      display: 'flex',
+      alignItems: 'end',
+      gap: '6px',
+      zIndex: 3,
+      background: 'rgba(0, 0, 0, 0.8)',
+      padding: '16px 24px',
+      borderRadius: '30px',
+      backdropFilter: 'blur(15px)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+      willChange: 'transform',
+      transform: 'translateX(-50%) translateZ(0)' // Hardware acceleration
+    }}>
+      {/* Speaking Status Indicator */}
+      <div style={{
+        fontSize: '12px',
+        color: 'white',
+        marginRight: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        fontWeight: '500'
+      }}>
+        <div style={{
+          width: '8px',
+          height: '8px',
+          background: isUserSpeaking ? '#22c55e' : '#6b7280',
+          borderRadius: '50%',
+          transition: 'all 0.3s ease',
+          boxShadow: isUserSpeaking ? '0 0 8px rgba(34, 197, 94, 0.6)' : 'none'
+        }}></div>
+        {isUserSpeaking ? 'Speaking...' : 'Listening'}
+      </div>
+      
+      {/* Enhanced 5-Bar Audio Visualization */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'end',
+        gap: '3px',
+        height: '32px'
+      }}>
+        {[bar1Ref, bar2Ref, bar3Ref, bar4Ref, bar5Ref].map((ref, i) => (
+          <div
+            key={i}
+            ref={ref}
+            style={{
+              width: '4px',
+              height: '8px', // Minimum height
+              background: isUserSpeaking 
+                ? `linear-gradient(180deg, #22c55e 0%, #16a34a 100%)`
+                : `linear-gradient(180deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%)`,
+              borderRadius: '2px',
+              transition: 'height 200ms ease-out, background 0.3s ease',
+              opacity: isUserSpeaking ? 1 : 0.7,
+              willChange: 'height',
+              transform: 'translateZ(0)', // Hardware acceleration
+              boxShadow: isUserSpeaking ? '0 0 4px rgba(34, 197, 94, 0.4)' : 'none'
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* Microphone Icon */}
+      <div style={{
+        marginLeft: '8px',
+        fontSize: '14px',
+        opacity: 0.8,
+        color: 'white'
+      }}>
+        🎤
+      </div>
+    </div>
+  );
+});
+
+EnhancedAudioWave.displayName = 'EnhancedAudioWave';
+
+// ✅ Static Rosa Avatar Component for Cost-Saving Mode
+const StaticRosaAvatar: React.FC<{ 
+  conversationUrl: string; 
+  onLeave: () => void;
+  conversationId: string;
+}> = ({ conversationUrl, onLeave, conversationId }) => {
+  return (
+    <div style={{ 
+      position: 'relative', 
+      width: '100%', 
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}>
+      {/* Static Rosa Image */}
+      <div style={{
+        position: 'absolute',
+        width: '70%',
+        height: '85%',
+        backgroundImage: `url('/background.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center 30%',
+        borderRadius: '20px',
+        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+        border: '3px solid rgba(255, 255, 255, 0.2)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 2
+      }}>
+        {/* Rosa Status Indicator */}
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '20px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '25px',
+          fontSize: '14px',
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            background: '#22c55e',
+            borderRadius: '50%',
+            animation: 'pulse 2s infinite'
+          }}></div>
+          Rosa - Audio Mode
+        </div>
+        
+        {/* Cost Savings Badge */}
+        <div style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          fontWeight: '600',
+          boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
+        }}>
+          💰 Cost Optimized
+        </div>
+      </div>
+
+      {/* Hidden Audio-Only Conversation Component */}
+      <div style={{ display: 'none' }}>
+        <Conversation
+          conversationUrl={conversationUrl}
+          onLeave={onLeave}
+        />
+      </div>
+
+      {/* ✅ Enhanced Audio Wave Visualizer using Daily's audio level observer */}
+      <EnhancedAudioWave conversationId={conversationId} />
+
+      {/* ✅ Add Conversation Logging and Handlers (Hidden but Active) */}
+      <div style={{ display: 'none' }}>
+        <SimpleConversationLogger 
+          conversationId={conversationId}
+          enabled={true}
+        />
+        <SimpleWeatherHandler 
+          conversationId={conversationId}
+          onWeatherUpdate={(weather: any) => {
+            console.log('🌤️ Weather update in audio-only mode:', weather);
+          }} 
+        />
+        <CTBTOHandler
+          conversationId={conversationId}
+          onCTBTOUpdate={(ctbtoData: any) => {
+            console.log('🏛️ CTBTO update in audio-only mode:', ctbtoData);
+          }}
+          onSpeakerUpdate={(speakerData: any) => {
+            console.log('👤 Speaker update in audio-only mode:', speakerData);
+          }}
+        />
+      </div>
+
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export const RosaDemo: React.FC<RosaDemoProps> = ({ 
+  conversation, 
+  onLeave, 
+  costSavingMode = false
+}) => {
+  const [currentContent, setCurrentContent] = useState<'welcome'>('welcome');
 
   // Sample content for Rosa's split-screen interface
   const contentData = {
@@ -41,6 +302,26 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
             borderRadius: '24px',
             pointerEvents: 'none'
           }}></div>
+          
+          {/* ✅ Cost Saving Mode Indicator */}
+          {costSavingMode && (
+            <div style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              color: 'white',
+              padding: '8px 16px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: '600',
+              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
+              zIndex: 10
+            }}>
+              💰 Audio-Only Mode - Cost Optimized
+            </div>
+          )}
+          
           <div style={{ textAlign: 'center', marginBottom: '48px' }}>
             <div style={{ 
               width: '80px', 
@@ -115,92 +396,10 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
           </div>
         </div>
       )
-    },
-    speaker: {
-      title: "Featured Speaker",
-      content: (
-        <div style={{ padding: '20px', background: '#f8f9fa', borderRadius: '12px', height: '400px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-            <div style={{ width: '80px', height: '80px', background: '#007bff', borderRadius: '50%', marginRight: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '24px', fontWeight: 'bold' }}>
-              DS
-            </div>
-            <div>
-              <h3 style={{ margin: 0, color: '#333' }}>Dr. Sarah Chen</h3>
-              <p style={{ margin: '5px 0', color: '#666' }}>Lead Nuclear Verification Scientist</p>
-              <p style={{ margin: 0, color: '#666' }}>CTBTO Preparatory Commission</p>
-            </div>
-          </div>
-          <div style={{ marginBottom: '20px' }}>
-            <h4 style={{ color: '#333' }}>Presentation:</h4>
-            <p style={{ color: '#666' }}>"Advanced Seismic Analysis for Nuclear Test Detection"</p>
-          </div>
-          <div style={{ background: 'white', padding: '15px', borderRadius: '8px', border: '2px solid #007bff' }}>
-            <p style={{ margin: 0, textAlign: 'center', color: '#007bff', fontWeight: 'bold' }}>📱 Scan for Speaker Bio</p>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '10px' }}>
-              <div style={{ width: '120px', height: '120px', background: '#007bff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '12px' }}>
-                QR CODE
-              </div>
-            </div>
-          </div>
-        </div>
-      )
-    },
-    location: {
-      title: "Conference Location",
-      content: (
-        <div style={{ padding: '20px', background: '#e8f5e8', borderRadius: '12px', height: '400px' }}>
-          <h3 style={{ marginTop: 0, color: '#2d5a2d' }}>Vienna International Centre (VIC)</h3>
-          <div style={{ background: '#fff', padding: '15px', borderRadius: '8px', marginBottom: '20px' }}>
-            <p style={{ margin: 0, color: '#333' }}>📍 Wagramer Strasse 5, 1400 Vienna, Austria</p>
-          </div>
-          <div style={{ background: '#d4edda', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-            <p style={{ margin: 0, color: '#155724', textAlign: 'center', fontWeight: 'bold' }}>🗺️ Interactive Map</p>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '15px' }}>
-              <div style={{ width: '200px', height: '150px', background: '#28a745', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', borderRadius: '8px' }}>
-                Vienna Map View
-              </div>
-            </div>
-          </div>
-          <div>
-            <h4 style={{ color: '#2d5a2d' }}>Transportation:</h4>
-            <ul style={{ color: '#333' }}>
-              <li>🚇 Metro: U1 to Kaisermühlen-VIC</li>
-              <li>🚌 Bus: 79A, 25A to VIC</li>
-              <li>🚗 Parking: Available on-site</li>
-            </ul>
-          </div>
-        </div>
-      )
-    },
-    weather: {
-      title: "Vienna Weather",
-      content: (
-        <div style={{ padding: '20px', background: 'linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)', borderRadius: '12px', color: 'white', height: '400px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <h3 style={{ marginTop: 0 }}>Current Weather in Vienna</h3>
-            <div style={{ fontSize: '48px', margin: '20px 0' }}>☀️</div>
-            <div style={{ fontSize: '32px', fontWeight: 'bold' }}>22°C</div>
-            <p style={{ fontSize: '18px', margin: '10px 0' }}>Sunny</p>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '30px' }}>
-            <div style={{ background: 'rgba(255, 255, 255, 0.2)', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px' }}>🌡️</div>
-              <div style={{ fontSize: '14px', marginTop: '5px' }}>Feels like</div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>25°C</div>
-            </div>
-            <div style={{ background: 'rgba(255, 255, 255, 0.2)', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '20px' }}>💨</div>
-              <div style={{ fontSize: '14px', marginTop: '5px' }}>Wind</div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>12 km/h</div>
-            </div>
-          </div>
-          <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '14px' }}>
-            Perfect weather for the conference! 🌟
-          </div>
-        </div>
-      )
     }
+    // Add other content data sections here if needed
   };
+
   return (
     <CVIProvider key={conversation.conversation_id}>
       <div
@@ -217,7 +416,7 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
           zIndex: 1000,
         }}
       >
-        {/* Left Panel - Avatar with background image */}
+        {/* Left Panel - Avatar (Video or Static) */}
         <div
           className="rosa-portrait-container"
           style={{
@@ -227,7 +426,7 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
-            backgroundColor: '#2563eb', // Fallback color if image doesn't load
+            backgroundColor: '#2563eb',
             position: 'relative',
             display: 'flex',
             alignItems: 'center',
@@ -235,7 +434,7 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
             overflow: 'hidden',
           }}
         >
-          {/* Semi-transparent overlay to ensure avatar visibility */}
+          {/* Semi-transparent overlay */}
           <div
             style={{
               position: 'absolute',
@@ -243,17 +442,29 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'rgba(0, 0, 0, 0.15)',
+              background: costSavingMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.15)',
               zIndex: 1,
               pointerEvents: 'none',
             }}
           />
-          <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
-            <Conversation
+          
+          {/* ✅ Conditional Rendering: Static Rosa or Live Video */}
+          {costSavingMode ? (
+            <StaticRosaAvatar 
               conversationUrl={conversation.conversation_url}
               onLeave={onLeave}
+              conversationId={conversation.conversation_id}
             />
-          </div>
+          ) : (
+            <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
+              <Conversation
+                conversationUrl={conversation.conversation_url}
+                onLeave={onLeave}
+              />
+            </div>
+          )}
+
+          {/* Existing styles for video mode */}
           <style>{`
             /* Global reset to eliminate browser margins */
             body, html, #root, main {
@@ -360,134 +571,58 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => 
             }
           `}</style>
         </div>
-                 {/* Right Panel - Content, edge-to-edge, but padded for readability */}
-         <div
-           style={{
-             width: '50vw',
-             height: '100vh',
-             background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%)',
-             backgroundSize: '400% 400%',
-             animation: 'diplomaticGlow 20s ease-in-out infinite',
-             borderLeft: '3px solid #3498db',
-             display: 'flex',
-             flexDirection: 'column',
-             position: 'relative',
-             overflow: 'hidden'
-           }}
-         >
-           {/* Subtle overlay for added depth */}
-           <div style={{
-             position: 'absolute',
-             top: 0,
-             left: 0,
-             right: 0,
-             bottom: 0,
-             background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.02) 100%)',
-             pointerEvents: 'none',
-             zIndex: 1
-           }}></div>
-           
-           {/* Top spacing */}
-           <div style={{ 
-             height: '40px',
-             background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(249,250,251,0.8) 100%)',
-             position: 'relative',
-             zIndex: 2
-           }}></div>
 
-           {/* Content Navigation */}
-           <div style={{ 
-             padding: '24px 32px', 
-             borderBottom: '1px solid rgba(229, 231, 235, 0.6)',
-             background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(249,250,251,0.8) 100%)',
-             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.1)',
-             backdropFilter: 'blur(10px)',
-             position: 'relative',
-             zIndex: 2
-           }}>
-             <div style={{ 
-               display: 'flex', 
-               gap: '16px', 
-               justifyContent: 'center',
-               alignItems: 'center',
-               height: '60px'
-             }}>
-               {Object.keys(contentData).map((key) => (
-                 <button
-                   key={key}
-                   onClick={() => setCurrentContent(key as any)}
-                   style={{
-                     padding: '16px 28px',
-                     background: currentContent === key 
-                       ? 'linear-gradient(145deg, #1e40af 0%, #3730a3 50%, #1e3a8a 100%)' 
-                       : 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)',
-                     color: currentContent === key ? '#ffffff' : '#374151',
-                     border: currentContent === key ? 'none' : '1px solid rgba(229, 231, 235, 0.6)',
-                     borderRadius: '12px',
-                     fontSize: '15px',
-                     fontWeight: '600',
-                     cursor: 'pointer',
-                     textTransform: 'none',
-                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                     boxShadow: currentContent === key 
-                       ? '0 8px 25px rgba(30, 64, 175, 0.3), 0 3px 10px rgba(30, 64, 175, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)' 
-                       : '0 4px 15px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-                     letterSpacing: '0.025em',
-                     minWidth: '120px',
-                     position: 'relative',
-                     overflow: 'hidden'
-                   }}
-                   onMouseOver={(e) => {
-                     if (currentContent !== key) {
-                       e.currentTarget.style.background = 'linear-gradient(145deg, #f3f4f6 0%, #e5e7eb 50%, #d1d5db 100%)';
-                       e.currentTarget.style.transform = 'translateY(-2px)';
-                       e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.12), 0 4px 15px rgba(0, 0, 0, 0.08)';
-                     }
-                   }}
-                   onMouseOut={(e) => {
-                     if (currentContent !== key) {
-                       e.currentTarget.style.background = 'linear-gradient(145deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%)';
-                       e.currentTarget.style.transform = 'translateY(0)';
-                       e.currentTarget.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.8)';
-                     }
-                   }}
-                 >
-                   {key === 'welcome' ? 'Schedule' : 
-                    key === 'speaker' ? 'Speakers' :
-                    key === 'location' ? 'Venue' : 'Weather'}
-                 </button>
-               ))}
-             </div>
-           </div>
-
-           {/* Dynamic Content Area */}
-           <div style={{ 
-             flex: 1, 
-             padding: '30px 20px 40px 20px',
-             overflow: 'auto',
-             position: 'relative',
-             zIndex: 2
-           }}>
-             {contentData[currentContent].content}
-           </div>
-
-           {/* Footer */}
-           <div style={{ 
-             padding: '20px 20px 25px 20px', 
-             background: 'linear-gradient(180deg, rgba(248,249,250,0.9) 0%, rgba(241,245,249,0.95) 100%)',
-             borderTop: '1px solid rgba(236, 240, 241, 0.6)',
-             fontSize: '12px',
-             color: '#7f8c8d',
-             textAlign: 'center',
-             backdropFilter: 'blur(10px)',
-             boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)',
-             position: 'relative',
-             zIndex: 2
-           }}>
-             CTBTO Science & Technology Conference 2025 • Vienna International Centre
-           </div>
-         </div>
+        {/* Right Panel - Simple content for now */}
+        <div
+          style={{
+            width: '50vw',
+            height: '100vh',
+            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%)',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            overflow: 'hidden'
+          }}
+        >
+          <div style={{ flex: 1, padding: '30px 20px 40px 20px', overflow: 'auto' }}>
+            {contentData[currentContent].content}
+          </div>
+        </div>
       </div>
+      
+      {/* ✅ Add Global Handlers for Full Video Mode */}
+      {!costSavingMode && (
+        <>
+          <SimpleConversationLogger 
+            conversationId={conversation.conversation_id}
+            enabled={true}
+          />
+          <SimpleWeatherHandler 
+            conversationId={conversation.conversation_id}
+            onWeatherUpdate={(weather: any) => {
+              console.log('🌤️ Weather update received in App:', weather);
+            }} 
+          />
+          <CTBTOHandler
+            conversationId={conversation.conversation_id}
+            onCTBTOUpdate={(ctbtoData: any) => {
+              console.log('🏛️ CTBTO update received in App:', ctbtoData);
+            }}
+            onSpeakerUpdate={(speakerData: any) => {
+              console.log('👤 Speaker update received in App:', speakerData);
+            }}
+          />
+          <SpeakerHandler
+            conversationId={conversation.conversation_id}
+            onSpeakerUpdate={(speakerData: any) => {
+              console.log('👥 Speaker profile received in App:', speakerData);
+            }}
+            onSpeakerListUpdate={(speakerListData: any) => {
+              console.log('📋 Speaker list received in App:', speakerListData);
+            }}
+          />
+        </>
+      )}
     </CVIProvider>
   );
 }; 
