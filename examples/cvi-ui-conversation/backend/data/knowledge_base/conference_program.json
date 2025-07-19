@@ -1,0 +1,24 @@
+{
+  "_description": "CTBTO Science and Technology 2025 Conference Program Data",
+  "_purpose": "This file contains the complete conference program including sessions, speakers, and scheduling information for the CTBTO Avatar System knowledge base.",
+  "_structure": {
+    "sessions": "Array of conference sessions with details",
+    "speakers": "Speaker information and affiliations", 
+    "schedule": "Time-based schedule with room assignments",
+    "tracks": "Conference tracks and themes",
+    "venues": "Room and venue information"
+  },
+  "_usage": "This data is accessed by the knowledge_base service to answer questions about conference sessions, speakers, scheduling, and venue information.",
+  "_data_sources": [
+    "CTBTO conference management system",
+    "Speaker registration database", 
+    "Venue booking system",
+    "Session planning tools"
+  ],
+  "_update_frequency": "Updated daily during conference preparation, hourly during the event",
+  "_dependencies": [
+    "Conference management APIs",
+    "Speaker profile systems",
+    "Venue management databases"
+  ]
+} 

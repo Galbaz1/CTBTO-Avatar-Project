@@ -1,348 +1,153 @@
-import React, { useState, memo, useRef, useCallback } from 'react';
+import React, { useState, memo, useCallback } from 'react';
 import { Conversation } from './cvi/components/conversation';
 import { CVIProvider } from './cvi/components/cvi-provider';
 import { SimpleConversationLogger } from './SimpleConversationLogger';
 import { SimpleWeatherHandler } from './SimpleWeatherHandler';
 import { CTBTOHandler } from './CTBTOHandler';
 import { SpeakerHandler } from './SpeakerHandler';
-import { useLocalSessionId, useAudioLevelObserver, useActiveSpeakerId } from '@daily-co/daily-react';
+import { ConferencePlannerHandler } from './ConferencePlannerHandler';
+import { SpeakerProfile } from './SpeakerProfile';
+import { SpeakerList } from './SpeakerList';
+import { PersonalizedAgenda } from './PersonalizedAgenda';
 
 interface RosaDemoProps {
   conversation: any;
   onLeave: () => void;
-  costSavingMode?: boolean; // ✅ New prop for audio-only mode
 }
 
-// ✅ Enhanced Audio Wave Visualization using Daily's audio level observer
-const EnhancedAudioWave: React.FC<{ conversationId: string }> = memo(({ conversationId }) => {
-  const localSessionId = useLocalSessionId();
-  const activeSpeakerId = useActiveSpeakerId();
-  const isUserSpeaking = activeSpeakerId === localSessionId;
-  
-  // Refs for the 5 bars
-  const bar1Ref = useRef<HTMLDivElement>(null);
-  const bar2Ref = useRef<HTMLDivElement>(null);
-  const bar3Ref = useRef<HTMLDivElement>(null);
-  const bar4Ref = useRef<HTMLDivElement>(null);
-  const bar5Ref = useRef<HTMLDivElement>(null);
-  const animationFrameRef = useRef<number | undefined>(undefined);
-  
-  // Use Daily's audio level observer for accurate audio detection
-  useAudioLevelObserver(
-    localSessionId || '',
-    useCallback((volume) => {
-      // Cancel any pending animation frame to prevent accumulation
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-      }
+interface Speaker {
+  id: string;
+  name: string;
+  title: string;
+  organization: string;
+  photo_url: string;
+  session_topic: string;
+  session_time: string;
+  session_room: string;
+  expertise: string[];
+  bio_summary: string;
+}
 
-      // Use requestAnimationFrame to batch DOM updates for smooth performance
-      animationFrameRef.current = requestAnimationFrame(() => {
-        const scaledVolume = Number(Math.max(0.01, volume).toFixed(2));
-        
-        if (bar1Ref.current && bar2Ref.current && bar3Ref.current && bar4Ref.current && bar5Ref.current) {
-          // Different scaling for each bar to create a more dynamic wave pattern
-          const minHeight = 8;
-          const maxHeight = 32;
-          
-          // Create varied heights based on volume with different multipliers
-          const heights = [
-            Math.min(maxHeight, minHeight + (scaledVolume * 30)), // Bar 1: moderate
-            Math.min(maxHeight, minHeight + (scaledVolume * 45)), // Bar 2: higher
-            Math.min(maxHeight, minHeight + (scaledVolume * 60)), // Bar 3: highest (center)
-            Math.min(maxHeight, minHeight + (scaledVolume * 45)), // Bar 4: higher
-            Math.min(maxHeight, minHeight + (scaledVolume * 30)), // Bar 5: moderate
-          ];
-          
-          bar1Ref.current.style.height = `${heights[0]}px`;
-          bar2Ref.current.style.height = `${heights[1]}px`;
-          bar3Ref.current.style.height = `${heights[2]}px`;
-          bar4Ref.current.style.height = `${heights[3]}px`;
-          bar5Ref.current.style.height = `${heights[4]}px`;
-        }
-      });
-    }, [])
-  );
+interface AgendaSession {
+  id: string;
+  title: string;
+  speaker: string;
+  time: string;
+  room: string;
+  type: 'keynote' | 'technical' | 'networking' | 'policy';
+  relevance_score: number;
+}
 
-  return (
-    <div style={{
-      position: 'absolute',
-      bottom: '100px',
-      left: '50%',
-      display: 'flex',
-      alignItems: 'end',
-      gap: '6px',
-      zIndex: 3,
-      background: 'rgba(0, 0, 0, 0.8)',
-      padding: '16px 24px',
-      borderRadius: '30px',
-      backdropFilter: 'blur(15px)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-      willChange: 'transform',
-      transform: 'translateX(-50%) translateZ(0)' // Hardware acceleration
-    }}>
-      {/* Speaking Status Indicator */}
-      <div style={{
-        fontSize: '12px',
-        color: 'white',
-        marginRight: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontWeight: '500'
-      }}>
-        <div style={{
-          width: '8px',
-          height: '8px',
-          background: isUserSpeaking ? '#22c55e' : '#6b7280',
-          borderRadius: '50%',
-          transition: 'all 0.3s ease',
-          boxShadow: isUserSpeaking ? '0 0 8px rgba(34, 197, 94, 0.6)' : 'none'
-        }}></div>
-        {isUserSpeaking ? 'Speaking...' : 'Listening'}
-      </div>
+interface PersonalizedAgendaData {
+  user_interests: string;
+  time_commitment: string;
+  sessions: AgendaSession[];
+  total_duration: string;
+  qr_code_url: string;
+  export_links: {
+    pdf: string;
+    ical: string;
+  };
+}
+
+export const RosaDemo: React.FC<RosaDemoProps> = ({ conversation, onLeave }) => {
+  const [currentContent, setCurrentContent] = useState<'welcome' | 'speakers' | 'speaker-profile' | 'agenda'>('welcome');
+  const [speakerList, setSpeakerList] = useState<Speaker[]>([]);
+  const [currentSpeaker, setCurrentSpeaker] = useState<Speaker | null>(null);
+  const [searchTopic, setSearchTopic] = useState<string>('');
+  const [saveHumanityMessage, setSaveHumanityMessage] = useState<string>('');
+  const [agendaData, setAgendaData] = useState<PersonalizedAgendaData | null>(null);
+
+  // Generative UI: Handle speaker data and automatically switch views
+  const handleSpeakerListUpdate = useCallback((speakerData: any) => {
+    console.log('🎯 Generative UI: Received speaker list:', speakerData);
+    
+    if (speakerData.success && speakerData.speakers && speakerData.speakers.length > 0) {
+      setSpeakerList(speakerData.speakers);
+      setSearchTopic(speakerData.search_topic || '');
+      setSaveHumanityMessage(speakerData.save_humanity_message || '');
       
-      {/* Enhanced 5-Bar Audio Visualization */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'end',
-        gap: '3px',
-        height: '32px'
-      }}>
-        {[bar1Ref, bar2Ref, bar3Ref, bar4Ref, bar5Ref].map((ref, i) => (
-          <div
-            key={i}
-            ref={ref}
-            style={{
-              width: '4px',
-              height: '8px', // Minimum height
-              background: isUserSpeaking 
-                ? `linear-gradient(180deg, #22c55e 0%, #16a34a 100%)`
-                : `linear-gradient(180deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%)`,
-              borderRadius: '2px',
-              transition: 'height 200ms ease-out, background 0.3s ease',
-              opacity: isUserSpeaking ? 1 : 0.7,
-              willChange: 'height',
-              transform: 'translateZ(0)', // Hardware acceleration
-              boxShadow: isUserSpeaking ? '0 0 4px rgba(34, 197, 94, 0.4)' : 'none'
-            }}
-          />
-        ))}
-      </div>
-      
-      {/* Microphone Icon */}
-      <div style={{
-        marginLeft: '8px',
-        fontSize: '14px',
-        opacity: 0.8,
-        color: 'white'
-      }}>
-        🎤
-      </div>
-    </div>
-  );
-});
+      // ✅ Generative UI: Automatically switch to speaker list view
+      setCurrentContent('speakers');
+      console.log('🎯 Generative UI: Auto-switched to speaker list view');
+    }
+  }, []);
 
-EnhancedAudioWave.displayName = 'EnhancedAudioWave';
+  // 🎯 NEW: Handle personalized agenda updates
+  const handleAgendaUpdate = useCallback((agendaData: PersonalizedAgendaData) => {
+    console.log('🎯 Generative UI: Received personalized agenda:', agendaData);
+    
+    setAgendaData(agendaData);
+    
+    // ✅ Generative UI: Automatically switch to agenda view
+    setCurrentContent('agenda');
+    console.log('🎯 Generative UI: Auto-switched to agenda view');
+  }, []);
 
-// ✅ Static Rosa Avatar Component for Cost-Saving Mode
-const StaticRosaAvatar: React.FC<{ 
-  conversationUrl: string; 
-  onLeave: () => void;
-  conversationId: string;
-}> = ({ conversationUrl, onLeave, conversationId }) => {
-  return (
-    <div style={{ 
-      position: 'relative', 
-      width: '100%', 
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }}>
-      {/* Static Rosa Image */}
-      <div style={{
-        position: 'absolute',
-        width: '70%',
-        height: '85%',
-        backgroundImage: `url('/background.jpg')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center 30%',
-        borderRadius: '20px',
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-        border: '3px solid rgba(255, 255, 255, 0.2)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 2
-      }}>
-        {/* Rosa Status Indicator */}
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '20px',
-          background: 'rgba(0, 0, 0, 0.8)',
-          color: 'white',
-          padding: '12px 20px',
-          borderRadius: '25px',
-          fontSize: '14px',
-          fontWeight: '600',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          backdropFilter: 'blur(10px)'
-        }}>
-          <div style={{
-            width: '8px',
-            height: '8px',
-            background: '#22c55e',
-            borderRadius: '50%',
-            animation: 'pulse 2s infinite'
-          }}></div>
-          Rosa - Audio Mode
-        </div>
-        
-        {/* Cost Savings Badge */}
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          right: '20px',
-          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-          color: 'white',
-          padding: '8px 16px',
-          borderRadius: '20px',
-          fontSize: '12px',
-          fontWeight: '600',
-          boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)'
-        }}>
-          💰 Cost Optimized
-        </div>
-      </div>
+  // 🎯 NEW: Handle individual speaker profile updates (from getSpeakerInfo)
+  const handleSpeakerProfileUpdate = useCallback((speaker: Speaker) => {
+    console.log('🎯 Generative UI: Received speaker profile:', speaker.name);
+    
+    setCurrentSpeaker(speaker);
+    
+    // ✅ Generative UI: Automatically switch to speaker profile view
+    setCurrentContent('speaker-profile');
+    console.log('🎯 Generative UI: Auto-switched to speaker profile view');
+  }, []);
 
-      {/* Hidden Audio-Only Conversation Component */}
-      <div style={{ display: 'none' }}>
-        <Conversation
-          conversationUrl={conversationUrl}
-          onLeave={onLeave}
-        />
-      </div>
+  const handleSpeakerSelect = useCallback((speaker: Speaker) => {
+    setCurrentSpeaker(speaker);
+    setCurrentContent('speaker-profile');
+    console.log('🎯 Generative UI: Switched to speaker profile:', speaker.name);
+  }, []);
 
-      {/* ✅ Enhanced Audio Wave Visualizer using Daily's audio level observer */}
-      <EnhancedAudioWave conversationId={conversationId} />
+  const handleBackToWelcome = useCallback(() => {
+    setCurrentContent('welcome');
+    setSpeakerList([]);
+    setCurrentSpeaker(null);
+    setSearchTopic('');
+    setSaveHumanityMessage('');
+    setAgendaData(null);
+    console.log('🎯 Generative UI: Returned to welcome view');
+  }, []);
 
-      {/* ✅ Add Conversation Logging and Handlers (Hidden but Active) */}
-      <div style={{ display: 'none' }}>
-        <SimpleConversationLogger 
-          conversationId={conversationId}
-          enabled={true}
-        />
-        <SimpleWeatherHandler 
-          conversationId={conversationId}
-          onWeatherUpdate={(weather: any) => {
-            console.log('🌤️ Weather update in audio-only mode:', weather);
-          }} 
-        />
-        <CTBTOHandler
-          conversationId={conversationId}
-          onCTBTOUpdate={(ctbtoData: any) => {
-            console.log('🏛️ CTBTO update in audio-only mode:', ctbtoData);
-          }}
-          onSpeakerUpdate={(speakerData: any) => {
-            console.log('👤 Speaker update in audio-only mode:', speakerData);
-          }}
-        />
-      </div>
+  const handleBackToList = useCallback(() => {
+    setCurrentContent('speakers');
+    setCurrentSpeaker(null);
+    console.log('🎯 Generative UI: Returned to speaker list view');
+  }, []);
 
-      <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
-        }
-      `}</style>
-    </div>
-  );
-};
-
-export const RosaDemo: React.FC<RosaDemoProps> = ({ 
-  conversation, 
-  onLeave, 
-  costSavingMode = false
-}) => {
-  const [currentContent, setCurrentContent] = useState<'welcome'>('welcome');
-
-  // Sample content for Rosa's split-screen interface
-  const contentData = {
+  // Content data for the right panel with dynamic switching
+  const contentData: Record<string, { title: string; content: React.ReactElement }> = {
     welcome: {
-      title: "Welcome to CTBTO SnT 2025",
+      title: 'CTBTO SnT 2025',
       content: (
         <div style={{ 
-          margin: '0 60px',
-          padding: '60px 40px',
-          background: 'linear-gradient(145deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.9) 50%, rgba(255,255,255,0.95) 100%)',
-          border: '1px solid rgba(225, 232, 237, 0.5)',
-          borderRadius: '24px',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12), 0 8px 25px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)',
-          minHeight: '500px',
+          maxWidth: '600px', 
+          margin: '0 auto',
+          textAlign: 'center',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
-          backdropFilter: 'blur(20px)',
-          position: 'relative',
-          overflow: 'hidden'
+          gap: '32px'
         }}>
-          {/* Subtle inner glow */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(ellipse at top, rgba(59, 130, 246, 0.03) 0%, transparent 70%)',
-            borderRadius: '24px',
-            pointerEvents: 'none'
-          }}></div>
-          
-          {/* ✅ Cost Saving Mode Indicator */}
-          {costSavingMode && (
-            <div style={{
-              position: 'absolute',
-              top: '20px',
-              right: '20px',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              color: 'white',
-              padding: '8px 16px',
-              borderRadius: '20px',
-              fontSize: '12px',
-              fontWeight: '600',
-              boxShadow: '0 4px 15px rgba(16, 185, 129, 0.3)',
-              zIndex: 10
+          <div style={{ textAlign: 'center' }}>
+            <h1 style={{ 
+              fontSize: '32px', 
+              fontWeight: '700', 
+              color: '#1e293b',
+              margin: '0 0 8px 0',
+              background: 'linear-gradient(135deg, #2563eb 0%, #1e40af 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text'
             }}>
-              💰 Audio-Only Mode - Cost Optimized
-            </div>
-          )}
-          
-          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-            <div style={{ 
-              width: '80px', 
-              height: '80px', 
-              background: '#2563eb', 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              margin: '0 auto 24px',
-              fontSize: '32px'
-            }}>
-              🏛️
-            </div>
+              Welcome to SnT 2025
+            </h1>
             <h2 style={{ 
-              margin: 0, 
-              color: '#1e293b', 
-              fontSize: '28px', 
-              fontWeight: '600',
-              letterSpacing: '-0.5px',
-              marginBottom: '12px'
+              fontSize: '24px', 
+              fontWeight: '600', 
+              color: '#475569',
+              margin: '0 0 12px 0'
             }}>
               Comprehensive Nuclear-Test-Ban Treaty Organization
             </h2>
@@ -394,10 +199,64 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({
               ))}
             </div>
           </div>
+          
+          {/* 🎯 NEW: Quick Planning Prompt */}
+          <div style={{
+            background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)',
+            color: 'white',
+            padding: '24px',
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <h4 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
+              🤖 Get Your Personalized Agenda
+            </h4>
+            <p style={{ margin: '0 0 12px 0', fontSize: '14px', opacity: 0.9 }}>
+              Tell Rosa your interests and available time - she'll create a custom conference plan
+            </p>
+            <div style={{ fontSize: '12px', opacity: 0.8 }}>
+              💬 Try: "Create an agenda for nuclear monitoring" or "I have 4 hours for technical sessions"
+            </div>
+          </div>
         </div>
       )
+    },
+    speakers: {
+      title: "Conference Speakers",
+      content: speakerList.length > 0 ? (
+        <SpeakerList
+          speakers={speakerList}
+          searchTopic={searchTopic}
+          saveHumanityMessage={saveHumanityMessage}
+          onSelectSpeaker={handleSpeakerSelect}
+          onBackToWelcome={handleBackToWelcome}
+        />
+      ) : (
+        <div>Loading speakers...</div>
+      )
+    },
+    'speaker-profile': {
+      title: currentSpeaker ? `${currentSpeaker.name} - Profile` : "Speaker Profile",
+      content: currentSpeaker ? (
+        <SpeakerProfile
+          speaker={currentSpeaker}
+          onBackToList={handleBackToList}
+        />
+      ) : (
+        <div>No speaker selected</div>
+      )
+    },
+    'agenda': {
+      title: "Your Personalized Agenda",
+      content: agendaData ? (
+        <PersonalizedAgenda
+          agendaData={agendaData}
+          onBackToWelcome={handleBackToWelcome}
+        />
+      ) : (
+        <div>Loading agenda...</div>
+      )
     }
-    // Add other content data sections here if needed
   };
 
   return (
@@ -416,7 +275,7 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({
           zIndex: 1000,
         }}
       >
-        {/* Left Panel - Avatar (Video or Static) */}
+        {/* Left Panel - Rosa Video */}
         <div
           className="rosa-portrait-container"
           style={{
@@ -442,137 +301,123 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({
               left: 0,
               right: 0,
               bottom: 0,
-              background: costSavingMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(0, 0, 0, 0.15)',
+              background: 'rgba(0, 0, 0, 0.15)',
               zIndex: 1,
               pointerEvents: 'none',
             }}
           />
           
-          {/* ✅ Conditional Rendering: Static Rosa or Live Video */}
-          {costSavingMode ? (
-            <StaticRosaAvatar 
+          {/* Rosa Video Conversation */}
+          <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
+            <Conversation
               conversationUrl={conversation.conversation_url}
               onLeave={onLeave}
-              conversationId={conversation.conversation_id}
             />
-          ) : (
-            <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
-              <Conversation
-                conversationUrl={conversation.conversation_url}
-                onLeave={onLeave}
-              />
-            </div>
-          )}
+          </div>
 
-          {/* Existing styles for video mode */}
           <style>{`
-            /* Global reset to eliminate browser margins */
-            body, html, #root, main {
-              margin: 0 !important;
-              padding: 0 !important;
-              overflow: hidden !important;
-            }
-            
-            /* Avatar container sizing (perfect, don't change) */
+            /* Force the conversation container to fill the entire left panel and remove its background */
             .rosa-portrait-container div[class*="container"] {
-              aspect-ratio: unset !important;
-              max-height: none !important;
-              height: 100vh !important;
-              width: 100% !important;
-              border-radius: 0 !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              background: transparent !important;
-              background-color: transparent !important;
-            }
-            
-            /* Video containers */
-            .rosa-portrait-container div[class*="videoContainer"],
-            .rosa-portrait-container div[class*="mainVideoContainer"] {
               width: 100% !important;
               height: 100% !important;
-              padding: 0 !important;
-              margin: 0 !important;
+              border-radius: 0 !important;
+              position: relative !important;
               background: transparent !important;
-              background-color: transparent !important;
+              max-height: none !important;
+              aspect-ratio: none !important;
+              animation: none !important;
             }
             
-            /* Video element */
-            .rosa-portrait-container div[class*="mainVideo"] {
-              aspect-ratio: unset !important;
-              object-fit: cover !important;
+            /* Ensure video container fills the space */
+            .rosa-portrait-container div[class*="videoContainer"] {
               width: 100% !important;
               height: 100% !important;
               position: absolute !important;
               top: 0 !important;
               left: 0 !important;
-              background: transparent !important;
             }
             
-            /* Canvas element - ensure transparency */
-            .rosa-portrait-container canvas {
-              aspect-ratio: unset !important;
-              object-fit: cover !important;
+            /* Main video container styling */
+            .rosa-portrait-container div[class*="mainVideoContainer"] {
               width: 100% !important;
               height: 100% !important;
-              background-color: transparent !important;
-              mix-blend-mode: screen !important;
-            }
-            
-            /* Remove all grey backgrounds from CVI components */
-            .rosa-portrait-container div {
-              background-color: transparent !important;
+              border-radius: 0 !important;
               background: transparent !important;
             }
             
-            /* Target specific grey backgrounds */
-            .rosa-portrait-container div[style*="background-color: rgb(55, 65, 81)"],
-            .rosa-portrait-container div[style*="background-color: #374151"],
-            .rosa-portrait-container div[style*="background: rgb(55, 65, 81)"],
-            .rosa-portrait-container div[style*="background: #374151"] {
-              background-color: transparent !important;
-              background: transparent !important;
+            /* Main video element - fills entire left panel */
+            .rosa-portrait-container video,
+            .rosa-portrait-container canvas {
+              width: 100% !important;
+              height: 100% !important;
+              object-fit: cover !important;
+              border-radius: 0 !important;
+              position: absolute !important;
+              top: 0 !important;
+              left: 0 !important;
             }
             
-            /* Control buttons as floating overlay */
+            /* Self-view (user camera) positioning */
+            .rosa-portrait-container div[class*="selfViewContainer"] {
+              position: absolute !important;
+              bottom: 20px !important;
+              right: 20px !important;
+              width: 120px !important;
+              height: 80px !important;
+              z-index: 10 !important;
+              border-radius: 12px !important;
+              overflow: hidden !important;
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+              border: 2px solid rgba(255, 255, 255, 0.2) !important;
+            }
+            
+            /* Footer controls styling */
             .rosa-portrait-container div[class*="footer"] {
               position: absolute !important;
               bottom: 20px !important;
               left: 20px !important;
-              background: transparent !important;
-              border-radius: 12px !important;
-              padding: 12px !important;
-              z-index: 200 !important;
-              backdrop-filter: none !important;
-              box-shadow: none !important;
+              right: 140px !important;
+              z-index: 10 !important;
+              background: rgba(0, 0, 0, 0.5) !important;
+              backdrop-filter: blur(20px) !important;
+              border-radius: 16px !important;
+              padding: 12px 20px !important;
             }
             
-            /* Style the control buttons */
             .rosa-portrait-container div[class*="footerControls"] {
-              gap: 8px !important;
+              justify-content: center !important;
+              gap: 16px !important;
             }
             
-            /* Hide ghost audio wave visualization */
-            .rosa-portrait-container div[class*="audioWave"],
-            .rosa-portrait-container div[class*="waveContainer"] {
-              display: none !important;
+            /* Leave button styling */
+            .rosa-portrait-container button[class*="leaveButton"] {
+              background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+              border: none !important;
+              padding: 12px !important;
+              border-radius: 12px !important;
+              color: white !important;
+              font-weight: 600 !important;
+              cursor: pointer !important;
+              transition: all 0.2s ease !important;
+              box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3) !important;
             }
             
-            /* Hide user camera preview since avatar won't see user */
-            .rosa-portrait-container div[class*="previewVideo"],
-            .rosa-portrait-container div[class*="selfView"] {
-              display: none !important;
+            .rosa-portrait-container button[class*="leaveButton"]:hover {
+              transform: translateY(-2px) !important;
+              box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4) !important;
             }
             
-            /* Hide device selection dropdowns (mic/camera device pickers) */
-            .rosa-portrait-container div[class*="deviceSelect"],
-            .rosa-portrait-container div[class*="device-select"] {
-              display: none !important;
+            /* Waiting container (when connecting) */
+            .rosa-portrait-container div[class*="waitingContainer"] {
+              background: transparent !important;
+              color: white !important;
+              width: 100% !important;
+              height: 100% !important;
             }
           `}</style>
         </div>
 
-        {/* Right Panel - Simple content for now */}
+        {/* Right Panel - Dynamic Content */}
         <div
           style={{
             width: '50vw',
@@ -590,39 +435,35 @@ export const RosaDemo: React.FC<RosaDemoProps> = ({
         </div>
       </div>
       
-      {/* ✅ Add Global Handlers for Full Video Mode */}
-      {!costSavingMode && (
-        <>
-          <SimpleConversationLogger 
-            conversationId={conversation.conversation_id}
-            enabled={true}
-          />
-          <SimpleWeatherHandler 
-            conversationId={conversation.conversation_id}
-            onWeatherUpdate={(weather: any) => {
-              console.log('🌤️ Weather update received in App:', weather);
-            }} 
-          />
-          <CTBTOHandler
-            conversationId={conversation.conversation_id}
-            onCTBTOUpdate={(ctbtoData: any) => {
-              console.log('🏛️ CTBTO update received in App:', ctbtoData);
-            }}
-            onSpeakerUpdate={(speakerData: any) => {
-              console.log('👤 Speaker update received in App:', speakerData);
-            }}
-          />
-          <SpeakerHandler
-            conversationId={conversation.conversation_id}
-            onSpeakerUpdate={(speakerData: any) => {
-              console.log('👥 Speaker profile received in App:', speakerData);
-            }}
-            onSpeakerListUpdate={(speakerListData: any) => {
-              console.log('📋 Speaker list received in App:', speakerListData);
-            }}
-          />
-        </>
-      )}
+      {/* Global Handlers */}
+      <SimpleConversationLogger 
+        conversationId={conversation.conversation_id}
+        enabled={true}
+      />
+      <SimpleWeatherHandler 
+        conversationId={conversation.conversation_id}
+        onWeatherUpdate={(weather: any) => {
+          console.log('🌤️ Weather update received in App:', weather);
+        }} 
+      />
+      <CTBTOHandler
+        conversationId={conversation.conversation_id}
+        onCTBTOUpdate={(ctbtoData: any) => {
+          console.log('🏛️ CTBTO update received in App:', ctbtoData);
+        }}
+      />
+      <SpeakerHandler
+        conversationId={conversation.conversation_id}
+        onSpeakerUpdate={(speakerData: any) => {
+          console.log('👥 Speaker profile received in App:', speakerData);
+        }}
+        onSpeakerListUpdate={handleSpeakerListUpdate}
+        onSpeakerProfileUpdate={handleSpeakerProfileUpdate}
+      />
+      <ConferencePlannerHandler
+        conversationId={conversation.conversation_id}
+        onAgendaUpdate={handleAgendaUpdate}
+      />
     </CVIProvider>
   );
 }; 

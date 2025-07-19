@@ -256,6 +256,101 @@ app.get('/api/ctbto/test', async (req, res) => {
   }
 });
 
+// 🎯 NEW: Conference Planning Endpoint (PRD Implementation)
+app.post('/api/conference/create-agenda', async (req, res) => {
+  try {
+    const { interests, time_available, preferences = '', language = 'en', conversation_id } = req.body;
+
+    if (!interests || !time_available) {
+      return res.status(400).json({ 
+        error: 'Both interests and time_available are required for agenda creation' 
+      });
+    }
+
+    console.log(`📅 Creating personalized agenda: "${interests}" (${time_available})`);
+
+    // Call Python conference planner
+    const pythonScript = `
+import sys
+sys.path.append('${__dirname}')
+from conference_planner import create_personalized_agenda
+import json
+
+try:
+    agenda_data = create_personalized_agenda(
+        interests="${interests.replace(/"/g, '\\"')}",
+        time_available="${time_available.replace(/"/g, '\\"')}",
+        preferences="${preferences.replace(/"/g, '\\"')}",
+        language="${language}"
+    )
+    print(json.dumps(agenda_data))
+except Exception as e:
+    error_result = {
+        "error": str(e),
+        "status": "error"
+    }
+    print(json.dumps(error_result))
+`;
+
+    const venvPython = path.join(__dirname, 'venv', 'bin', 'python');
+    const pythonProcess = spawn(venvPython, ['-c', pythonScript], {
+      cwd: __dirname,
+      env: { ...process.env }
+    });
+
+    let output = '';
+    let errorOutput = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code === 0) {
+        try {
+          const agendaData = JSON.parse(output.trim());
+          
+          if (agendaData.error) {
+            console.error('❌ Python agenda generation error:', agendaData.error);
+            return res.status(500).json({
+              error: 'Failed to generate personalized agenda',
+              details: agendaData.error
+            });
+          }
+          
+          console.log(`✅ Generated agenda with ${agendaData.sessions?.length || 0} sessions`);
+          res.json(agendaData);
+          
+        } catch (parseError) {
+          console.error('❌ Failed to parse agenda response:', parseError);
+          console.error('Raw output:', output);
+          res.status(500).json({
+            error: 'Failed to parse agenda generation response',
+            details: parseError.message
+          });
+        }
+      } else {
+        console.error('❌ Python agenda process failed:', errorOutput);
+        res.status(500).json({
+          error: 'Failed to generate agenda',
+          details: errorOutput
+        });
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Conference planning error:', error);
+    res.status(500).json({ 
+      error: 'Failed to create personalized agenda',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
 // Conference advice endpoint (using CTBTO context)
 app.post('/api/ctbto/advice', async (req, res) => {
   try {

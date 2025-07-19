@@ -23,8 +23,9 @@ interface SpeakerListData {
 }
 
 interface SpeakerHandlerProps {
-  onSpeakerUpdate?: (data: SpeakerData) => void;
-  onSpeakerListUpdate?: (data: SpeakerListData) => void;
+  onSpeakerUpdate?: (speakerData: any) => void;
+  onSpeakerListUpdate?: (speakerData: any) => void;
+  onSpeakerProfileUpdate?: (speakerData: Speaker) => void; // 🎯 NEW: For individual speaker profile switching
   conversationId?: string;
 }
 
@@ -46,25 +47,45 @@ const speakerLog = {
 export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({ 
   onSpeakerUpdate, 
   onSpeakerListUpdate, 
+  onSpeakerProfileUpdate, 
   conversationId 
 }) => {
   const daily = useDaily();
   
   // Listen for Rosa's tool calls - following CTBTOHandler pattern exactly
-  useDailyEvent('conversation.tool_call', async (event: any) => {
+  useDailyEvent('app-message', async (event: any) => {
     try {
-      const { tool_call } = event;
+      const data = event.data;
       
-      if (!tool_call?.function?.name) {
+      // Handle speaker tool calls - following CTBTOHandler pattern
+      const isFindSpeakersCall = data?.event_type === 'conversation.tool_call' && 
+          data?.properties?.name === 'findSpeakers';
+      
+      const isGetSpeakerInfoCall = data?.event_type === 'conversation.tool_call' && 
+          data?.properties?.name === 'getSpeakerInfo';
+      
+      if (!isFindSpeakersCall && !isGetSpeakerInfoCall) {
         return;
       }
       
-      const toolName = tool_call.function.name;
-      const args = tool_call.function.arguments;
+      // Parse arguments - following CTBTOHandler pattern
+      let topic = '';
+      let speakerId = '';
+      let language = 'en';
+      
+      if (data.properties.arguments && data.properties.arguments !== '{}') {
+        try {
+          const args = JSON.parse(data.properties.arguments);
+          topic = args.topic || '';
+          speakerId = args.speaker_id || '';
+          language = args.language || 'en';
+        } catch (e) {
+          console.warn('Speaker args parsing failed:', e);
+        }
+      }
       
       // Handle findSpeakers tool call
-      if (toolName === 'findSpeakers') {
-        const topic = args?.topic || '';
+      if (isFindSpeakersCall) {
         speakerLog.toolCall('findSpeakers', topic);
         
         try {
@@ -76,7 +97,7 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
             },
             body: JSON.stringify({
               topic: topic,
-              language: args?.language || 'en'
+              language: language
             }),
           });
           
@@ -92,41 +113,45 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
             onSpeakerListUpdate(data);
           }
           
-          // Send formatted response back to Rosa
+          // Send formatted response back to Rosa - following CTBTOHandler format
           if (daily && conversationId) {
             const speakersList = data.speakers.map(s => 
               `${s.name} (${s.title}) - Session: "${s.session_topic}" at ${s.session_time} in ${s.session_room}`
             ).join('\n');
             
-            const responseMessage = data.success 
+            const formattedResponse = data.success 
               ? `Found ${data.speakers.length} speaker(s) for "${topic}":\n\n${speakersList}\n\n${data.save_humanity_message}`
               : `No speakers found for "${topic}". Please try a different topic or ask about specific expertise areas.`;
             
-            daily.sendAppMessage('speaker-search-complete', {
-              tool_call_id: tool_call.id,
-              response: responseMessage,
-              speakers: data.speakers,
-              search_topic: topic
-            });
+            await daily.sendAppMessage({
+              message_type: 'conversation',
+              event_type: 'conversation.respond',
+              conversation_id: conversationId,
+              properties: {
+                text: formattedResponse
+              }
+            }, '*');
           }
           
         } catch (error) {
           speakerLog.error('findSpeakers', String(error));
           
-          // Send error response back to Rosa
+          // Send error response back to Rosa - following CTBTOHandler format
           if (daily && conversationId) {
-            daily.sendAppMessage('speaker-search-error', {
-              tool_call_id: tool_call.id,
-              response: `I apologize, but I encountered an error searching for speakers about "${topic}". Please try again or ask about different topics.`,
-              error: String(error)
-            });
+            await daily.sendAppMessage({
+              message_type: 'conversation',
+              event_type: 'conversation.respond',
+              conversation_id: conversationId,
+              properties: {
+                text: `I apologize, but I encountered an error searching for speakers about "${topic}". Please try again or ask about different topics.`
+              }
+            }, '*');
           }
         }
       }
       
       // Handle getSpeakerInfo tool call
-      if (toolName === 'getSpeakerInfo') {
-        const speakerId = args?.speaker_id || '';
+      if (isGetSpeakerInfoCall) {
         speakerLog.toolCall('getSpeakerInfo', speakerId);
         
         try {
@@ -146,38 +171,52 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
               onSpeakerUpdate(data.speaker);
             }
             
-            // Send formatted response back to Rosa
+            // 🎯 NEW: Trigger speaker profile UI switch
+            if (onSpeakerProfileUpdate) {
+              onSpeakerProfileUpdate(data.speaker);
+            }
+            
+            // Send formatted response back to Rosa - following CTBTOHandler format
             if (daily && conversationId) {
               const speaker = data.speaker;
-              const responseMessage = `${speaker.name} - ${speaker.title} at ${speaker.organization}\n\nSession: "${speaker.session.topic}"\nTime: ${speaker.session.time} in ${speaker.session.room}\n\nExpertise: ${speaker.expertise.join(', ')}\n\n${speaker.bio_summary}\n\n${data.save_humanity_message}`;
+              const formattedResponse = `${speaker.name} - ${speaker.title} at ${speaker.organization}\n\nSession: "${speaker.session.topic}"\nTime: ${speaker.session.time} in ${speaker.session.room}\n\nExpertise: ${speaker.expertise.join(', ')}\n\n${speaker.bio_summary}\n\n${data.save_humanity_message}`;
               
-              daily.sendAppMessage('speaker-info-complete', {
-                tool_call_id: tool_call.id,
-                response: responseMessage,
-                speaker: speaker
-              });
+              await daily.sendAppMessage({
+                message_type: 'conversation',
+                event_type: 'conversation.respond',
+                conversation_id: conversationId,
+                properties: {
+                  text: formattedResponse
+                }
+              }, '*');
             }
           } else {
-            // Send not found response
+            // Send not found response - following CTBTOHandler format
             if (daily && conversationId) {
-              daily.sendAppMessage('speaker-info-error', {
-                tool_call_id: tool_call.id,
-                response: `I couldn't find information about speaker "${speakerId}". Please check the speaker name or ID.`,
-                error: data.message
-              });
+              await daily.sendAppMessage({
+                message_type: 'conversation',
+                event_type: 'conversation.respond',
+                conversation_id: conversationId,
+                properties: {
+                  text: `I couldn't find information about speaker "${speakerId}". Please check the speaker name or ID.`
+                }
+              }, '*');
             }
           }
           
         } catch (error) {
           speakerLog.error('getSpeakerInfo', String(error));
           
-          // Send error response back to Rosa
+          // Send error response back to Rosa - following CTBTOHandler format
           if (daily && conversationId) {
-            daily.sendAppMessage('speaker-info-error', {
-              tool_call_id: tool_call.id,
-              response: `I apologize, but I encountered an error retrieving information about "${speakerId}". Please try again.`,
-              error: String(error)
-            });
+            await daily.sendAppMessage({
+              message_type: 'conversation',
+              event_type: 'conversation.respond',
+              conversation_id: conversationId,
+              properties: {
+                text: `I apologize, but I encountered an error retrieving information about "${speakerId}". Please try again.`
+              }
+            }, '*');
           }
         }
       }

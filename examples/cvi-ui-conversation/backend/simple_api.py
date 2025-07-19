@@ -5,11 +5,21 @@ Test our existing Agent1.py with a basic FastAPI endpoint
 """
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from Agent1 import CTBTOAgent
 
 # Initialize FastAPI app
 app = FastAPI(title="Rosa CTBTO Agent API", version="0.1.0")
+
+# Add CORS middleware to allow frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Frontend origins
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"],
+)
 
 # Initialize our CTBTO agent
 ctbto_agent = CTBTOAgent()

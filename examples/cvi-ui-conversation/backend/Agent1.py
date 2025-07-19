@@ -10,7 +10,11 @@ import openai
 from typing import List, Dict, Any, Optional
 import json
 from dotenv import load_dotenv
-from speakers_data import CTBTO_SPEAKERS, get_speaker_by_id, search_speakers_by_topic, get_all_speakers
+# Option 1: Use hardcoded data (current)
+# from speakers_data import CTBTO_SPEAKERS, get_speaker_by_id, search_speakers_by_topic, get_all_speakers
+
+# Option 2: Use document-based data (Agent SDK inspired)
+from document_loader import SpeakerDocumentLoader
 
 # Load environment variables from .env.local file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
@@ -29,6 +33,9 @@ class CTBTOAgent:
         self.client = openai.OpenAI(
             api_key=os.getenv("OPENAI_API_KEY")
         )
+        
+        # Initialize document loader (Agent SDK inspired approach)
+        self.speaker_loader = SpeakerDocumentLoader()
         
         # Instructions defining the agent's knowledge and behavior (replaces system message)
         self.instructions = """You are a specialized agent with comprehensive knowledge about the CTBTO (Comprehensive Nuclear-Test-Ban Treaty Organization). 
@@ -135,8 +142,8 @@ Always provide accurate, informative responses while emphasizing the CTBTO's vit
             Dict[str, Any]: Structured speaker data for frontend
         """
         try:
-            # Use simple keyword matching for now
-            matching_speakers = search_speakers_by_topic(topic)
+            # Use document-based speaker search (Agent SDK inspired)
+            matching_speakers = self.speaker_loader.search_speakers_by_topic(topic)
             
             if not matching_speakers:
                 return {
@@ -189,7 +196,7 @@ Always provide accurate, informative responses while emphasizing the CTBTO's vit
             Dict[str, Any]: Complete speaker profile for UI display
         """
         try:
-            speaker = get_speaker_by_id(speaker_id)
+            speaker = self.speaker_loader.get_speaker_by_id(speaker_id)
             
             if not speaker:
                 return {
