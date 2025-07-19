@@ -35,6 +35,8 @@ const weatherTool = {
   }
 };
 
+
+
 const ctbtoInfoTool = {
   type: 'function',
   function: {
@@ -62,13 +64,13 @@ const findSpeakersTool = {
   type: 'function',
   function: {
     name: 'findSpeakers',
-    description: 'Find conference speakers by topic, expertise area, or session. Use this when users ask "who speaks about X", "speakers for Y topic", or "show me experts in Z". Returns list of matching speakers with session details.',
+    description: '🎯 GENERATIVE UI: Find conference speakers by topic, expertise area, or session. This function AUTOMATICALLY displays beautiful speaker profiles in the UI! Use this whenever users ask "who speaks about X", "speakers for Y topic", "show me experts in Z", or when you mention speakers. The UI will show interactive speaker cards with photos, sessions, and bio information.',
     parameters: {
       type: 'object',
       properties: {
         topic: {
           type: 'string',
-          description: 'The topic, expertise area, or subject to search for (e.g., "seismic monitoring", "nuclear verification", "radionuclide detection", "AI", "hydroacoustic")'
+          description: 'The topic, expertise area, or subject to search for (e.g., "seismic monitoring", "nuclear verification", "radionuclide detection", "AI", "hydroacoustic", "infrasound", "machine learning")'
         },
         language: {
           type: 'string',
@@ -81,17 +83,48 @@ const findSpeakersTool = {
   }
 };
 
+// 🎯 NEW: Conference Planning Tool for Personalized Agenda
+const createPersonalizedAgendaTool = {
+  type: 'function',
+  function: {
+    name: 'createPersonalizedAgenda',
+    description: '🎯 GENERATIVE UI: Create a personalized conference agenda based on user preferences. This function AUTOMATICALLY displays a custom agenda in the UI with sessions, speakers, timing, and QR code export. Use when users want conference planning, scheduling, or agenda creation.',
+    parameters: {
+      type: 'object',
+      properties: {
+        interests: {
+          type: 'string',
+          description: 'Main interests/topics (e.g., "Nuclear Monitoring, Seismic Analysis", "Policy and Networking", "Technical Sessions")'
+        },
+        time_available: {
+          type: 'string',
+          description: 'Available time commitment (e.g., "Full day", "Half day", "Few hours", "Key sessions only")'
+        },
+        preferences: {
+          type: 'string',
+          description: 'Additional preferences like specific speakers, languages, networking focus, etc.'
+        },
+        response_to_user: {
+          type: 'string', 
+          description: 'Brief context of what you are creating (e.g., "Creating your personalized agenda", "Building your conference plan")'
+        }
+      },
+      required: ['interests', 'time_available', 'response_to_user']
+    }
+  }
+};
+
 const getSpeakerInfoTool = {
   type: 'function',
   function: {
     name: 'getSpeakerInfo',
-    description: 'Get detailed information about a specific speaker by their ID or exact name. Use this for detailed speaker profiles after speakers have been found via findSpeakers. Provides complete bio, session info, and expertise.',
+    description: '🎯 GENERATIVE UI: Get detailed information about a specific speaker by their ID or exact name. This function AUTOMATICALLY displays the speaker\'s complete profile in the UI with biography, session details, and expertise areas. Perfect for when users want detailed speaker information.',
     parameters: {
       type: 'object',
       properties: {
         speaker_id: {
           type: 'string',
-          description: 'The exact speaker ID or name to get detailed information about (e.g., "dr-sarah-chen", "Prof. Mikhail Volkov")'
+          description: 'The exact speaker ID or name to get detailed information about (e.g., "dr-sarah-chen", "Prof. Mikhail Volkov", "prof-mikhail-volkov")'
         },
         language: {
           type: 'string',
@@ -107,7 +140,7 @@ const getSpeakerInfoTool = {
 // Function to patch the ROSA persona with weather and CTBTO tools
 const patchPersonaWithTools = async (apiKey: string, personaId: string): Promise<void> => {
   try {
-    const allTools = [weatherTool, ctbtoInfoTool, findSpeakersTool, getSpeakerInfoTool];
+    const allTools = [weatherTool, ctbtoInfoTool, findSpeakersTool, getSpeakerInfoTool, createPersonalizedAgendaTool];
     
     logApiCall('persona-patch-starting', {
       personaId,
@@ -273,134 +306,6 @@ export const createConversation = async (
       timestamp: new Date().toISOString()
     }, 'error');
     console.error('Error:', error);
-    throw error;
-  }
-};
-
-/**
- * Cost-Optimized Audio-Only Conversation Creator
- * Implements Tavus-documented audio_only mode to save on expensive video rendering costs
- * while maintaining full functionality: STT, TTS, Perception, and Function Calling
- */
-export const createAudioOnlyConversation = async (
-  apiKey: string
-): Promise<IConversation> => {
-  try {
-    if (!apiKey) {
-      logApiCall('validation-error', {
-        error: 'API key is required for audio-only mode',
-        provided: !!apiKey
-      }, 'error');
-      throw new Error('API key is required');
-    }
-
-    const personaId = 'p6d4b9f19b0d'; // ROSA persona ID (diplomatic SnT 2025)
-
-    // First, patch the persona to add weather and CTBTO tools
-    await patchPersonaWithTools(apiKey, personaId);
-
-    const requestPayload = {
-      persona_id: personaId,
-      replica_id: 'rb67667672ad', // ROSA replica ID (required even for audio-only)
-      conversation_name: 'ROSA - Audio-Only Mode (Cost Optimized)',
-      audio_only: true, // ✅ Key cost-saving feature from Tavus docs
-      properties: {
-        max_call_duration: 1800, // 30 minutes max for conference sessions
-        participant_left_timeout: 30, // Quick timeout for efficiency (reduced from 60s)
-        participant_absent_timeout: 120, // 2 minutes absent timeout
-      }
-    };
-
-    logApiCall('audio-only-conversation-creation-starting', {
-      endpoint: 'https://tavusapi.com/v2/conversations',
-      method: 'POST',
-      mode: 'AUDIO_ONLY_COST_OPTIMIZED',
-      personaId: requestPayload.persona_id,
-      replicaId: requestPayload.replica_id,
-      conversationName: requestPayload.conversation_name,
-      audioOnly: requestPayload.audio_only,
-      properties: requestPayload.properties,
-      costSavings: 'Video rendering disabled - audio pipeline only',
-      featuresPreserved: 'STT, TTS, Perception (Raven), Function Calling, Turn-taking (Sparrow)',
-      apiKeyLength: apiKey.length,
-      apiKeyPrefix: apiKey.substring(0, 8) + '...'
-    });
-
-    const requestStart = Date.now();
-    
-    const response = await fetch('https://tavusapi.com/v2/conversations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      },
-      body: JSON.stringify(requestPayload),
-    });
-
-    const requestDuration = Date.now() - requestStart;
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      logApiCall('audio-only-conversation-creation-failed', {
-        status: response.status,
-        statusText: response.statusText,
-        errorText,
-        headers: Object.fromEntries(response.headers.entries()),
-        requestDuration: `${requestDuration}ms`
-      }, 'error');
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    logApiCall('audio-only-conversation-creation-success', {
-      conversationId: data.conversation_id,
-      conversationUrl: data.conversation_url,
-      status: data.status,
-      mode: 'AUDIO_ONLY_COST_OPTIMIZED',
-      requestDuration: `${requestDuration}ms`,
-      costSavings: 'Video rendering costs eliminated',
-      responseHeaders: Object.fromEntries(response.headers.entries()),
-      fullResponse: data
-    });
-
-    // Log audio-only configuration details
-    logApiCall('audio-only-config-details', {
-      personaConfiguration: {
-        personaId: requestPayload.persona_id,
-        replicaId: requestPayload.replica_id,
-        name: requestPayload.conversation_name,
-        audioOnly: true
-      },
-      properties: requestPayload.properties,
-      preservedFeatures: {
-        stt: 'Speech-to-Text active',
-        tts: 'Text-to-Speech active', 
-        perception: 'Raven model active',
-        functionCalling: 'Weather + CTBTO tools active',
-        turnTaking: 'Sparrow model active'
-      },
-             costOptimizations: {
-         videoRendering: 'DISABLED - Major cost savings',
-         efficientTimeouts: 'ENABLED - Resource optimization'
-       },
-      conversationDetails: {
-        id: data.conversation_id,
-        url: data.conversation_url,
-        status: data.status
-      }
-    });
-
-    return data;
-  } catch (error) {
-    logApiCall('audio-only-conversation-creation-error', {
-      error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      apiKeyProvided: !!apiKey,
-      timestamp: new Date().toISOString(),
-      mode: 'AUDIO_ONLY_COST_OPTIMIZED'
-    }, 'error');
-    console.error('Audio-only conversation creation error:', error);
     throw error;
   }
 };

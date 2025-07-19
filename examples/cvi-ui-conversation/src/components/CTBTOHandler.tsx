@@ -12,21 +12,11 @@ interface CTBTOData {
   source: string;
 }
 
-interface SpeakerData {
-  speaker_name: string;
-  language: string;
-  biography: string;
-  is_ctbto_related: boolean;
-  conference_context: string;
-  qr_code_url: string;
-  mobile_url: string;
-  save_humanity_message: string;
-  source: string;
-}
+// 🎯 REMOVED: SpeakerData interface - now handled by dedicated SpeakerHandler
 
 interface CTBTOHandlerProps {
   onCTBTOUpdate?: (data: CTBTOData) => void;
-  onSpeakerUpdate?: (data: SpeakerData) => void;
+  // 🎯 REMOVED: onSpeakerUpdate - now handled by dedicated SpeakerHandler
   conversationId?: string;
 }
 
@@ -45,7 +35,7 @@ const ctbtoLog = {
   }
 };
 
-export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, onSpeakerUpdate, conversationId }) => {
+export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conversationId }) => {
   const daily = useDaily();
   
   // Listen for CTBTO tool calls only - following SimpleWeatherHandler pattern
@@ -57,9 +47,8 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, onSpe
         (data?.properties?.name === 'getCTBTOInfo' || 
          data?.properties?.name === 'getCTBTOInformation');
     
-    const isSpeakerToolCall = data?.event_type === 'conversation.tool_call' && 
-        (data?.properties?.name === 'getSpeakerInfo' ||
-         data?.properties?.name === 'getSpeakerInformation');
+    // 🎯 REMOVED: Speaker handling moved to dedicated SpeakerHandler
+    // The CTBTOHandler now only handles CTBTO-specific information queries
     
     if (isCTBTOToolCall) {
       try {
@@ -135,88 +124,6 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, onSpe
             conversation_id: conversationId,
             properties: {
               text: `I apologize, but I'm unable to retrieve CTBTO information at the moment. However, I can tell you that the CTBTO is going to save humanity through its vital nuclear monitoring work. Please try again or ask about a different topic.`
-            }
-          }, '*');
-        }
-      }
-    }
-    
-    // Handle Speaker Information tool calls
-    if (isSpeakerToolCall) {
-      try {
-        // Parse the speaker name from the tool call arguments
-        let speaker_name = 'Dr. Unknown Speaker'; // Default
-        let language = 'en';
-        
-        if (data.properties.arguments && data.properties.arguments !== '{}') {
-          try {
-            const args = JSON.parse(data.properties.arguments);
-            speaker_name = args.speaker_name || args.name || args.person || speaker_name;
-            language = args.language || 'en';
-          } catch (e) {
-            console.warn('Speaker args parsing failed:', e);
-          }
-        }
-        
-        ctbtoLog.toolCall('getSpeakerInfo', speaker_name);
-        
-        // Call Speaker backend service
-        const response = await fetch('http://localhost:3002/api/ctbto/speaker', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ speaker_name, language })
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Speaker service error: ${response.status}`);
-        }
-        
-        const speakerData: SpeakerData = await response.json();
-        
-        // Format speaker response for ROSA - simplified
-        const formattedResponse = [
-          `Information about ${speakerData.speaker_name}:`,
-          '',
-          speakerData.biography,
-          '',
-          `📱 Mobile Access: You can scan a QR code for detailed information at ${speakerData.qr_code_url}`,
-          '',
-          `🏛️ ${speakerData.save_humanity_message}`
-        ].join('\n');
-
-        ctbtoLog.success('getSpeakerInfo', formattedResponse.length);
-
-        // Send response back to ROSA - following SimpleWeatherHandler format
-        if (daily) {
-          await daily.sendAppMessage({
-            message_type: 'conversation',
-            event_type: 'conversation.respond',
-            conversation_id: conversationId,
-            properties: {
-              text: formattedResponse
-            }
-          }, '*');
-        }
-        
-        // Optional: Update UI if callback provided
-        if (onSpeakerUpdate) {
-          onSpeakerUpdate(speakerData);
-        }
-        
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        ctbtoLog.error('getSpeakerInfo', errorMsg);
-        
-        // Send error response to ROSA
-        if (daily) {
-          await daily.sendAppMessage({
-            message_type: 'conversation',
-            event_type: 'conversation.respond',
-            conversation_id: conversationId,
-            properties: {
-              text: `I apologize, but I'm unable to retrieve speaker information at the moment. However, the CTBTO is going to save humanity through its vital nuclear monitoring work. Please ask about CTBTO topics or try again later.`
             }
           }, '*');
         }

@@ -1,0 +1,270 @@
+{
+  "metadata": {
+    "title": "CTBTO Avatar Consolidated Red Zone Rules",
+    "description": "Unified content filtering and cultural sensitivity rules with duplicates removed",
+    "version": "1.0",
+    "last_updated": "2025-01-24",
+    "source": "Consolidated from cultural_sensitivity_config.json, filter_rules.json, forbidden_topics.json, red_zone_rules.json"
+  },
+  "severity_levels": {
+    "CRITICAL": {
+      "description": "Immediate blocking required - core CTBTO operational security",
+      "action": "block_immediately",
+      "categories": ["CTBTO-Specific", "Security Threats"]
+    },
+    "HIGH": {
+      "description": "Strong filtering required - diplomatic sensitivity",
+      "action": "filter_and_redirect",
+      "categories": ["Geopolitical", "UN & Diplomacy"]
+    },
+    "MEDIUM": {
+      "description": "Context-aware filtering - cultural sensitivity",
+      "action": "context_check",
+      "categories": ["Language Sensitivity", "Social Issues"]
+    },
+    "INFO": {
+      "description": "Guidance for appropriate responses",
+      "action": "guide_response",
+      "categories": ["Universal Sensitivity", "Allowed Interactions"]
+    }
+  },
+  "critical_keywords": [
+    "verification method",
+    "monitoring technology", 
+    "detection system",
+    "nuclear weapons",
+    "nuclear program",
+    "nuclear capability",
+    "treaty status",
+    "ratification",
+    "signatory",
+    "compliance",
+    "violations",
+    "intelligence gathering",
+    "state participation",
+    "bomb",
+    "explosive",
+    "terrorist",
+    "terrorism",
+    "weapon",
+    "jewish problem",
+    "final solution",
+    "holocaust denial",
+    "ethnic cleansing",
+    "genocide",
+    "racial superiority",
+    "white supremacy"
+  ],
+  "forbidden_categories": {
+    "ctbto-specific": {
+      "name": "CTBTO-Specific",
+      "severity": "CRITICAL",
+      "topics": {
+        "verification_methods": {
+          "description": "Do not discuss verification technologies, methods, or operations",
+          "keywords": ["verification system", "monitoring evasion", "detection system"]
+        },
+        "treaty_status": {
+          "description": "Avoid questions on Treaty status, negotiations, or political processes",
+          "keywords": ["treaty compliance", "ratification", "signatory"]
+        },
+        "state_participation": {
+          "description": "No discussion of signatories, ratification status, or non-signatories",
+          "keywords": ["state participation", "compliance"]
+        },
+        "intelligence": {
+          "description": "Avoid topics that suggest intelligence-gathering or monitoring practices",
+          "keywords": ["intelligence gathering", "monitoring evasion"]
+        }
+      }
+    },
+    "security_threats": {
+      "name": "Security Threats", 
+      "severity": "CRITICAL",
+      "topics": {
+        "violence": {
+          "description": "Block security threats, violence, terrorism, and hate speech",
+          "keywords": ["bomb", "explosive", "terrorist", "terrorism", "weapon"]
+        },
+        "hate_speech": {
+          "description": "Block hate speech and discriminatory content",
+          "keywords": ["jewish problem", "final solution", "holocaust denial", "ethnic cleansing", "genocide", "racial superiority", "white supremacy"]
+        }
+      }
+    },
+    "geopolitical": {
+      "name": "Geopolitical",
+      "severity": "HIGH", 
+      "topics": {
+        "nuclear_weapons": {
+          "description": "No questions on which countries have or are developing nuclear weapons",
+          "keywords": ["nuclear weapons", "nuclear program", "nuclear capability"]
+        },
+        "military_conflicts": {
+          "description": "Avoid discussion of ongoing inter-state or intra-state conflicts",
+          "keywords": ["military conflicts", "inter-state conflicts", "intra-state conflicts"]
+        },
+        "security_alliances": {
+          "description": "No references to sanctions, embargoes, or military alliances",
+          "keywords": ["security alliances", "sanctions", "embargoes"]
+        }
+      }
+    },
+    "un_diplomacy": {
+      "name": "UN & Diplomacy",
+      "severity": "HIGH",
+      "topics": {
+        "member_state_relations": {
+          "description": "Avoid criticizing or praising specific Member States",
+          "keywords": ["member state relations", "criticizing states", "praising states"]
+        },
+        "policy_comparison": {
+          "description": "No comparisons between national policies",
+          "keywords": ["policy comparison"]
+        },
+        "un_structure": {
+          "description": "Do not speculate on UN reform or the Security Council",
+          "keywords": ["un reform", "security council"]
+        }
+      }
+    },
+    "language_sensitivity": {
+      "name": "Language Sensitivity",
+      "severity": "MEDIUM",
+      "topics": {
+        "arabic": {
+          "description": "Avoid political references, religious discussions, and use formal tone",
+          "keywords": [],
+          "restrictions": "formal tone, no political/religious references"
+        },
+        "chinese": {
+          "description": "Avoid Taiwan, Tibet, Hong Kong politics, and government criticism",
+          "keywords": ["taiwan", "tibet", "hong kong"],
+          "restrictions": "respectful tone, avoid sensitive political topics"
+        },
+        "english": {
+          "description": "Avoid slang and be sensitive to racial or gender topics", 
+          "keywords": [],
+          "restrictions": "professional tone, avoid slang"
+        },
+        "french": {
+          "description": "Avoid colonial/religious humor; maintain formality",
+          "keywords": [],
+          "restrictions": "formal tone, no colonial/religious humor"
+        },
+        "russian": {
+          "description": "Avoid political satire, references to NATO or Ukraine",
+          "keywords": ["nato", "ukraine"],
+          "restrictions": "neutral tone, avoid political satire"
+        },
+        "spanish": {
+          "description": "Avoid topics like Catalonia independence, religion, or immigration",
+          "keywords": ["catalonia", "independence"],
+          "restrictions": "respectful tone, avoid sensitive regional topics"
+        }
+      }
+    },
+    "social_issues": {
+      "name": "Social Issues",
+      "severity": "MEDIUM",
+      "topics": {
+        "religion": {
+          "description": "Avoid discussions on religion or religious conflict",
+          "keywords": ["religion", "religious conflict"]
+        },
+        "lgbtq": {
+          "description": "Do not engage in discussions on gender identity or orientation",
+          "keywords": ["lgbtq+", "gender identity"]
+        },
+        "political_ideology": {
+          "description": "Avoid references to political ideologies or extremism",
+          "keywords": ["political ideology", "extremism"]
+        },
+        "immigration": {
+          "description": "Do not discuss immigration or refugee policy",
+          "keywords": ["immigration", "refugee policy"]
+        }
+      }
+    },
+    "universal_sensitivity": {
+      "name": "Universal Sensitivity",
+      "severity": "INFO",
+      "topics": {
+        "humor": {
+          "description": "No jokes about death, religion, race, or gender",
+          "keywords": ["death jokes", "religious jokes", "racial jokes", "gender jokes"]
+        },
+        "appearance": {
+          "description": "Avoid comments about physical appearance or disabilities",
+          "keywords": ["physical appearance", "disabilities"]
+        },
+        "cultural_items": {
+          "description": "Avoid references to alcohol, pork in Muslim-majority cultures",
+          "keywords": ["alcohol", "pork"]
+        },
+        "holidays": {
+          "description": "Use neutral greetings like 'Happy Holidays' instead of religious ones",
+          "keywords": []
+        }
+      }
+    },
+    "allowed_interactions": {
+      "name": "Allowed Interactions",
+      "severity": "INFO",
+      "topics": {
+        "navigation": {
+          "description": "Answer location queries within the venue",
+          "examples": ["Where is the main hall?", "How do I get to Room A?"],
+          "scope": "venue_only"
+        },
+        "agenda": {
+          "description": "Provide session schedules and event timing",
+          "examples": ["What time is the keynote?", "When is the next session?"],
+          "scope": "conference_schedule"
+        },
+        "language_control": {
+          "description": "Support language selection and voice control",
+          "examples": ["Switch to French", "Speak louder"],
+          "scope": "interface_control"
+        },
+        "general_info": {
+          "description": "Answer general questions about SnT or CTBTO",
+          "examples": ["What is SnT?", "What does CTBTO do?"],
+          "scope": "public_information"
+        },
+        "encouragement": {
+          "description": "Use polite and encouraging closing phrases",
+          "examples": ["Have a great day!", "Enjoy the conference!"],
+          "scope": "social_interaction"
+        }
+      }
+    }
+  },
+  "response_strategies": {
+    "blocked_content": {
+      "message": "I'm not able to discuss that topic. Is there something else about the conference I can help you with?",
+      "redirect_to": ["navigation", "agenda", "general_info"]
+    },
+    "sensitive_content": {
+      "message": "Let me help you with information about the conference instead.",
+      "redirect_to": ["agenda", "navigation"]
+    },
+    "language_inappropriate": {
+      "message": "I want to be respectful in our conversation. How can I help you with conference information?",
+      "redirect_to": ["general_info", "navigation"]
+    }
+  },
+  "compliance_checks": {
+    "pre_response": {
+      "check_keywords": true,
+      "check_topics": true,
+      "check_language_context": true,
+      "check_cultural_sensitivity": true
+    },
+    "post_response": {
+      "verify_appropriateness": true,
+      "log_filtered_content": true,
+      "escalate_violations": true
+    }
+  }
+} 
