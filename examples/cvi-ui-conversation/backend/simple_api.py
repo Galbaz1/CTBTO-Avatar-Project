@@ -23,6 +23,19 @@ class QueryResponse(BaseModel):
     response: str
     is_ctbto_related: bool
 
+# Speaker search request model
+class SpeakerSearchRequest(BaseModel):
+    topic: str
+    language: str = "en"
+
+# Speaker search response model
+class SpeakerSearchResponse(BaseModel):
+    success: bool
+    message: str
+    speakers: list
+    search_topic: str
+    save_humanity_message: str = ""
+
 @app.get("/")
 async def root():
     """Health check endpoint"""
@@ -41,6 +54,29 @@ async def ask_ctbto(request: QueryRequest):
         response=result["text"],
         is_ctbto_related=is_related
     )
+
+@app.post("/api/speakers/search", response_model=SpeakerSearchResponse)
+async def search_speakers(request: SpeakerSearchRequest):
+    """
+    Search for speakers by topic
+    """
+    result = ctbto_agent.find_speakers_by_topic(request.topic, request.language)
+    
+    return SpeakerSearchResponse(
+        success=result["success"],
+        message=result["message"],
+        speakers=result["speakers"],
+        search_topic=result["search_topic"],
+        save_humanity_message=result.get("save_humanity_message", "")
+    )
+
+@app.get("/api/speakers/{speaker_id}")
+async def get_speaker(speaker_id: str):
+    """
+    Get specific speaker details by ID
+    """
+    result = ctbto_agent.get_speaker_by_id(speaker_id)
+    return result
 
 if __name__ == "__main__":
     import uvicorn
