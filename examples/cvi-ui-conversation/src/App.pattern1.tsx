@@ -2,12 +2,10 @@ import { useEffect, useState } from 'react'
 import { StagewiseToolbar } from '@stagewise/toolbar-react'
 import ReactPlugin from '@stagewise-plugins/react'
 import { WelcomeScreen } from './components/WelcomeScreen'
-import { createConversation } from './api/createConversation.pattern1'
-import { endConversation } from './api'
+import { createConversation, endConversation } from './api/createConversation.pattern1'
 import type { IConversation } from './types'
 import { Conversation } from './components/cvi/components/conversation'
 import { useRequestPermissions } from './components/cvi/hooks/use-request-permissions';
-// Pattern 1: No function call handlers needed
 import { SimpleConversationLogger } from './components/SimpleConversationLogger';
 
 function App() {
@@ -48,51 +46,42 @@ function App() {
       localStorage.setItem('token', token);
       setLoading(true)
       
-      console.log('🎤 Requesting permissions...');
-      await requestPermissions()
+      await requestPermissions();
+      console.log('✅ Permissions granted');
       
-      if (!token) {
-        alert('API key not found. Please set your API key.')
-        return
-      }
+      console.log('📞 Creating Pattern 1 conversation...');
+      const data = await createConversation(token)
+      console.log('✅ Pattern 1 conversation created:', data);
       
-      console.log('🔗 Creating conversation with Tavus API...');
-      const conversation = await createConversation(token)
-      console.log('✅ Pattern 1 conversation created:', {
-        conversationId: conversation.conversation_id,
-        conversationUrl: conversation.conversation_url,
-        status: conversation.status
-      });
-      
-      setConversation(conversation)
+      setConversation(data)
       setScreen('call')
     } catch (error) {
-      console.error('❌ Error starting conversation:', error);
-      alert('Uh oh! Something went wrong. Check console for details')
+      console.error('❌ Error joining conversation:', error)
+      alert('Failed to start conversation. Please check your API key and try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <main>
-      <StagewiseToolbar 
-        config={{
-          plugins: [ReactPlugin]
-        }}
-      />
-      {screen === 'welcome' && <WelcomeScreen onStart={handleJoin} loading={loading} />}
-      <div>
+    <>
+      <StagewiseToolbar plugin={ReactPlugin} />
+      <div className="app">
+        {screen === 'welcome' && (
+          <WelcomeScreen onJoin={handleJoin} loading={loading} />
+        )}
+        
         {screen === 'call' && conversation && (
           <div style={{ position: 'relative' }}>
             {/* Pattern 1: All responses flow through Rosa backend */}
-            <Conversation conversationUrl={conversation.conversation_url} onLeave={handleEnd} />
+            <Conversation 
+              key={conversation.conversation_id}
+              conversationUrl={conversation.conversation_url} 
+              onLeave={handleEnd} 
+            />
             
             {/* Pattern 1: Simple logging only - no function call handlers */}
-            <SimpleConversationLogger 
-              conversationId={conversation.conversation_id}
-              enabled={true}
-            />
+            <SimpleConversationLogger />
             
             {/* Pattern 1 Info Display */}
             <div style={{
@@ -112,8 +101,8 @@ function App() {
           </div>
         )}
       </div>
-    </main>
+    </>
   )
 }
 
-export default App
+export default App 

@@ -1,0 +1,45 @@
+---
+alwaysApply: true
+---
+
+# Rosa Backend Implementation - Pattern 1 Direct Custom LLM
+
+## 🎯 **Current Architecture Decision**
+
+**Selected**: Pattern 1 (Direct Custom LLM) with FastAPI backend
+
+## 📋 **Implementation Guide**
+
+> **Single Source of Truth**: `dev_docs/pattern1-migration-plan.md`
+
+All Rosa backend implementation details, technical requirements, and migration steps are documented in the Pattern 1 migration plan. This includes:
+
+- **OpenAI-compatible endpoint requirements** (`/chat/completions`)
+- **Exact streaming response format** required by Tavus
+- **Authentication setup** (HTTPBearer with api_key)
+- **Tavus persona configuration** (base_url, model, api_key)
+- **Agent1.py integration** preserving CTBTO knowledge
+- **FastAPI implementation** with exact code examples
+
+## 🚫 **What NOT to Use**
+
+- ❌ **Function calling patterns** (Pattern 2) - No longer applicable
+- ❌ **Tavus function call handlers** - Not needed for Pattern 1
+- ❌ **Express bridge servers** - Pattern 1 uses direct LLM integration
+
+## ✅ **Key Implementation Points**
+
+1. **Every conversation** flows through our FastAPI backend
+2. **OpenAI streaming format** must be exact (see migration plan for format)
+3. **base_url configuration** in Tavus persona points to our backend
+4. **Preserve Agent1.py** CTBTO intelligence and diplomatic messaging
+5. **FastAPI performance** advantages maintained from Pattern 2 learnings
+
+## 🔗 **Reference Files**
+
+- **Primary Guide**: `dev_docs/pattern1-migration-plan.md`
+- **Working Example**: `examples/cvi-custom-llm-with-backend/custom_llm_iss.py`
+- **Current FastAPI Base**: `examples/cvi-ui-conversation/backend/simple_api.py`
+- **CTBTO Agent**: `examples/cvi-ui-conversation/backend/Agent1.py`
+
+> **When implementing Rosa backend features, always consult the Pattern 1 migration plan first.**

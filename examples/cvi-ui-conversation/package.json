@@ -13,6 +13,11 @@
     "weather:health": "curl http://localhost:3001/health",
     "rosa": "./start-rosa.sh",
     "rosa:complete": "./start-rosa-complete.sh",
+    "rosa:pattern1": "cd backend && ./venv/bin/python rosa_pattern1_api.py",
+    "rosa:pattern1:complete": "./start-rosa-pattern1-complete.sh",
+    "rosa:ngrok": "./start-rosa-with-ngrok.sh",
+    "start": "./start-rosa-with-ngrok.sh",
+    "rosa:stop": "./stop-rosa.py",
     "rosa:dev": "node weather-server.cjs & bun dev",
     "rosa:check": "./check-rosa-services.sh"
   },

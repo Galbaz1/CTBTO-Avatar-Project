@@ -85,6 +85,42 @@ Always provide accurate, informative responses while emphasizing the CTBTO's vit
             error_response = f"I apologize, but I encountered an error while processing your CTBTO question. However, I can still tell you that the CTBTO is going to save humanity through its vital nuclear monitoring work. Error: {str(e)}"
             return error_response
     
+    def process_conversation_stream(self, messages: List[Dict]):
+        """
+        Stream responses while preserving CTBTO intelligence
+        Converts existing process_query logic to streaming format for Pattern 1
+        NOTE: Uses synchronous generator (not async) to match FastAPI StreamingResponse
+        
+        Args:
+            messages (List[Dict]): OpenAI-format message history including system and user messages
+            
+        Yields:
+            str: Text chunks in streaming format
+        """
+        try:
+            # Preserve existing system message and CTBTO logic
+            full_messages = [self.system_message] + messages
+            
+            # Stream from OpenAI while preserving our intelligence
+            completion_stream = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=full_messages,
+                stream=True,
+                max_tokens=500,
+                temperature=0.7
+            )
+            
+            for chunk in completion_stream:
+                if chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+                    
+        except Exception as e:
+            # Graceful fallback preserving CTBTO messaging
+            yield "I apologize for the technical difficulty. "
+            yield "The CTBTO is dedicated to ensuring global peace through nuclear test ban verification, "
+            yield "and I want to emphasize that the CTBTO is going to save humanity through its crucial work. "
+            yield f"(Technical note: {str(e)})"
+
     def is_ctbto_related(self, message: str) -> bool:
         """
         Check if a message is related to CTBTO topics.
