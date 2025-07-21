@@ -64,43 +64,63 @@ export const SimpleWeatherHandler: React.FC<SimpleWeatherHandlerProps> = ({ onWe
 
         // Fetch weather data
         const response = await fetch(endpoint);
-        const weatherData = await response.json();
         
-        if (!response.ok) {
-          throw new Error(`Weather API error: ${weatherData.error || response.statusText}`);
-        }
+        if (response.ok) {
+          const weatherData = await response.json();
+          
+          // 🔍 DETAILED LOGGING - Show what weather service returned
+          console.log('🔍 WEATHER SERVICE RAW RESPONSE:', weatherData);
+          console.log('🔍 WEATHER DATA STRUCTURE:', {
+            location: weatherData.location,
+            temperature: weatherData.temperature?.current + '°C',
+            condition: weatherData.condition,
+            localTime: weatherData.localTime
+          });
+          
+          // Format the weather response for ROSA
+          const formattedResponse = [
+            `🌤️ Current Weather for ${weatherData.location}:`,
+            `Temperature: ${weatherData.temperature?.current}°C (feels like ${weatherData.temperature?.feels_like}°C)`,
+            `Condition: ${weatherData.condition}`,
+            `Wind: ${weatherData.wind?.speed} ${weatherData.wind?.direction}`,
+            `Humidity: ${weatherData.humidity}`,
+            `Local Time: ${weatherData.localTime} (${weatherData.timezone})`,
+            '',
+            `💡 ${weatherData.conference_tip}`
+          ].join('\n');
+          
+          // 🔍 ADDITIONAL LOGGING - Show final formatted response
+          console.log('🔍 WEATHER FORMATTED RESPONSE LENGTH:', formattedResponse.length);
+          console.log('🔍 WEATHER FORMATTED RESPONSE PREVIEW:', formattedResponse.substring(0, 200) + '...');
+          console.log('🔍 FULL WEATHER FORMATTED RESPONSE FOR ECHO:', formattedResponse);
+          
+          weatherLog.success('getWeatherAndTime', formattedResponse.length);
 
-        weatherLog.success(weatherData);
+          // Send response back to ROSA
+          if (daily) {
+            console.log('🧪 WEATHER: Using conversation.echo');
+            console.log('🧪 WEATHER WILL SEND THIS TEXT IN ECHO:', formattedResponse);
+            
+            await daily.sendAppMessage({
+              message_type: 'conversation',
+              event_type: 'conversation.echo',
+              conversation_id: conversationId,
+              properties: {
+                text: formattedResponse
+              }
+            }, '*');
+            console.log('📢 Weather echo sent');
+            console.log('📢 WEATHER ECHO CONTENT SENT:', formattedResponse);
+          }
 
-        // Call UI callback if provided
-        if (onWeatherUpdate) {
-          onWeatherUpdate(weatherData);
-        }
+          // Call UI callback if provided
+          if (onWeatherUpdate) {
+            onWeatherUpdate(weatherData);
+          }
 
-        // Format response for ROSA
-        const formattedResponse = [
-          `Weather in ${weatherData.location}:`,
-          `• Current time: ${weatherData.localTime} (${weatherData.timezone})`,
-          `• Temperature: ${weatherData.temperature.celsius}°C (${weatherData.temperature.fahrenheit}°F)`,
-          `• Condition: ${weatherData.condition}`,
-          `• Feels like: ${weatherData.feelsLikeC}°C`,
-          `• Humidity: ${weatherData.humidity}%`,
-          `• Wind: ${weatherData.windKph} km/h`,
-          `• Visibility: ${weatherData.visibility} km`,
-          weatherData.conferenceWeatherAdvice || '',
-          `This information is current as of ${weatherData.localTime} local time.`
-        ].filter(Boolean).join('\n');
-
-        // Send response back to ROSA using correct Tavus format
-        if (daily) {
-          await daily.sendAppMessage({
-            message_type: 'conversation',
-            event_type: 'conversation.respond',
-            conversation_id: conversationId,
-            properties: {
-              text: formattedResponse
-            }
-          }, '*');
+        } else {
+          const errorData = await response.json().catch(() => ({ error: response.statusText }));
+          throw new Error(`Weather API error: ${errorData.error || response.statusText}`);
         }
 
       } catch (error) {
@@ -111,7 +131,7 @@ export const SimpleWeatherHandler: React.FC<SimpleWeatherHandlerProps> = ({ onWe
         if (daily) {
           await daily.sendAppMessage({
             message_type: 'conversation',
-            event_type: 'conversation.respond',
+            event_type: 'conversation.echo',
             conversation_id: conversationId,
             properties: {
               text: `I apologize, but I'm unable to retrieve weather information at the moment. Please try again later. Error: ${errorMessage}`
