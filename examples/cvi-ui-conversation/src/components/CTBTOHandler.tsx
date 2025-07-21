@@ -39,10 +39,13 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conve
   const daily = useDaily();
   
   // Listen for CTBTO tool calls only - following SimpleWeatherHandler pattern
+  // 🚀 SPECULATIVE INFERENCE COMPATIBLE: Event handling optimized for volatile inference_id
   useDailyEvent('app-message', async (event: any) => {
     const data = event.data;
     
     // Handle CTBTO tool calls - support multiple CTBTO tools
+    // Note: With speculative_inference enabled, inference_id changes frequently during speech
+    // We rely on event_type and tool name for routing, not inference_id correlation
     const isCTBTOToolCall = data?.event_type === 'conversation.tool_call' && 
         (data?.properties?.name === 'getCTBTOInfo' || 
          data?.properties?.name === 'getCTBTOInformation');
@@ -56,6 +59,7 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conve
         let topic = 'CTBTO nuclear verification'; // Default topic
         let language = 'en';
         
+        // Robust argument parsing for speculative inference environments
         if (data.properties.arguments && data.properties.arguments !== '{}') {
           try {
             const args = JSON.parse(data.properties.arguments);
@@ -63,6 +67,7 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conve
             language = args.language || 'en';
           } catch (e) {
             console.warn('CTBTO args parsing failed:', e);
+            // Continue with defaults - speculative inference may send partial args
           }
         }
         

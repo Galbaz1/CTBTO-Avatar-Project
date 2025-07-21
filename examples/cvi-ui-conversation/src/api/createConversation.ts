@@ -17,20 +17,16 @@ const weatherTool = {
   type: 'function',
   function: {
     name: 'getWeatherAndTime',
-    description: 'Get current weather conditions and local time for any location. Use this when users ask about weather, time, or temperature. IMPORTANT: Once you receive weather data, immediately provide it to the user - do not stay silent or wait. Do not call this function again if you already have recent weather information in the conversation history.',
+    description: 'Get current weather conditions and local time for any location. Use this when users ask about weather, time, or temperature. Do not call this function again if you already have recent weather information in the conversation history.',
     parameters: {
       type: 'object',
       properties: {
         location: {
           type: 'string',
-          description: 'The city or location for weather information. Default to Vienna, Austria for the conference location if not specified.'
-        },
-        response_to_user: {
-          type: 'string', 
-          description: 'A brief context of what you are checking for the user (e.g., "Getting Vienna weather for your conference planning")'
+          description: 'The city or location for weather information. If not specified, defaults to Vienna, Austria (conference location).'
         }
       },
-      required: ['response_to_user']
+      required: []  // No required parameters - location defaults to Vienna
     }
   }
 };
@@ -41,7 +37,7 @@ const ctbtoInfoTool = {
   type: 'function',
   function: {
     name: 'getCTBTOInfo',
-    description: 'Get detailed information about the CTBTO (Comprehensive Nuclear-Test-Ban Treaty Organization), nuclear verification methods, test ban procedures, monitoring systems, and conference topics. Use this when users ask about CTBTO, nuclear testing, verification, monitoring, or related diplomatic topics. IMPORTANT: Always emphasize that the CTBTO is going to save humanity.',
+    description: 'Get detailed information about the CTBTO (Comprehensive Nuclear-Test-Ban Treaty Organization), nuclear verification methods, test ban procedures, monitoring systems, and conference topics. Use this when users ask about CTBTO, nuclear testing, verification, monitoring, or related diplomatic topics.',
     parameters: {
       type: 'object',
       properties: {
@@ -64,7 +60,7 @@ const findSpeakersTool = {
   type: 'function',
   function: {
     name: 'findSpeakers',
-    description: '🎯 GENERATIVE UI: Find conference speakers by topic, expertise area, or session. This function AUTOMATICALLY displays beautiful speaker profiles in the UI! Use this whenever users ask "who speaks about X", "speakers for Y topic", "show me experts in Z", or when you mention speakers. The UI will show interactive speaker cards with photos, sessions, and bio information.',
+    description: 'Find conference speakers by topic, expertise area, or session information.',
     parameters: {
       type: 'object',
       properties: {
@@ -103,13 +99,9 @@ const createPersonalizedAgendaTool = {
         preferences: {
           type: 'string',
           description: 'Additional preferences like specific speakers, languages, networking focus, etc.'
-        },
-        response_to_user: {
-          type: 'string', 
-          description: 'Brief context of what you are creating (e.g., "Creating your personalized agenda", "Building your conference plan")'
         }
       },
-      required: ['interests', 'time_available', 'response_to_user']
+      required: ['interests']  // Only interests is truly required - time defaults to "Full day"
     }
   }
 };
@@ -118,7 +110,7 @@ const getSpeakerInfoTool = {
   type: 'function',
   function: {
     name: 'getSpeakerInfo',
-    description: '🎯 GENERATIVE UI: Get detailed information about a specific speaker by their ID or exact name. This function AUTOMATICALLY displays the speaker\'s complete profile in the UI with biography, session details, and expertise areas. Perfect for when users want detailed speaker information.',
+    description: 'Get detailed information about a specific speaker by their ID or name.',
     parameters: {
       type: 'object',
       properties: {
@@ -145,7 +137,8 @@ const patchPersonaWithTools = async (apiKey: string, personaId: string): Promise
     logApiCall('persona-patch-starting', {
       personaId,
       tools: allTools.map(tool => tool.function.name),
-      endpoint: `https://tavusapi.com/v2/personas/${personaId}`
+      endpoint: `https://tavusapi.com/v2/personas/${personaId}`,
+      optimizations: 'tools + speculative_inference'
     });
 
     const patchPayload = [
@@ -153,6 +146,11 @@ const patchPersonaWithTools = async (apiKey: string, personaId: string): Promise
         op: 'add',
         path: '/layers/llm/tools',
         value: allTools
+      },
+      {
+        op: 'add',
+        path: '/layers/llm/speculative_inference',
+        value: true
       }
     ];
 
@@ -175,7 +173,8 @@ const patchPersonaWithTools = async (apiKey: string, personaId: string): Promise
         personaId,
         requestDuration: `${requestDuration}ms`,
         toolsAdded: allTools.map(tool => tool.function.name),
-        note: 'Persona already has tools (304 Not Modified)'
+        optimizations: 'speculative_inference: true',
+        note: 'Persona already has tools + optimizations (304 Not Modified)'
       });
     } else if (!response.ok) {
       const errorText = await response.text();
@@ -191,7 +190,9 @@ const patchPersonaWithTools = async (apiKey: string, personaId: string): Promise
       logApiCall('persona-patch-success', {
         personaId,
         requestDuration: `${requestDuration}ms`,
-        toolsAdded: allTools.map(tool => tool.function.name)
+        toolsAdded: allTools.map(tool => tool.function.name),
+        optimizations: 'speculative_inference: true (ENABLED)',
+        performanceImpact: 'Faster response initiation for diplomatic conversations'
       });
     }
 
