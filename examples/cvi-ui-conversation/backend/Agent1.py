@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 # from speakers_data import CTBTO_SPEAKERS, get_speaker_by_id, search_speakers_by_topic, get_all_speakers
 
 # Option 2: Use document-based data (Agent SDK inspired)
-from document_loader import SpeakerDocumentLoader
+from imports_from_other_app.document_loader import SpeakerDocumentLoader
 
 # Load environment variables from .env.local file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))

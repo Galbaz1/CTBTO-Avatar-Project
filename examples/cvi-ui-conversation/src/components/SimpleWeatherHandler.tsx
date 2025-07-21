@@ -43,10 +43,12 @@ export const SimpleWeatherHandler: React.FC<SimpleWeatherHandlerProps> = ({ onWe
   const daily = useDaily();
   
   // Listen for weather tool calls
+  // 🚀 SPECULATIVE INFERENCE COMPATIBLE: Robust event handling for performance optimization
   useDailyEvent('app-message', async (event: any) => {
     const data = event.data;
     
     // Only handle weather tool calls
+    // Note: With speculative_inference enabled, we focus on tool name rather than inference_id
     if (data?.event_type === 'conversation.tool_call' && data.properties?.name === 'getWeatherAndTime') {
       try {
         const args = JSON.parse(data.properties.arguments || '{}');
