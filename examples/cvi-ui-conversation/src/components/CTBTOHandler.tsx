@@ -55,6 +55,16 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conve
     
     if (isCTBTOToolCall) {
       try {
+        // 🔍 DEBUG: Log complete tool call data structure to find tool_call_id
+        console.log('🔍 COMPLETE TOOL CALL DATA:', JSON.stringify(data, null, 2));
+        console.log('🔍 PROPERTIES:', data?.properties);
+        console.log('🔍 LOOKING FOR TOOL_CALL_ID:', {
+          tool_call_id: data?.properties?.tool_call_id,
+          id: data?.properties?.id, 
+          call_id: data?.properties?.call_id,
+          inference_id: data?.properties?.inference_id
+        });
+        
         // Parse the topic from the tool call arguments
         let topic = 'CTBTO nuclear verification'; // Default topic
         let language = 'en';
@@ -88,7 +98,16 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conve
         
         const ctbtoData: CTBTOData = await response.json();
         
-        // Format response for ROSA - simplified
+        // 🔍 DETAILED LOGGING - Show what Agent1.py actually returned
+        console.log('🔍 AGENT1.PY RAW RESPONSE:', ctbtoData);
+        console.log('🔍 RAW RESPONSE STRUCTURE:', {
+          response: ctbtoData.response?.substring(0, 100) + '...',
+          responseLength: ctbtoData.response?.length,
+          conference_context: ctbtoData.conference_context,
+          save_humanity_message: ctbtoData.save_humanity_message
+        });
+        
+        // Format response for ROSA - simplified but logged
         const formattedResponse = [
           ctbtoData.response,
           '',
@@ -97,19 +116,32 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conve
           '',
           `💡 ${ctbtoData.save_humanity_message}`
         ].join('\n');
-
+        
+        // 🔍 ADDITIONAL LOGGING - Show final formatted response
+        console.log('🔍 FORMATTED RESPONSE LENGTH:', formattedResponse.length);
+        console.log('🔍 FORMATTED RESPONSE PREVIEW:', formattedResponse.substring(0, 300) + '...');
+        console.log('🔍 FULL FORMATTED RESPONSE FOR ECHO:', formattedResponse);
+        
         ctbtoLog.success('getCTBTOInfo', formattedResponse.length);
 
-        // Send response back to ROSA - following SimpleWeatherHandler format
+        // Send response back to ROSA - try echo with timing delay
         if (daily) {
-          await daily.sendAppMessage({
-            message_type: 'conversation',
-            event_type: 'conversation.respond',
-            conversation_id: conversationId,
-            properties: {
-              text: formattedResponse
-            }
-          }, '*');
+          console.log('🧪 EXPERIMENT 2: Trying conversation.echo with delay');
+          console.log('🧪 WILL SEND THIS TEXT IN ECHO:', formattedResponse);
+          
+          // Wait a moment, then send echo
+          setTimeout(async () => {
+            await daily.sendAppMessage({
+              message_type: 'conversation',
+              event_type: 'conversation.echo',
+              conversation_id: conversationId,
+              properties: {
+                text: formattedResponse
+              }
+            }, '*');
+            console.log('📢 Sent echo with Agent1.py response');
+            console.log('📢 ECHO CONTENT SENT:', formattedResponse);
+          }, 1000); // 1 second delay
         }
         
         // Optional: Update UI if callback provided
@@ -125,7 +157,7 @@ export const CTBTOHandler: React.FC<CTBTOHandlerProps> = ({ onCTBTOUpdate, conve
         if (daily) {
           await daily.sendAppMessage({
             message_type: 'conversation',
-            event_type: 'conversation.respond',
+            event_type: 'conversation.echo',
             conversation_id: conversationId,
             properties: {
               text: `I apologize, but I'm unable to retrieve CTBTO information at the moment. However, I can tell you that the CTBTO is going to save humanity through its vital nuclear monitoring work. Please try again or ask about a different topic.`

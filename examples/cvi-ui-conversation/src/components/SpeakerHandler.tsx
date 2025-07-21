@@ -25,7 +25,7 @@ interface SpeakerListData {
 interface SpeakerHandlerProps {
   onSpeakerUpdate?: (speakerData: any) => void;
   onSpeakerListUpdate?: (speakerData: any) => void;
-  onSpeakerProfileUpdate?: (speakerData: Speaker) => void; // 🎯 NEW: For individual speaker profile switching
+  onSpeakerProfileUpdate?: (speakerData: SpeakerData) => void; // 🎯 NEW: For individual speaker profile switching
   conversationId?: string;
 }
 
@@ -125,7 +125,7 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
             
             await daily.sendAppMessage({
               message_type: 'conversation',
-              event_type: 'conversation.respond',
+              event_type: 'conversation.echo',
               conversation_id: conversationId,
               properties: {
                 text: formattedResponse
@@ -140,7 +140,7 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
           if (daily && conversationId) {
             await daily.sendAppMessage({
               message_type: 'conversation',
-              event_type: 'conversation.respond',
+              event_type: 'conversation.echo',
               conversation_id: conversationId,
               properties: {
                 text: `I apologize, but I encountered an error searching for speakers about "${topic}". Please try again or ask about different topics.`
@@ -183,7 +183,7 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
               
               await daily.sendAppMessage({
                 message_type: 'conversation',
-                event_type: 'conversation.respond',
+                event_type: 'conversation.echo',
                 conversation_id: conversationId,
                 properties: {
                   text: formattedResponse
@@ -195,7 +195,7 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
             if (daily && conversationId) {
               await daily.sendAppMessage({
                 message_type: 'conversation',
-                event_type: 'conversation.respond',
+                event_type: 'conversation.echo',
                 conversation_id: conversationId,
                 properties: {
                   text: `I couldn't find information about speaker "${speakerId}". Please check the speaker name or ID.`
@@ -211,7 +211,7 @@ export const SpeakerHandler: React.FC<SpeakerHandlerProps> = ({
           if (daily && conversationId) {
             await daily.sendAppMessage({
               message_type: 'conversation',
-              event_type: 'conversation.respond',
+              event_type: 'conversation.echo',
               conversation_id: conversationId,
               properties: {
                 text: `I apologize, but I encountered an error retrieving information about "${speakerId}". Please try again.`

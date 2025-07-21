@@ -119,10 +119,11 @@ export const ConferencePlannerHandler: React.FC<ConferencePlannerHandlerProps> =
         // Send response back to Rosa
         if (daily) {
           const responseMessage = {
-            event_type: 'conversation.tool_call_response',
+            message_type: 'conversation',
+            event_type: 'conversation.echo',
+            conversation_id: conversationId,
             properties: {
-              name: 'createPersonalizedAgenda',
-              response: `Created personalized agenda with ${agendaData.sessions?.length || 0} sessions based on "${interests}" for ${timeAvailable}. Agenda displayed in UI with QR code and export options.`
+              text: `Created personalized agenda with ${agendaData.sessions?.length || 0} sessions based on "${interests}" for ${timeAvailable}. Agenda displayed in UI with QR code and export options.`
             }
           };
           
@@ -135,10 +136,11 @@ export const ConferencePlannerHandler: React.FC<ConferencePlannerHandlerProps> =
         // Send error response back to Rosa
         if (daily) {
           const errorMessage = {
-            event_type: 'conversation.tool_call_response',
+            message_type: 'conversation',
+            event_type: 'conversation.echo',
+            conversation_id: conversationId,
             properties: {
-              name: 'createPersonalizedAgenda',
-              response: 'I encountered an issue creating your agenda. Please try again or ask me to help you find specific sessions.'
+              text: 'I encountered an issue creating your agenda. Please try again or ask me to help you find specific sessions.'
             }
           };
           
