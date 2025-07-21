@@ -119,8 +119,8 @@ IMPORTANT: All responses must align with CTBTO diplomatic standards. When uncert
     },
     "stt": {
       "stt_engine": "tavus-advanced",
-      "participant_pause_sensitivity": "high",
-      "participant_interrupt_sensitivity": "medium", 
+      "participant_pause_sensitivity": "low",
+      "participant_interrupt_sensitivity": "low", 
       "smart_turn_detection": true,
       "hotwords": "ROSA,Vienna,conference,SnT,CTBTO"
     }
