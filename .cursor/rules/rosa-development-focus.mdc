@@ -1,0 +1,58 @@
+---
+alwaysApply: true
+---
+
+# Rosa Development Focus
+
+## Primary Development Area
+- **ALL future development**: `Rosa_custom_backend/` ONLY
+- **Reference patterns**: `examples/` folders are READ-ONLY reference material
+- **Never modify**: Any files outside Rosa_custom_backend/
+
+## Architecture Pattern
+- **Frontend**: Rosa_custom_backend/src/ (React + TypeScript + Tavus CVI)
+- **Backend**: Rosa_custom_backend/backend/ (Python Agent1.py + FastAPI)
+- **Split-Screen UI**: Avatar (left) + Dynamic content (right)
+- **Function Calls**: Python backend handles ALL complex logic
+
+## Copy Working Patterns From Examples
+- **Tavus CVI**: `examples/cvi-ui-conversation/src/components/cvi/`
+- **Function Calling**: `examples/cvi-ui-conversation/src/components/CTBTOHandler.tsx`
+- **Backend Structure**: `examples/cvi-ui-conversation/backend/Agent1.py`
+- **Split-Screen**: `examples/cvi-ui-conversation/src/components/RosaDemo.tsx`
+
+## Development Commands
+```bash
+cd Rosa_custom_backend
+bun install
+bun dev
+```
+
+---
+# Rosa Development Focus
+
+## Primary Development Area
+- **ALL future development**: `Rosa_custom_backend/` ONLY
+- **Reference patterns**: `examples/` folders are READ-ONLY reference material
+- **Never modify**: Any files outside Rosa_custom_backend/
+
+## Architecture Pattern
+- **Frontend**: Rosa_custom_backend/src/ (React + TypeScript + Tavus CVI)
+- **Backend**: Rosa_custom_backend/backend/ (Python Agent1.py + FastAPI)
+- **Split-Screen UI**: Avatar (left) + Dynamic content (right)
+- **Function Calls**: Python backend handles ALL complex logic
+
+## Copy Working Patterns From Examples
+- **Tavus CVI**: `examples/cvi-ui-conversation/src/components/cvi/`
+- **Function Calling**: `examples/cvi-ui-conversation/src/components/CTBTOHandler.tsx`
+- **Backend Structure**: `examples/cvi-ui-conversation/backend/Agent1.py`
+- **Split-Screen**: `examples/cvi-ui-conversation/src/components/RosaDemo.tsx`
+
+## Development Commands
+```bash
+cd Rosa_custom_backend
+bun install
+bun dev
+```
+
+---

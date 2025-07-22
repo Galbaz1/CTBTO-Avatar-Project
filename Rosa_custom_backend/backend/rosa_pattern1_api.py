@@ -97,9 +97,9 @@ async def chat_completions(
                 
                 # Use the function calling method to detect and execute functions
                 function_result = ctbto_agent.process_with_functions(user_message, messages[:-1])
-                
-                                 # If function calls were made, handle them
-                 if function_result.get('function_calls'):
+        
+        # If function calls were made, handle them
+        if function_result.get('function_calls'):
                      print(f"🔧 Function calls detected: {len(function_result['function_calls'])}")
                      
                      # Process each function call result and send app-messages for UI updates

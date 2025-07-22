@@ -1,0 +1,56 @@
+---
+alwaysApply: true
+---
+
+# Diplomatic Conference Requirements
+
+## Critical Performance Standards
+- **Response Time**: <200ms for 95% of queries
+- **Languages**: Support 6 UN languages (Arabic, Chinese, English, French, Russian, Spanish) -- currently in dev only english
+- **Red Zone Compliance**: 99.9% diplomatic violation avoidance
+- **Touchless Operation**: Voice-only, no keyboard/touch input
+
+## Split-Screen UI Requirements
+- **Left Panel**: Tavus avatar (full height)
+- **Right Panel**: Dynamic content based on function calls
+- **Content Types**: Speaker bios, venue maps, QR codes, session info
+- **QR Codes**: For complex information export
+
+## Function Call Categories
+- **Conference Info**: Sessions, speakers, venues, schedules
+- **Document Access**: CTBTO documents, protocols, procedures
+- **Navigation**: Venue maps, room locations, facility info
+- **Language Support**: Multi-language content delivery
+
+## Tech Stack (Confirmed Working)
+- **Frontend**: React 18 + TypeScript + Bun + Vite
+- **Backend**: Python + FastAPI + Agent1.py
+- **State**: React hooks + context (no external state libs)
+- **Build**: Bun (NOT npm) + Vite
+
+# Diplomatic Conference Requirements
+
+## Critical Performance Standards
+- **Response Time**: <200ms for 95% of queries
+- **Languages**: Support 6 UN languages (Arabic, Chinese, English, French, Russian, Spanish) -- currently in dev only english
+- **Red Zone Compliance**: 99.9% diplomatic violation avoidance
+- **Touchless Operation**: Voice-only, no keyboard/touch input
+
+## Split-Screen UI Requirements
+- **Left Panel**: Tavus avatar (full height)
+- **Right Panel**: Dynamic content based on function calls
+- **Content Types**: Speaker bios, venue maps, QR codes, session info
+- **QR Codes**: For complex information export
+
+## Function Call Categories
+- **Conference Info**: Sessions, speakers, venues, schedules
+- **Document Access**: CTBTO documents, protocols, procedures
+- **Navigation**: Venue maps, room locations, facility info
+- **Language Support**: Multi-language content delivery
+
+## Tech Stack (Confirmed Working)
+- **Frontend**: React 18 + TypeScript + Bun + Vite
+- **Backend**: Python + FastAPI + Agent1.py
+- **State**: React hooks + context (no external state libs)
+- **Build**: Bun (NOT npm) + Vite
+

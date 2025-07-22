@@ -1,0 +1,54 @@
+---
+alwaysApply: true
+---
+
+# Tavus CVI Patterns
+
+## Core Requirements
+- **Always query**: `dev_docs/tavus.txt` for Tavus documentation
+- **Never assume**: Query docs before making Tavus-related decisions
+- **Function calls**: Via Python backend (Agent1.py), NOT native Tavus models
+
+## Proven Working Patterns
+- **CVI Provider**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/cvi-provider/`
+- **Conversation Handler**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/conversation/`
+- **Audio Wave**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/audio-wave/`
+- **Device Select**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/device-select/`
+
+## Function Call Flow
+1. User speaks → Tavus CVI → Function call trigger
+2. Function call → Python backend (Agent1.py)
+3. Python processes → Returns app-message
+4. Frontend receives app-message → Updates right panel
+5. Frontend shows: speaker info, maps, QR codes, etc.
+
+## Key Files to Reference
+- `examples/cvi-ui-conversation/src/components/CTBTOHandler.tsx`
+- `examples/cvi-ui-conversation/src/components/SimpleWeatherHandler.tsx`
+- `examples/cvi-ui-conversation/backend/Agent1.py`
+
+# Tavus CVI Patterns
+
+## Core Requirements
+- **Always query**: `dev_docs/tavus.txt` for Tavus documentation
+- **Never assume**: Query docs before making Tavus-related decisions
+- **Function calls**: Via Python backend (Agent1.py), NOT native Tavus models
+
+## Proven Working Patterns
+- **CVI Provider**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/cvi-provider/`
+- **Conversation Handler**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/conversation/`
+- **Audio Wave**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/audio-wave/`
+- **Device Select**: Copy from `examples/cvi-ui-conversation/src/components/cvi/components/device-select/`
+
+## Function Call Flow
+1. User speaks → Tavus CVI → Function call trigger
+2. Function call → Python backend (Agent1.py)
+3. Python processes → Returns app-message
+4. Frontend receives app-message → Updates right panel
+5. Frontend shows: speaker info, maps, QR codes, etc.
+
+## Key Files to Reference
+- `examples/cvi-ui-conversation/src/components/CTBTOHandler.tsx`
+- `examples/cvi-ui-conversation/src/components/SimpleWeatherHandler.tsx`
+- `examples/cvi-ui-conversation/backend/Agent1.py`
+
