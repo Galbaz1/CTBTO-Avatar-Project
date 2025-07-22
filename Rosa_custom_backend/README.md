@@ -12,14 +12,33 @@ A **step‑by‑step** guide to embedding Tavus CVI UI components in your React 
 
 ---
 
-## Prerequisites 🔑
+## Prerequisites 🔑
 
-1. **Tavus Account** – Sign up at [https://platform.tavus.io](https://platform.tavus.io).
-2. **API Key** – Create one in the [Tavus Dashboard → *API Keys*](https://platform.tavus.io/api-keys).
+1. **Tavus Account** – Sign up at [https://platform.tavus.io](https://platform.tavus.io).
+2. **API Key** – Create one in the [Tavus Dashboard → *API Keys*](https://platform.tavus.io/api-keys).
 
 ---
 
-## 1. Install Dependencies ⚙️
+## Environment Setup 🔧
+
+1. **Copy the environment template**:
+   ```bash
+   cp .env.local.template .env.local
+   ```
+
+2. **Add your API keys** to `.env.local`:
+   ```bash
+   VITE_TAVUS_API_KEY=your_actual_tavus_api_key
+   NEXT_TAVUS_API_KEY=your_actual_tavus_api_key
+   ROSA_API_KEY=your_rosa_backend_key
+   OPENAI_API_KEY=your_openai_api_key
+   ```
+
+   **⚠️ Important**: Never commit your actual API keys to version control. The `.env.local` file is already in `.gitignore`.
+
+---
+
+## 1. Install Dependencies ⚙️
 
 Add the CVI UI components and helper hook to your project:
 
