@@ -88,10 +88,82 @@ async def chat_completions(
         messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
         print(f"Rosa processing messages: {messages}")
 
-        # Always stream (Tavus requirement)
+        # Enhanced streaming with function calling detection
         def generate():
             try:
-                # Process through Agent1.py with streaming
+                # First, check if this should trigger function calls
+                user_message = messages[-1].get('content', '') if messages else ''
+                print(f"🔍 Checking for function calls in: {user_message}")
+                
+                # Use the function calling method to detect and execute functions
+                function_result = ctbto_agent.process_with_functions(user_message, messages[:-1])
+                
+                                 # If function calls were made, handle them
+                 if function_result.get('function_calls'):
+                     print(f"🔧 Function calls detected: {len(function_result['function_calls'])}")
+                     
+                     # Process each function call result and send app-messages for UI updates
+                     for call in function_result['function_calls']:
+                         function_name = call['function']
+                         function_args = call['arguments']
+                         call_result = call['result']
+                         
+                         print(f"📞 Function: {function_name}({function_args})")
+                         print(f"📊 Result: {call_result.get('message', 'No message')}")
+                         
+                         # Send app-messages for UI updates (simulate what working examples do)
+                         if function_name == 'get_speaker_info' and call_result.get('success'):
+                             if call_result.get('speaker'):
+                                 # Send speaker info app-message
+                                 print(f"📡 Sending speaker app-message for: {call_result['speaker']['name']}")
+                                 # Note: In a real implementation, this would need WebSocket connection to frontend
+                                 # For now, we'll include this data in the response
+                         
+                         elif function_name == 'get_session_info' and call_result.get('success'):
+                             if call_result.get('sessions'):
+                                 print(f"📡 Sending schedule app-message with {len(call_result['sessions'])} sessions")
+                         
+                         elif function_name == 'get_conference_schedule' and call_result.get('success'):
+                             print(f"📡 Sending full schedule app-message")
+                
+                                 # Generate streaming response (either from function calling or regular processing)
+                 if function_result.get('response'):
+                     # If we have a response from function calling, add structured metadata
+                     response_text = function_result['response']
+                     
+                     # Add structured conference metadata that frontend can detect
+                     conference_metadata = []
+                     for call in function_result.get('function_calls', []):
+                         if call['function'] == 'get_speaker_info' and call['result'].get('success'):
+                             if call['result'].get('speaker'):
+                                 speaker = call['result']['speaker']
+                                 conference_metadata.append(f"[ROSA_SPEAKER:{speaker['id']}]")
+                         elif call['function'] == 'get_session_info' and call['result'].get('success'):
+                             conference_metadata.append("[ROSA_SCHEDULE]")
+                         elif call['function'] == 'get_conference_schedule' and call['result'].get('success'):
+                             conference_metadata.append("[ROSA_SCHEDULE]")
+                     
+                     # Add metadata to the response
+                     if conference_metadata:
+                         response_text = response_text + " " + " ".join(conference_metadata)
+                         print(f"📡 Added metadata: {conference_metadata}")
+                     
+                     # Stream the response word by word for smooth delivery
+                     words = response_text.split()
+                     for i, word in enumerate(words):
+                         chunk_text = word + (" " if i < len(words) - 1 else "")
+                         openai_chunk = {
+                             "choices": [{
+                                 "delta": {"content": chunk_text}
+                             }]
+                         }
+                         print(chunk_text, end='', flush=True)
+                         yield f"data: {json.dumps(openai_chunk)}\n\n"
+                         
+                         # Small delay for natural streaming feel
+                         time.sleep(0.05)
+                else:
+                    # Fall back to regular streaming
                 for chunk in ctbto_agent.process_conversation_stream(messages):
                     if chunk:  # Only yield non-empty chunks
                         # CRITICAL: Exact OpenAI streaming format
