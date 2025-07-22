@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Rosa Pattern 1 API - OpenAI-Compatible Custom LLM for Tavus
-Based on working example: examples/cvi-custom-llm-with-backend/custom_llm_iss.py
-Preserves all Agent1.py CTBTO intelligence while meeting exact Tavus requirements
+Simplified version focused on natural conversation without complex function calling
 """
 
 from fastapi import FastAPI, HTTPException, Depends, Request
@@ -76,8 +75,7 @@ async def chat_completions(
     api_key: str = Depends(verify_api_key)
 ):
     """
-    OpenAI-compatible chat completions endpoint - EXACT Tavus format
-    Based on working example: custom_llm_iss.py
+    OpenAI-compatible chat completions endpoint - Simplified for natural conversation
     """
     try:
         # Warmup on first request if not already done
@@ -88,109 +86,53 @@ async def chat_completions(
         messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
         print(f"Rosa processing messages: {messages}")
 
-        # Enhanced streaming with function calling detection
+        # Simplified streaming response - just use the natural conversation stream
         def generate():
             try:
-                # First, check if this should trigger function calls
-                user_message = messages[-1].get('content', '') if messages else ''
-                print(f"🔍 Checking for function calls in: {user_message}")
-                
-                # Use the function calling method to detect and execute functions
-                function_result = ctbto_agent.process_with_functions(user_message, messages[:-1])
-                
-                                 # If function calls were made, handle them
-                 if function_result.get('function_calls'):
-                     print(f"🔧 Function calls detected: {len(function_result['function_calls'])}")
-                     
-                     # Process each function call result and send app-messages for UI updates
-                     for call in function_result['function_calls']:
-                         function_name = call['function']
-                         function_args = call['arguments']
-                         call_result = call['result']
-                         
-                         print(f"📞 Function: {function_name}({function_args})")
-                         print(f"📊 Result: {call_result.get('message', 'No message')}")
-                         
-                         # Send app-messages for UI updates (simulate what working examples do)
-                         if function_name == 'get_speaker_info' and call_result.get('success'):
-                             if call_result.get('speaker'):
-                                 # Send speaker info app-message
-                                 print(f"📡 Sending speaker app-message for: {call_result['speaker']['name']}")
-                                 # Note: In a real implementation, this would need WebSocket connection to frontend
-                                 # For now, we'll include this data in the response
-                         
-                         elif function_name == 'get_session_info' and call_result.get('success'):
-                             if call_result.get('sessions'):
-                                 print(f"📡 Sending schedule app-message with {len(call_result['sessions'])} sessions")
-                         
-                         elif function_name == 'get_conference_schedule' and call_result.get('success'):
-                             print(f"📡 Sending full schedule app-message")
-                
-                                 # Generate streaming response (either from function calling or regular processing)
-                 if function_result.get('response'):
-                     # If we have a response from function calling, add structured metadata
-                     response_text = function_result['response']
-                     
-                     # Add structured conference metadata that frontend can detect
-                     conference_metadata = []
-                     for call in function_result.get('function_calls', []):
-                         if call['function'] == 'get_speaker_info' and call['result'].get('success'):
-                             if call['result'].get('speaker'):
-                                 speaker = call['result']['speaker']
-                                 conference_metadata.append(f"[ROSA_SPEAKER:{speaker['id']}]")
-                         elif call['function'] == 'get_session_info' and call['result'].get('success'):
-                             conference_metadata.append("[ROSA_SCHEDULE]")
-                         elif call['function'] == 'get_conference_schedule' and call['result'].get('success'):
-                             conference_metadata.append("[ROSA_SCHEDULE]")
-                     
-                     # Add metadata to the response
-                     if conference_metadata:
-                         response_text = response_text + " " + " ".join(conference_metadata)
-                         print(f"📡 Added metadata: {conference_metadata}")
-                     
-                     # Stream the response word by word for smooth delivery
-                     words = response_text.split()
-                     for i, word in enumerate(words):
-                         chunk_text = word + (" " if i < len(words) - 1 else "")
-                         openai_chunk = {
-                             "choices": [{
-                                 "delta": {"content": chunk_text}
-                             }]
-                         }
-                         print(chunk_text, end='', flush=True)
-                         yield f"data: {json.dumps(openai_chunk)}\n\n"
-                         
-                         # Small delay for natural streaming feel
-                         time.sleep(0.05)
-                else:
-                    # Fall back to regular streaming
+                # Use the simple conversation stream method without function calling complexity
                 for chunk in ctbto_agent.process_conversation_stream(messages):
                     if chunk:  # Only yield non-empty chunks
-                        # CRITICAL: Exact OpenAI streaming format
-                        openai_chunk = {
+                        # Format as OpenAI streaming response
+                        data = {
+                            "id": f"rosa-{int(time.time())}",
+                            "object": "chat.completion.chunk",
+                            "created": int(time.time()),
+                            "model": "rosa-ctbto-agent",
                             "choices": [{
-                                "delta": {"content": chunk}
+                                "index": 0,
+                                "delta": {"content": chunk},
+                                "finish_reason": None
                             }]
                         }
-                        print(chunk, end='', flush=True)  # Debug output
-                        yield f"data: {json.dumps(openai_chunk)}\n\n"
+                        yield f"data: {json.dumps(data)}\n\n"
                 
-                # CRITICAL: Must end with [DONE]
-                yield "data: [DONE]\n\n"
-                print(f"\nRosa response completed in: {time.perf_counter() - start_time:.3f}s")
-                
-            except Exception as e:
-                print(f"Rosa streaming error: {traceback.format_exc()}")
-                # Graceful fallback with CTBTO messaging
-                error_chunk = {
+                # Send final chunk
+                final_data = {
+                    "id": f"rosa-{int(time.time())}",
+                    "object": "chat.completion.chunk", 
+                    "created": int(time.time()),
+                    "model": "rosa-ctbto-agent",
                     "choices": [{
-                        "delta": {"content": "I apologize for the technical difficulty. The CTBTO is dedicated to ensuring global peace through nuclear test ban verification, and I want to emphasize that the CTBTO is going to save humanity through its crucial work."}
+                        "index": 0,
+                        "delta": {},
+                        "finish_reason": "stop"
                     }]
                 }
-                yield f"data: {json.dumps(error_chunk)}\n\n"
+                yield f"data: {json.dumps(final_data)}\n\n"
+                yield "data: [DONE]\n\n"
+                
+            except Exception as e:
+                print(f"❌ Error in generate(): {str(e)}")
+                error_data = {
+                    "error": {
+                        "message": str(e),
+                        "type": "server_error"
+                    }
+                }
+                yield f"data: {json.dumps(error_data)}\n\n"
                 yield "data: [DONE]\n\n"
 
-        # CRITICAL: Must use text/plain content type (from working example)
+        # Return streaming response
         return StreamingResponse(generate(), media_type="text/plain")
 
     except Exception as e:
