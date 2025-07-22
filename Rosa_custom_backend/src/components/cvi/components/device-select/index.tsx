@@ -1,6 +1,5 @@
 import React, { memo } from "react";
 import { useDevices } from "@daily-co/daily-react";
-import { useLocalCamera } from "../../hooks/use-local-camera";
 import { useLocalMicrophone } from "../../hooks/use-local-microphone";
 import { useLocalScreenshare } from "../../hooks/use-local-screenshare";
 import styles from "./device-select.module.css";
@@ -131,85 +130,7 @@ export const MicSelectBtn = memo(() => {
 
 MicSelectBtn.displayName = "MicSelectBtn";
 
-export const CameraSelectBtn = memo(() => {
-  const { onToggleCamera, isCamReady, isCamMuted } = useLocalCamera();
-  const { currentCam, cameras, setCamera } = useDevices();
-
-
-  return (
-    <div className={styles.deviceButtonContainer}>
-      <button
-        type="button"
-        onClick={onToggleCamera}
-        disabled={!isCamReady || !currentCam}
-        className={styles.deviceButton}
-      >
-        <span className={styles.deviceButtonIcon}>
-          {isCamMuted ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              role="img"
-              aria-label="Camera Muted"
-            >
-              <g clipPath="url(#clip0_7082_14220)">
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M3.19874 5.60093C3.08628 5.68537 2.97928 5.77808 2.87868 5.87868C2.31607 6.44129 2 7.20435 2 8V16C2 16.7956 2.31607 17.5587 2.87868 18.1213C3.44129 18.6839 4.20435 19 5 19H15C15.7956 19 16.5587 18.6839 17.1213 18.1213C17.6839 17.5587 18 16.7956 18 16V15.048C17.7787 14.8204 17.5304 14.6189 17.2595 14.4485L3.19874 5.60093ZM22 12.655V8C22 7.80225 21.9413 7.60895 21.8314 7.44454C21.7215 7.28013 21.5654 7.15199 21.3827 7.07632C21.2 7.00065 20.9989 6.98085 20.805 7.01942C20.611 7.05798 20.4329 7.15319 20.293 7.293L18 9.586V8C18 7.20435 17.6839 6.44129 17.1213 5.87868C16.5587 5.31607 15.7956 5 15 5H8.7412L22 12.655Z"
-                  fill="#020617"
-                />
-                <rect
-                  x="0.777222"
-                  y="2.64844"
-                  width="26.7988"
-                  height="2.24738"
-                  rx="1.12369"
-                  transform="rotate(30 0.777222 2.64844)"
-                  fill="#020617"
-                />
-              </g>
-              <defs>
-                <clipPath id="clip0_7082_14220">
-                  <rect width="24" height="24" fill="white" />
-                </clipPath>
-              </defs>
-            </svg>
-          ) : (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              role="img"
-              aria-label="Camera"
-            >
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M5 5C4.20435 5 3.44129 5.31607 2.87868 5.87868C2.31607 6.44129 2 7.20435 2 8V16C2 16.7956 2.31607 17.5587 2.87868 18.1213C3.44129 18.6839 4.20435 19 5 19H15C15.7956 19 16.5587 18.6839 17.1213 18.1213C17.6839 17.5587 18 16.7956 18 16V14.414L20.293 16.707C20.4329 16.8468 20.611 16.942 20.805 16.9806C20.9989 17.0192 21.2 16.9993 21.3827 16.9237C21.5654 16.848 21.7215 16.7199 21.8314 16.5555C21.9413 16.391 22 16.1978 22 16V8C22 7.80225 21.9413 7.60895 21.8314 7.44454C21.7215 7.28013 21.5654 7.15199 21.3827 7.07632C21.2 7.00065 20.9989 6.98085 20.805 7.01942C20.611 7.05798 20.4329 7.15319 20.293 7.293L18 9.586V8C18 7.20435 17.6839 6.44129 17.1213 5.87868C16.5587 5.31607 15.7956 5 15 5H5Z"
-                fill="#020617"
-              />
-            </svg>
-          )}
-        </span>
-        <span className={styles.srOnly}>Camera</span>
-      </button>
-      <SelectDevice
-        value={currentCam?.device?.deviceId}
-        devices={cameras || []}
-        disabled={!isCamReady}
-        onChange={(val) => setCamera(val)}
-      />
-    </div>
-  );
-});
-
-CameraSelectBtn.displayName = "CameraSelectBtn";
+// CameraSelectBtn removed - no camera needed
 
 export const ScreenShareButton = memo(() => {
   const { onToggleScreenshare, isScreenSharing } = useLocalScreenshare();

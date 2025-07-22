@@ -7,8 +7,8 @@ export const useRequestPermissions = (): (() => Promise<DailyDeviceInfos>) => {
 
 	const requestPermissions = useCallback(async () => {
 		return await daily!.startCamera({
-			startVideoOff: false,
-			startAudioOff: false,
+			startVideoOff: true, // No camera - video off
+			startAudioOff: false, // Keep microphone
 			audioSource: 'default',
 			inputSettings: {
 				audio: {

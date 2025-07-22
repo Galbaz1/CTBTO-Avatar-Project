@@ -10,6 +10,11 @@ from typing import List, Dict, Any
 import json
 import requests
 from dotenv import load_dotenv
+from conference_data import (
+    get_speaker_by_id, search_speakers_by_name, search_speakers_by_topic,
+    get_session_by_id, search_sessions_by_topic, get_sessions_by_time,
+    get_schedule_summary, CTBTO_SPEAKERS, CONFERENCE_SESSIONS
+)
 
 # Load environment variables from .env.local file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
@@ -278,6 +283,401 @@ You can call weather functions when users ask about weather. Always provide help
             return {
                 "error": "Unexpected error",
                 "message": f"Weather service error: {str(e)}"
+            }
+
+    # Conference-related functions
+    def get_speaker_info(self, speaker_name: str = None, speaker_id: str = None, topic: str = None) -> Dict[str, Any]:
+        """
+        Get speaker information for conference attendees.
+        
+        Args:
+            speaker_name (str, optional): Name of the speaker to search for
+            speaker_id (str, optional): Specific speaker ID
+            topic (str, optional): Topic/expertise area to search speakers by
+            
+        Returns:
+            Dict[str, Any]: Speaker information or search results
+        """
+        try:
+            # Priority: ID > Name > Topic
+            if speaker_id:
+                speaker = get_speaker_by_id(speaker_id)
+                if speaker:
+                    return {
+                        "success": True,
+                        "type": "speaker_info",
+                        "speaker": speaker,
+                        "message": f"Speaker information for {speaker['name']}"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": "Speaker not found",
+                        "message": f"No speaker found with ID: {speaker_id}"
+                    }
+            
+            elif speaker_name:
+                speakers = search_speakers_by_name(speaker_name)
+                if speakers:
+                    if len(speakers) == 1:
+                        return {
+                            "success": True,
+                            "type": "speaker_info",
+                            "speaker": speakers[0],
+                            "message": f"Speaker information for {speakers[0]['name']}"
+                        }
+                    else:
+                        return {
+                            "success": True,
+                            "type": "speaker_search",
+                            "speakers": speakers,
+                            "message": f"Found {len(speakers)} speakers matching '{speaker_name}'"
+                        }
+                else:
+                    return {
+                        "success": False,
+                        "error": "Speaker not found",
+                        "message": f"No speakers found matching '{speaker_name}'"
+                    }
+            
+            elif topic:
+                speakers = search_speakers_by_topic(topic)
+                if speakers:
+                    return {
+                        "success": True,
+                        "type": "speaker_search",
+                        "speakers": speakers,
+                        "message": f"Found {len(speakers)} speakers with expertise in '{topic}'"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": "No speakers found",
+                        "message": f"No speakers found with expertise in '{topic}'"
+                    }
+            
+            else:
+                # Return all speakers as overview
+                all_speakers = list(CTBTO_SPEAKERS.values())
+                return {
+                    "success": True,
+                    "type": "speaker_overview",
+                    "speakers": all_speakers,
+                    "message": f"Conference speakers overview - {len(all_speakers)} speakers total"
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": "Service error",
+                "message": f"Unable to retrieve speaker information: {str(e)}"
+            }
+
+    def get_session_info(self, session_id: str = None, topic: str = None, time_filter: str = "all") -> Dict[str, Any]:
+        """
+        Get session information and schedules.
+        
+        Args:
+            session_id (str, optional): Specific session ID
+            topic (str, optional): Topic to search sessions by
+            time_filter (str, optional): Filter by time ("morning", "afternoon", "all")
+            
+        Returns:
+            Dict[str, Any]: Session information or search results
+        """
+        try:
+            if session_id:
+                session = get_session_by_id(session_id)
+                if session:
+                    return {
+                        "success": True,
+                        "type": "session_info",
+                        "session": session,
+                        "message": f"Session details for '{session['title']}'"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": "Session not found",
+                        "message": f"No session found with ID: {session_id}"
+                    }
+            
+            elif topic:
+                sessions = search_sessions_by_topic(topic)
+                if sessions:
+                    return {
+                        "success": True,
+                        "type": "session_search",
+                        "sessions": sessions,
+                        "message": f"Found {len(sessions)} sessions related to '{topic}'"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": "No sessions found",
+                        "message": f"No sessions found related to '{topic}'"
+                    }
+            
+            else:
+                # Get sessions by time filter
+                sessions = get_sessions_by_time(time_filter)
+                time_desc = time_filter if time_filter != "all" else "today"
+                
+                return {
+                    "success": True,
+                    "type": "session_schedule",
+                    "sessions": sessions,
+                    "time_filter": time_filter,
+                    "message": f"Conference schedule for {time_desc} - {len(sessions)} sessions"
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": "Service error",
+                "message": f"Unable to retrieve session information: {str(e)}"
+            }
+
+    def get_conference_schedule(self) -> Dict[str, Any]:
+        """
+        Get complete conference schedule summary.
+        
+        Returns:
+            Dict[str, Any]: Conference schedule overview
+        """
+        try:
+            summary = get_schedule_summary()
+            
+            return {
+                "success": True,
+                "type": "conference_schedule",
+                "schedule_summary": summary,
+                "sessions": list(CONFERENCE_SESSIONS.values()),
+                "message": f"CTBTO SnT 2025 Conference - {summary['total_sessions']} sessions, {summary['total_speakers']} speakers"
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "error": "Service error",
+                "message": f"Unable to retrieve conference schedule: {str(e)}"
+            }
+
+    # Function calling tools definition for OpenAI
+    def get_function_tools(self) -> List[Dict[str, Any]]:
+        """
+        Get the function calling tools for OpenAI API.
+        
+        Returns:
+            List[Dict[str, Any]]: Function tools definition
+        """
+        return [
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_weather",
+                    "description": "Get current weather information for any location, with special focus on Vienna (conference location)",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "location": {
+                                "type": "string",
+                                "description": "Location to get weather for (city name, coordinates, etc.). Defaults to Vienna if not specified."
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_speaker_info",
+                    "description": "Get information about conference speakers, search by name, ID, or expertise topic",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "speaker_name": {
+                                "type": "string",
+                                "description": "Name of the speaker to search for"
+                            },
+                            "speaker_id": {
+                                "type": "string",
+                                "description": "Specific speaker ID (e.g., 'dr-sarah-chen')"
+                            },
+                            "topic": {
+                                "type": "string",
+                                "description": "Topic or expertise area to find speakers (e.g., 'seismic', 'radionuclide', 'hydroacoustic')"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_session_info",
+                    "description": "Get conference session information, search by topic, or filter by time",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {
+                            "session_id": {
+                                "type": "string",
+                                "description": "Specific session ID (e.g., 'session-001')"
+                            },
+                            "topic": {
+                                "type": "string",
+                                "description": "Topic to search sessions by (e.g., 'seismic', 'detection', 'monitoring')"
+                            },
+                            "time_filter": {
+                                "type": "string",
+                                "enum": ["morning", "afternoon", "all"],
+                                "description": "Filter sessions by time period"
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "type": "function",
+                "function": {
+                    "name": "get_conference_schedule",
+                    "description": "Get complete conference schedule and overview",
+                    "parameters": {
+                        "type": "object",
+                        "properties": {}
+                    }
+                }
+            }
+        ]
+
+    def execute_function_call(self, function_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute a function call and return the result.
+        
+        Args:
+            function_name (str): Name of the function to call
+            arguments (Dict[str, Any]): Function arguments
+            
+        Returns:
+            Dict[str, Any]: Function execution result
+        """
+        try:
+            if function_name == "get_weather":
+                location = arguments.get("location")
+                return self.get_weather(location)
+            
+            elif function_name == "get_speaker_info":
+                return self.get_speaker_info(
+                    speaker_name=arguments.get("speaker_name"),
+                    speaker_id=arguments.get("speaker_id"),
+                    topic=arguments.get("topic")
+                )
+            
+            elif function_name == "get_session_info":
+                return self.get_session_info(
+                    session_id=arguments.get("session_id"),
+                    topic=arguments.get("topic"),
+                    time_filter=arguments.get("time_filter", "all")
+                )
+            
+            elif function_name == "get_conference_schedule":
+                return self.get_conference_schedule()
+            
+            else:
+                return {
+                    "success": False,
+                    "error": "Unknown function",
+                    "message": f"Function '{function_name}' is not available"
+                }
+                
+        except Exception as e:
+            return {
+                "success": False,
+                "error": "Execution error",
+                "message": f"Error executing {function_name}: {str(e)}"
+            }
+
+    def process_with_functions(self, user_message: str, conversation_history: List[Dict] = None) -> Dict[str, Any]:
+        """
+        Process a user query with function calling support.
+        
+        Args:
+            user_message (str): The user's question or message
+            conversation_history (List[Dict], optional): Previous conversation context
+            
+        Returns:
+            Dict[str, Any]: Contains response and any function calls made
+        """
+        try:
+            # Build messages array starting with system message
+            messages = [self.system_message]
+            
+            # Add conversation history if provided
+            if conversation_history:
+                messages.extend(conversation_history)
+            
+            # Add current user message
+            messages.append({
+                "role": "user", 
+                "content": user_message
+            })
+            
+            # Call OpenAI API with function calling
+            response = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                tools=self.get_function_tools(),
+                tool_choice="auto",
+                max_tokens=500,
+                temperature=0.7
+            )
+            
+            response_message = response.choices[0].message
+            
+            # Check if function calls were made
+            if response_message.tool_calls:
+                function_results = []
+                
+                # Execute each function call
+                for tool_call in response_message.tool_calls:
+                    function_name = tool_call.function.name
+                    try:
+                        arguments = json.loads(tool_call.function.arguments)
+                    except json.JSONDecodeError:
+                        arguments = {}
+                    
+                    # Execute the function
+                    function_result = self.execute_function_call(function_name, arguments)
+                    function_results.append({
+                        "function": function_name,
+                        "arguments": arguments,
+                        "result": function_result
+                    })
+                
+                return {
+                    "type": "function_calls",
+                    "response": response_message.content or "",
+                    "function_calls": function_results,
+                    "raw_response": response_message
+                }
+            
+            else:
+                # Regular response without function calls
+                return {
+                    "type": "text_response",
+                    "response": response_message.content,
+                    "function_calls": [],
+                    "raw_response": response_message
+                }
+                
+        except Exception as e:
+            # Handle errors gracefully
+            error_response = f"I apologize, but I encountered an error while processing your question. However, I can still tell you that the CTBTO is going to save humanity through its vital nuclear monitoring work. Error: {str(e)}"
+            return {
+                "type": "error",
+                "response": error_response,
+                "function_calls": [],
+                "error": str(e)
             }
 
 

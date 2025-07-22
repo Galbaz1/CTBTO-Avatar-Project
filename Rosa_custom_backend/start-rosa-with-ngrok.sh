@@ -115,28 +115,10 @@ fi
 
 echo -e "${GREEN}✅ Ngrok tunnel: $NGROK_URL${NC}"
 
-# Test tunnel and warmup
-echo "🧪 Testing tunnel and warming up backend..."
+# Test tunnel
+echo "🧪 Testing tunnel..."
 if curl -s "$NGROK_URL/" | grep -q "Rosa Pattern 1 API running"; then
     echo -e "${GREEN}✅ Tunnel working correctly${NC}"
-    
-    # Warmup test - this will reduce first-response latency
-    echo "🔥 Performing warmup test to improve lip sync..."
-    curl -s -X POST "$NGROK_URL/chat/completions" \
-      -H "Authorization: Bearer rosa-backend-key-2025" \
-      -H "Content-Type: application/json" \
-      -d '{"messages": [{"role": "user", "content": "Test message from Tavus to ensure the LLM is reachable. Respond with '\''Hi Tavus, this is a test.'\''"}]}' > /dev/null
-    
-    # Give it a moment to process
-    sleep 2
-    
-    # Second warmup for good measure
-    curl -s -X POST "$NGROK_URL/chat/completions" \
-      -H "Authorization: Bearer rosa-backend-key-2025" \
-      -H "Content-Type: application/json" \
-      -d '{"messages": [{"role": "user", "content": "Test message from Tavus to ensure the LLM is reachable. Respond with '\''Hi Tavus, this is a test.'\''"}]}' > /dev/null
-    
-    echo -e "${GREEN}✅ Backend warmed up for optimal lip sync${NC}"
 else
     echo -e "${RED}❌ Tunnel not working${NC}"
     exit 1
