@@ -59,17 +59,53 @@ export const createConversation = async (
 
     const requestStart = Date.now();
     
-    const response = await fetch('https://tavusapi.com/v2/conversations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      },
-      body: JSON.stringify(requestPayload),
-    });
+    // Retry logic for network issues
+    let response: Response | null = null;
+    let lastError: Error | null = null;
+    const maxRetries = 3;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        logApiCall('conversation-creation-attempt', {
+          attempt,
+          maxRetries,
+          endpoint: 'https://tavusapi.com/v2/conversations'
+        });
+        
+        response = await fetch('https://tavusapi.com/v2/conversations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+          },
+          body: JSON.stringify(requestPayload),
+        });
+        
+        // If successful, break out of retry loop
+        break;
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        logApiCall('conversation-creation-retry', {
+          attempt,
+          error: lastError.message,
+          willRetry: attempt < maxRetries
+        }, 'warn');
+        
+        if (attempt === maxRetries) {
+          throw lastError;
+        }
+        
+        // Wait before retry (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
 
     const requestDuration = Date.now() - requestStart;
 
+    if (!response) {
+      throw new Error('Failed to get response after retries');
+    }
+    
     if (!response.ok) {
       const errorText = await response.text();
       logApiCall('conversation-creation-failed', {
