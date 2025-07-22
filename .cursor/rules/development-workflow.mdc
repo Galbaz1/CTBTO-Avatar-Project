@@ -5,11 +5,11 @@ description: Development workflow and best practices for the Tavus CVI Rosa proj
 # Development Workflow
 
 ## Primary Development Environment
-Work in [examples/cvi-ui-conversation/](mdc:examples/cvi-ui-conversation) as the main development base for Rosa.
+Work in [Rosa_custom_backend/](mdc:Rosa_custom_backend) as the main development base for Rosa.
 
 ## Development Setup
 ```bash
-cd examples/cvi-ui-conversation
+cd Rosa_custom_backend
 bun install  # or npm install
 bun dev      # or npm run dev
 ```

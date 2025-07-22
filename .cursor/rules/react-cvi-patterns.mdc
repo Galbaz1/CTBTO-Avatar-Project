@@ -39,13 +39,13 @@ import { CVIProvider } from './components/cvi/components/cvi-provider';
 - Use `properties.role` ('user'|'replica') instead of guessing speaker identity
 
 ## Key Components
-- **Conversation**: Main video interface ([examples/cvi-ui-conversation/src/components/cvi/components/conversation/index.tsx](mdc:examples/cvi-ui-conversation/src/components/cvi/components/conversation/index.tsx))
+- **Conversation**: Main video interface ([Rosa_custom_backend/src/components/cvi/components/conversation/index.tsx](mdc:Rosa_custom_backend/src/components/cvi/components/conversation/index.tsx))
 - **CVIProvider**: Daily.co context provider
 - **Device Controls**: MicSelectBtn, CameraSelectBtn, ScreenShareButton
 - **AudioWave**: Audio visualization component
 
 ## API Integration
-- **createConversation**: [examples/cvi-ui-conversation/src/api/createConversation.ts](mdc:examples/cvi-ui-conversation/src/api/createConversation.ts)
+- **createConversation**: [Rosa_custom_backend/src/api/createConversation.ts](mdc:Rosa_custom_backend/src/api/createConversation.ts)
 - **endConversation**: Clean up conversations properly
 - **persona_id**: Use Rosa's persona ID for production
 

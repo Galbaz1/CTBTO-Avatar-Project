@@ -11,7 +11,7 @@ This workspace contains Tavus Conversational Video Interface (CVI) examples and 
 - **Product Requirements**: [dev_docs/PRD.md](mdc:dev_docs/PRD.md) - Rosa project specifications for CTBTO SnT 2025 conference
 
 ## Project Structure
-- **Main Development**: [examples/cvi-ui-conversation/](mdc:examples/cvi-ui-conversation) - Primary development environment using modern @tavus/cvi-ui components
+- **Main Development**: [Rosa_custom_backend/](mdc:Rosa_custom_backend) - Primary development environment using modern @tavus/cvi-ui components
 - **Reference Examples**: 
   - [examples/cvi-frontend-backend-tools/](mdc:examples/cvi-frontend-backend-tools) - Function calling with e-commerce tools
   - [examples/cvi-hover-over-website/](mdc:examples/cvi-hover-over-website) - Click interaction tools

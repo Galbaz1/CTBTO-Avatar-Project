@@ -35,7 +35,7 @@ Rosa is a diplomatic-grade multilingual conference assistant for CTBTO SnT 2025 
 - **Session management**: Stateless, no persistent user data
 
 ## Implementation Notes
-- Current development base: [examples/cvi-ui-conversation/](mdc:examples/cvi-ui-conversation)
+- Current development base: [Rosa_custom_backend/](mdc:Rosa_custom_backend)
 - Function calling examples: [examples/cvi-frontend-backend-tools/](mdc:examples/cvi-frontend-backend-tools)
 - Custom LLM patterns: [examples/cvi-custom-llm-with-backend/](mdc:examples/cvi-custom-llm-with-backend)
 

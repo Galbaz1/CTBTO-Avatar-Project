@@ -39,7 +39,7 @@ All Rosa backend implementation details, technical requirements, and migration s
 
 - **Primary Guide**: `dev_docs/pattern1-migration-plan.md`
 - **Working Example**: `examples/cvi-custom-llm-with-backend/custom_llm_iss.py`
-- **Current FastAPI Base**: `examples/cvi-ui-conversation/backend/simple_api.py`
-- **CTBTO Agent**: `examples/cvi-ui-conversation/backend/Agent1.py`
+- **Current FastAPI Base**: `Rosa_custom_backend/backend/simple_api.py`
+- **CTBTO Agent**: `Rosa_custom_backend/backend/Agent1.py`
 
 > **When implementing Rosa backend features, always consult the Pattern 1 migration plan first.**
