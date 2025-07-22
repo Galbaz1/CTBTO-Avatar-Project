@@ -201,7 +201,7 @@ fi
 
 # Step 6: Start frontend (optional)
 echo -e "\n${BLUE}📋 Step 6: Starting frontend...${NC}"
-npm run dev &
+bun run dev &
 FRONTEND_PID=$!
 
 echo "⏳ Waiting for frontend to start..."
@@ -212,10 +212,10 @@ echo -e "\n${GREEN}🎉 Rosa Pattern 1 with Ngrok - READY!${NC}"
 echo "=================================================="
 echo -e "${BLUE}📡 Rosa Backend:${NC} http://localhost:8000"
 echo -e "${BLUE}🌐 Public Tunnel:${NC} $NGROK_URL"
-echo -e "${BLUE}🖥️  Frontend:${NC} http://localhost:3000"
+echo -e "${BLUE}🖥️  Frontend:${NC} http://localhost:5173"
 echo -e "${BLUE}🧠 Persona ID:${NC} peea5e466a91"
 echo ""
-echo -e "${YELLOW}🎤 Ready to test! Go to http://localhost:3000 and speak to Rosa${NC}"
+echo -e "${YELLOW}🎤 Ready to test! Go to http://localhost:5173 and speak to Rosa${NC}"
 echo ""
 echo -e "${YELLOW}📊 Process IDs:${NC}"
 echo -e "   Rosa Backend: $ROSA_PID"
