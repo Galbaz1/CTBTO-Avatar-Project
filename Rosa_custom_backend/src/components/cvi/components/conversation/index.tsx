@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import {
 	DailyAudio,
 	DailyVideo,
@@ -13,6 +13,8 @@ import { useLocalScreenshare } from "../../hooks/use-local-screenshare";
 import { useReplicaIDs } from "../../hooks/use-replica-ids";
 import { useCVICall } from "../../hooks/use-cvi-call";
 import { AudioWave } from "../audio-wave";
+import { WebGLGreenScreenVideo } from "../webgl-green-screen-video";
+import { GreenScreenDebugger } from "../../../debug/GreenScreenDebugger";
 
 import styles from "./conversation.module.css";
 
@@ -68,6 +70,15 @@ const MainVideo = React.memo(() => {
 	const isScreenSharing = !screenVideoState.isOff;
 	// This is one-to-one call, so we can use the first replica id
 	const replicaId = replicaIds[0];
+	
+	// Green screen state
+	const [greenScreenParams, setGreenScreenParams] = useState({
+		keyColor: [0.0, 0.9, 0.2] as [number, number, number],
+		similarity: 0.45,
+		smoothness: 0.1,
+		spill: 0.2,
+		disableGreenScreen: false,
+	});
 
 	if (!replicaId) {
 		return (
@@ -77,19 +88,38 @@ const MainVideo = React.memo(() => {
 		);
 	}
 
-	// Switching between replica video and screen sharing video
+	// Use green screen for Rosa's video (replica), regular video for screen sharing
 	return (
 		<div
 			className={`${styles.mainVideoContainer} ${isScreenSharing ? styles.mainVideoContainerScreenSharing : ''}`}
 		>
-			<DailyVideo
-				automirror
-				sessionId={isScreenSharing ? localId : replicaId}
-				type={isScreenSharing ? "screenVideo" : "video"}
-				className={`${styles.mainVideo}
-				${isScreenSharing ? styles.mainVideoScreenSharing : ''}
-				${videoState.isOff ? styles.mainVideoHidden : ''}`}
-			/>
+			{isScreenSharing ? (
+				<DailyVideo
+					automirror
+					sessionId={localId}
+					type="screenVideo"
+					className={`${styles.mainVideo} ${styles.mainVideoScreenSharing}`}
+				/>
+			) : (
+				<WebGLGreenScreenVideo
+					sessionId={replicaId}
+					className={`${styles.mainVideo} ${videoState.isOff ? styles.mainVideoHidden : ''}`}
+					keyColor={greenScreenParams.keyColor}
+					similarity={greenScreenParams.similarity}
+					smoothness={greenScreenParams.smoothness}
+					spill={greenScreenParams.spill}
+					disableGreenScreen={greenScreenParams.disableGreenScreen}
+					onVideoLoad={() => console.log('✅ Green screen video loaded')}
+				/>
+			)}
+			
+			{/* Green Screen Debug Controls */}
+			{!isScreenSharing && (
+				<GreenScreenDebugger
+					onParametersChange={setGreenScreenParams}
+					initialParams={greenScreenParams}
+				/>
+			)}
 		</div>
 	);
 });
