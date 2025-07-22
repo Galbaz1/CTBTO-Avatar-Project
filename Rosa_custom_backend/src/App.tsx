@@ -4,10 +4,8 @@ import ReactPlugin from '@stagewise-plugins/react'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { createConversation, endConversation } from './api'
 import type { IConversation } from './types'
-import { Conversation } from './components/cvi/components/conversation'
-import { useRequestPermissions } from './components/cvi/hooks/use-request-permissions';
-// Pattern 1: No function call handlers needed
-import { SimpleConversationLogger } from './components/SimpleConversationLogger';
+import { RosaDemo } from './components/RosaDemo'
+import { useRequestPermissions } from './components/cvi/hooks/use-request-permissions'
 
 function App() {
   const [apiKey, setApiKey] = useState<string | null>(null)
@@ -81,36 +79,12 @@ function App() {
         }}
       />
       {screen === 'welcome' && <WelcomeScreen onStart={handleJoin} loading={loading} />}
-      <div>
-        {screen === 'call' && conversation && (
-          <div style={{ position: 'relative' }}>
-            {/* Pattern 1: All responses flow through Rosa backend */}
-            <Conversation conversationUrl={conversation.conversation_url} onLeave={handleEnd} />
-            
-            {/* Pattern 1: Simple logging only - no function call handlers */}
-            <SimpleConversationLogger 
-              conversationId={conversation.conversation_id}
-              enabled={true}
-            />
-            
-            {/* Pattern 1 Info Display */}
-            <div style={{
-              position: 'fixed',
-              top: '10px',
-              right: '10px',
-              backgroundColor: 'rgba(0, 210, 211, 0.9)',
-              color: 'white',
-              padding: '8px 12px',
-              borderRadius: '4px',
-              fontSize: '12px',
-              fontWeight: 'bold',
-              zIndex: 1000
-            }}>
-              🧠 Pattern 1: Custom LLM
-            </div>
-          </div>
-        )}
-      </div>
+      {screen === 'call' && conversation && (
+        <RosaDemo 
+          conversation={conversation} 
+          onLeave={handleEnd} 
+        />
+      )}
     </main>
   )
 }
