@@ -1,6 +1,6 @@
-# Tavus Examples
+# CTBTO Avatar Project
 
-A comprehensive collection of examples demonstrating Tavus's Conversational Video Interface (CVI) technology for building AI-powered video conversations.
+A comprehensive AI-powered conversational video interface system for the CTBTO (Comprehensive Test Ban Treaty Organization), demonstrating advanced Tavus CVI technology for building interactive avatar experiences.
 
 ## 🎯 Overview
 
@@ -19,7 +19,7 @@ This repository showcases various implementations of Tavus's real-time video con
 
 ## 🏗 System Architecture
 
-The tavus-examples repository demonstrates a **polling-based generative UI architecture** for seamless integration of AI tools with video conversations:
+The CTBTO Avatar Project demonstrates a **polling-based generative UI architecture** for seamless integration of AI tools with video conversations:
 
 ```mermaid
 graph TB
@@ -113,7 +113,7 @@ The **Rosa Custom Backend** is our flagship example with advanced tool integrati
 ```bash
 # 1. Clone and navigate
 git clone <repository-url>
-cd tavus-examples/Rosa_custom_backend
+cd CTBTO-Avatar-Project/Rosa_custom_backend
 
 # 2. Install dependencies
 npm install
@@ -140,7 +140,7 @@ npm run dev
 ## 📁 Project Structure
 
 ```
-tavus-examples/
+CTBTO-Avatar-Project/
 ├── Rosa_custom_backend/           # 🌟 Main development environment
 │   ├── backend/                   # Python FastAPI backend
 │   │   ├── rosa_pattern1_api.py  # Core API with tool integration
