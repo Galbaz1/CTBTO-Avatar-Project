@@ -1,90 +1,47 @@
-import { useEffect, useState } from 'react'
-import { StagewiseToolbar } from '@stagewise/toolbar-react'
-import ReactPlugin from '@stagewise-plugins/react'
+import { useState, useCallback } from 'react'
 import { WelcomeScreen } from './components/WelcomeScreen'
-import { createConversation, endConversation } from './api'
-import type { IConversation } from './types'
 import { RosaDemo } from './components/RosaDemo'
-import { useRequestPermissions } from './components/cvi/hooks/use-request-permissions'
 
 function App() {
-  const [apiKey, setApiKey] = useState<string | null>(null)
   const [screen, setScreen] = useState<'welcome' | 'call'>('welcome')
-  const [conversation, setConversation] = useState<IConversation | null>(null)
   const [loading, setLoading] = useState(false)
 
-  const requestPermissions = useRequestPermissions();
-
-  useEffect(() => {
-    return () => {
-      if (conversation && apiKey) {
-        void endConversation(conversation.conversation_id, apiKey)
-      }
-    }
-  }, [conversation, apiKey])
-
-  const handleEnd = async () => {
+  const handleJoin = useCallback(async (apiKey: string) => {
+    setLoading(true)
     try {
-      console.log('🔄 User ending conversation...');
-      setScreen('welcome')
-      if (!conversation || !apiKey) return
-      console.log('📞 Ending conversation:', conversation.conversation_id);
-      await endConversation(conversation.conversation_id, apiKey)
-      console.log('✅ Conversation ended successfully');
-    } catch (error) {
-      console.error('❌ Error ending conversation:', error)
-    } finally {
-      setConversation(null)
-    }
-  }
-
-  const handleJoin = async (token: string) => {
-    try {
-      console.log('🚀 Starting ROSA Pattern 1 conversation...');
-      setApiKey(token)
-      localStorage.setItem('token', token);
-      setLoading(true)
-      
-      console.log('🎤 Requesting permissions...');
-      await requestPermissions()
-      
-      if (!token) {
-        alert('API key not found. Please set your API key.')
-        return
-      }
-      
-      console.log('🔗 Creating conversation with Tavus API...');
-      const conversation = await createConversation(token)
-      console.log('✅ Pattern 1 conversation created:', {
-        conversationId: conversation.conversation_id,
-        conversationUrl: conversation.conversation_url,
-        status: conversation.status
-      });
-      
-      setConversation(conversation)
+      // Store API key for Rosa to use
+      localStorage.setItem('VITE_TAVUS_API_KEY', apiKey)
       setScreen('call')
     } catch (error) {
-      console.error('❌ Error starting conversation:', error);
-      alert('Uh oh! Something went wrong. Check console for details')
+      console.error('Error starting Rosa:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   return (
-    <main>
-      <StagewiseToolbar 
-        config={{
-          plugins: [ReactPlugin]
-        }}
-      />
-      {screen === 'welcome' && <WelcomeScreen onStart={handleJoin} loading={loading} />}
-      {screen === 'call' && conversation && (
-        <RosaDemo 
-          conversation={conversation} 
-          onLeave={handleEnd} 
-        />
-      )}
+    <main style={{ height: '100vh' }}>
+      <div style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        padding: '12px 20px', 
+        textAlign: 'center', 
+        background: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(0,0,0,0.1)'
+      }}>
+        <h1 style={{ margin: 0, fontSize: '1.2rem', color: '#333' }}>
+          🤖 Rosa - Enhanced with Weather Intelligence
+        </h1>
+      </div>
+
+      <div style={{ paddingTop: '60px', height: 'calc(100vh - 60px)' }}>
+        {screen === 'welcome' && <WelcomeScreen onStart={handleJoin} loading={loading} />}
+        {screen === 'call' && <RosaDemo />}
+      </div>
     </main>
   )
 }

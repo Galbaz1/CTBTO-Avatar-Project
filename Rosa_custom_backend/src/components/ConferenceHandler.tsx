@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useDailyEvent, useDaily } from '@daily-co/daily-react';
 
 // Types for conference data
@@ -65,7 +65,6 @@ export const ConferenceHandler: React.FC<ConferenceHandlerProps> = ({
   conversationId 
 }) => {
   const daily = useDaily();
-  const [pendingFunctionCalls, setPendingFunctionCalls] = useState<Set<string>>(new Set());
 
   // Listen for conference-related function calls from Rosa Pattern 1 backend
   useDailyEvent('app-message', async (event: any) => {
@@ -100,11 +99,11 @@ export const ConferenceHandler: React.FC<ConferenceHandlerProps> = ({
 
       // Remove from pending calls
       if (callId) {
-        setPendingFunctionCalls(prev => {
-          const newSet = new Set(prev);
-          newSet.delete(callId);
-          return newSet;
-        });
+        // setPendingFunctionCalls(prev => { // This line was removed as per the edit hint
+        //   const newSet = new Set(prev);
+        //   newSet.delete(callId);
+        //   return newSet;
+        // });
       }
     }
 

@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import { memo } from "react";
 import { useDevices } from "@daily-co/daily-react";
 import { useLocalMicrophone } from "../../hooks/use-local-microphone";
 import { useLocalScreenshare } from "../../hooks/use-local-screenshare";
