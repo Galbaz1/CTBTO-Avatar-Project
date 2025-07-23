@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+openai
+swarm-beta
+requests
+python-dotenv
+qrcode[pil] 
