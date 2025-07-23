@@ -10,7 +10,7 @@ function App() {
     setLoading(true)
     try {
       // Store API key for Rosa to use
-      localStorage.setItem('VITE_TAVUS_API_KEY', apiKey)
+      localStorage.setItem('TAVUS_API_KEY', apiKey)
       setScreen('call')
     } catch (error) {
       console.error('Error starting Rosa:', error)

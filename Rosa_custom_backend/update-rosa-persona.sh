@@ -4,14 +4,14 @@
 # This eliminates all visual processing for diplomatic privacy AND improves lip sync
 
 # Load environment variables (skip comments)
-if [ -f ".env.local" ]; then
-    source .env.local
+if [ -f ".env" ]; then
+source .env
 fi
 
 # Check if Tavus API key is available
-if [ -z "$NEXT_TAVUS_API_KEY" ]; then
-    echo "❌ Error: NEXT_TAVUS_API_KEY not found in .env.local"
-    echo "Please add your Tavus API key to .env.local"
+if [ -z "$TAVUS_API_KEY" ]; then
+    echo "❌ Error: TAVUS_API_KEY not found in .env"
+echo "Please add your Tavus API key to .env"
     exit 1
 fi
 
@@ -24,7 +24,7 @@ echo ""
 curl --request PATCH \
   --url https://tavusapi.com/v2/personas/peea5e466a91 \
   --header 'Content-Type: application/json' \
-  --header "x-api-key: $NEXT_TAVUS_API_KEY" \
+  --header "x-api-key: $TAVUS_API_KEY" \
   --data '[
     {
       "op": "add",

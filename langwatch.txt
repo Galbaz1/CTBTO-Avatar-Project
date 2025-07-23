@@ -1,0 +1,17 @@
+Alexander Forbes Reed
+15:50
+https://docs.langwatch.ai/integration/python/guide
+this section https://docs.langwatch.ai/integration/python/guide#capturing-messages
+Alexander Forbes Reed
+15:56
+OTEL propagation for JS: https://opentelemetry.io/docs/languages/js/propagation/
+OTEL propagation for Python: https://opentelemetry.io/docs/languages/python/propagation/
+OTEL setup for JS https://opentelemetry.io/docs/languages/js/getting-started/browser/
+OTEL setup for Python: https://docs.langwatch.ai/integration/python/guide
+Alexander Forbes Reed
+15:58
+LangWatch specific setup for JS: https://docs.langwatch.ai/integration/typescript/guide#integration
+Specifically look at the `LangWatchExporter`, which you may need to use or reference when setting up the JS exporter
+Alexander Forbes Reed
+15:59
+don't use the rest of the guide, follow the official OTEL setup

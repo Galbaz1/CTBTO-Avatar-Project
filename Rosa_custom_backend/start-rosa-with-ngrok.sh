@@ -33,8 +33,8 @@ if ! command -v ngrok &> /dev/null; then
     exit 1
 fi
 
-if [ ! -f ".env.local" ]; then
-    echo -e "${RED}❌ .env.local file not found${NC}"
+if [ ! -f ".env" ]; then
+    echo -e "${RED}❌ .env file not found${NC}"
     exit 1
 fi
 
@@ -128,20 +128,22 @@ fi
 echo -e "\n${BLUE}📋 Step 5: Updating Tavus persona...${NC}"
 
 # Load environment variables and update persona
-python3 -c "
+cd backend
+source venv/bin/activate
+./venv/bin/python3 -c "
 import os
 import requests
 import json
 from dotenv import load_dotenv
 
-load_dotenv('.env.local')
+load_dotenv('../.env')
 
-tavus_api_key = os.getenv('NEXT_TAVUS_API_KEY')
+tavus_api_key = os.getenv('TAVUS_API_KEY')
 persona_id = 'peea5e466a91'
 ngrok_url = '$NGROK_URL'
 
 if not tavus_api_key:
-    print('❌ NEXT_TAVUS_API_KEY not found in .env.local')
+    print('❌ TAVUS_API_KEY not found in .env')
     exit(1)
 
 print(f'🔄 Updating persona {persona_id} with URL: {ngrok_url}')
@@ -173,6 +175,7 @@ except Exception as e:
     print(f'❌ Error updating persona: {e}')
     exit(1)
 "
+cd ..
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Tavus persona updated${NC}"

@@ -11,8 +11,8 @@ import json
 from typing import List, Dict, Any, Optional, Callable, Generator
 from dotenv import load_dotenv
 
-# Load environment variables from .env.local file in parent directory
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env.local'))
+# Load environment variables from .env file in parent directory
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Weather function definition for OpenAI
 WEATHER_FUNCTION = {

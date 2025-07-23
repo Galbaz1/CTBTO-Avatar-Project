@@ -16,8 +16,8 @@ from dotenv import load_dotenv
 # Import our CTBTO agent
 from Agent1 import CTBTOAgent
 
-# Load environment variables
-load_dotenv()
+# Load environment variables from parent directory
+load_dotenv('../.env')
 
 # Check if we're in development mode
 IS_DEVELOPMENT = os.getenv("NODE_ENV") == "development"

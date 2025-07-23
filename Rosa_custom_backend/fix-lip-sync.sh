@@ -15,18 +15,18 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Load environment variables
-if [ -f ".env.local" ]; then
-    source .env.local
+if [ -f ".env" ]; then
+source .env
 else
-    echo -e "${RED}❌ Error: .env.local file not found${NC}"
-    echo "Please create .env.local with your NEXT_TAVUS_API_KEY"
+    echo -e "${RED}❌ Error: .env file not found${NC}"
+echo "Please create .env with your TAVUS_API_KEY"
     exit 1
 fi
 
 # Check if Tavus API key is available
-if [ -z "$NEXT_TAVUS_API_KEY" ]; then
-    echo -e "${RED}❌ Error: NEXT_TAVUS_API_KEY not found in .env.local${NC}"
-    echo "Please add your Tavus API key to .env.local"
+if [ -z "$TAVUS_API_KEY" ]; then
+    echo -e "${RED}❌ Error: TAVUS_API_KEY not found in .env${NC}"
+echo "Please add your Tavus API key to .env"
     exit 1
 fi
 
@@ -47,7 +47,7 @@ echo "   Configures speech recognition for faster turn-taking"
 curl --request PATCH \
   --url https://tavusapi.com/v2/personas/peea5e466a91 \
   --header 'Content-Type: application/json' \
-  --header "x-api-key: $NEXT_TAVUS_API_KEY" \
+  --header "x-api-key: $TAVUS_API_KEY" \
   --data '[
     {
       "op": "replace",

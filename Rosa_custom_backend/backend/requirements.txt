@@ -3,4 +3,5 @@ python-dotenv
 fastapi
 uvicorn[standard]
 ngrok
-pytz 
+pytz
+requests 
