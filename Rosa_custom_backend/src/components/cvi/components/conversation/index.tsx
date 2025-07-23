@@ -9,10 +9,8 @@ import {
 	useVideoTrack
 } from "@daily-co/daily-react";
 import { MicSelectBtn, ScreenShareButton } from '../device-select'
-import { useLocalScreenshare } from "../../hooks/use-local-screenshare";
 import { useReplicaIDs } from "../../hooks/use-replica-ids";
 import { useCVICall } from "../../hooks/use-cvi-call";
-import { AudioWave } from "../audio-wave";
 import { WebGLGreenScreenVideo } from "../webgl-green-screen-video";
 
 import styles from "./conversation.module.css";

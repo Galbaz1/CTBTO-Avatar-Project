@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, memo } from "react";
+import { useCallback, useRef, memo } from "react";
 import { useActiveSpeakerId } from "@daily-co/daily-react";
 import { useAudioLevelObserver } from "@daily-co/daily-react";
 import styles from "./audio-wave.module.css";

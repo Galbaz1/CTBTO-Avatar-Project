@@ -86,7 +86,8 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
   const glRef = useRef<WebGLRenderingContext | null>(null);
   const programRef = useRef<WebGLProgram | null>(null);
   const textureRef = useRef<WebGLTexture | null>(null);
-  const animationRef = useRef<number>();
+  // Fix useRef initialization
+  const animationRef = useRef<number | undefined>(undefined);
   const isInitialized = useRef(false);
   
   const videoState = useVideoTrack(sessionId);
@@ -215,7 +216,8 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
       gl.uniform1f(gl.getUniformLocation(program, 'u_similarity'), similarity);
       gl.uniform1f(gl.getUniformLocation(program, 'u_smoothness'), smoothness);
       gl.uniform1f(gl.getUniformLocation(program, 'u_spill'), spill);
-      gl.uniform1i(gl.getUniformLocation(program, 'u_disableChromaKey'), disableGreenScreen);
+      // Fix WebGL uniform type issue (convert boolean to number)
+      gl.uniform1i(gl.getUniformLocation(program, 'u_disableChromaKey'), disableGreenScreen ? 1 : 0);
 
       // Render
       gl.clearColor(0, 0, 0, 0);
@@ -254,7 +256,8 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
     handleVideoReady();
 
     return () => {
-      if (animationRef.current) {
+      // Fix assignment type issue
+      if (animationRef.current !== undefined) {
         cancelAnimationFrame(animationRef.current);
         animationRef.current = undefined;
       }

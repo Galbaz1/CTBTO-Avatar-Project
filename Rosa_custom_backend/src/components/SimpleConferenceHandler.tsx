@@ -2,11 +2,10 @@ import React, { useCallback } from 'react';
 import { useDailyEvent } from '@daily-co/daily-react';
 import { conference_data } from '../data/conference-data';
 
-interface ConferenceHandlerProps {
+interface SimpleConferenceHandlerProps {
   onSpeakerUpdate?: (speaker: any) => void;
   onSessionUpdate?: (session: any) => void;
   onScheduleUpdate?: (schedule: any) => void;
-  conversationId?: string;
 }
 
 // Simple conference logging
@@ -24,11 +23,10 @@ const conferenceLog = {
   }
 };
 
-export const SimpleConferenceHandler: React.FC<ConferenceHandlerProps> = ({ 
-  onSpeakerUpdate, 
-  onSessionUpdate, 
-  onScheduleUpdate,
-  conversationId 
+export const SimpleConferenceHandler: React.FC<SimpleConferenceHandlerProps> = ({
+  onSpeakerUpdate,
+  onSessionUpdate,
+  onScheduleUpdate
 }) => {
 
   // Parse Rosa's response for conference information and metadata tags
