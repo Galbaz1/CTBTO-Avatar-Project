@@ -2,6 +2,5 @@ openai>=1.10.0
 python-dotenv
 fastapi
 uvicorn[standard]
-daily-python==0.10.1
 ngrok
 pytz 

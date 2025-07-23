@@ -1,39 +1,35 @@
-#!/usr/bin/env python3
 """
-Rosa Pattern 1 API - Enhanced OpenAI-Compatible Custom LLM for Tavus
-Now includes Daily.co integration for sending app messages with weather data
+Enhanced Rosa Pattern 1 API - OpenAI-compatible chat completions endpoint
+Supports function calling for weather and app message integration
 """
 
-from fastapi import FastAPI, Request, Response, HTTPException
-from fastapi.responses import StreamingResponse
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+import os
 import json
 import time
-import threading
-import traceback
+from typing import List, Dict, Optional
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from dotenv import load_dotenv
 
+# Import our CTBTO agent
 from Agent1 import CTBTOAgent
 
-# Import Daily.co SDK if available
-try:
-    import daily
-    DAILY_AVAILABLE = True
-    print("✅ Daily.co SDK available")
-except ImportError:
-    print("⚠️ Daily.co SDK not available")
-    DAILY_AVAILABLE = False
+# Load environment variables
+load_dotenv()
 
-print("🚀 Starting Enhanced Rosa Pattern 1 API...")
-print("🌤️ Weather function calling enabled")
-print("📱 Daily.co app message integration enabled")
+# Check if we're in development mode
+IS_DEVELOPMENT = os.getenv("NODE_ENV") == "development"
 
-app = FastAPI(title="Rosa Pattern 1 API", version="1.0.0")
+# Initialize FastAPI
+app = FastAPI(title="Rosa Pattern 1 API", version="1.1.0")
 
-# Add CORS middleware
+# Configure CORS - allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", 
+                   "https://*.ngrok-free.app", "https://*.ngrok.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -56,63 +52,45 @@ class ChatCompletionRequest(BaseModel):
     temperature: float = 0.7
     max_tokens: int = 150
 
-# Rosa backend with Daily.co integration
 class RosaBackend:
+    """
+    Backend service for Rosa with session management and weather data storage
+    """
     def __init__(self):
         self.ctbto_agent = CTBTOAgent()
+        self.sessions = {}  # Maps session IDs to conversation URLs
         self.current_conversation_url = None
-        # Session mapping: session_id -> conversation_url
-        self.sessions = {}
-        
+        self.session_weather_data = {}  # Weather data per session
+        self.latest_weather_data = None  # Latest weather data (fallback)
+    
     def register_session(self, session_id: str, conversation_url: str):
         """Register a session with its conversation URL"""
         self.sessions[session_id] = conversation_url
         print(f"📝 Registered session {session_id} with conversation URL: {conversation_url}")
-        
-    def get_session_url(self, session_id: str) -> str:
+    
+    def get_session_url(self, session_id: str) -> Optional[str]:
         """Get conversation URL for a session"""
         return self.sessions.get(session_id)
-        
+    
     def send_app_message(self, message_data: dict, conversation_url: str = None, session_id: str = None):
-        """Send app message to frontend for UI updates"""
+        """Store app message for frontend polling"""
         try:
             # Cache weather data if it's a weather update
             if message_data.get('event_type') == 'weather_update' and message_data.get('data'):
                 self.latest_weather_data = message_data['data']
                 print(f"💾 Cached weather data: {self.latest_weather_data}")
-            
-            # Determine which URL to use
-            url_to_use = conversation_url
-            if not url_to_use and session_id:
-                url_to_use = self.get_session_url(session_id)
-            if not url_to_use:
-                url_to_use = self.current_conversation_url
-            
-            if url_to_use:
-                # Log the app message that would be sent
-                print(f"📱 App message ready to send: {message_data}")
-                print(f"📍 For conversation: {url_to_use}")
                 
-                # In Pattern 1, the frontend handles app messages directly
-                # The backend prepares the message, but the frontend must send it
-                # This avoids needing a separate Daily.co API key
-                
-                # Store the message for potential future use
-                if session_id and not hasattr(self, 'pending_messages'):
-                    self.pending_messages = {}
+                # Store by session if available
                 if session_id:
-                    if session_id not in self.pending_messages:
-                        self.pending_messages[session_id] = []
-                    self.pending_messages[session_id].append(message_data)
-            else:
-                print(f"📱 Would send app message: {message_data} (No conversation URL)")
+                    self.session_weather_data[session_id] = message_data['data']
+                    print(f"📱 Stored weather data for session {session_id}")
         except Exception as e:
-            print(f"❌ Failed to prepare app message: {e}")
+            print(f"❌ Failed to store weather data: {e}")
 
 # Global backend instance
 rosa_backend = RosaBackend()
 
-# Warmup flag to track if backend has been warmed up
+# Global flag to track warmup status
 _warmed_up = False
 
 def warmup_backend():
@@ -124,8 +102,7 @@ def warmup_backend():
             start_time = time.perf_counter()
             
             # Make a quick test call to warm up the agent
-            test_messages = [{"role": "user", "content": "warmup"}]
-            for _ in rosa_backend.ctbto_agent.process_conversation_stream(test_messages):
+            for _ in rosa_backend.ctbto_agent.process_conversation_stream("warmup", []):
                 break  # Just get the first chunk to warm up
                 
             warmup_time = time.perf_counter() - start_time
@@ -139,7 +116,7 @@ async def root():
     return {
         "status": "Rosa Pattern 1 API running",
         "version": "1.1.0",
-        "daily_available": DAILY_AVAILABLE,
+        "daily_available": False, # Removed Daily.co integration
         "daily_connected": rosa_backend.current_conversation_url is not None
     }
 
@@ -158,7 +135,7 @@ async def connect_conversation(request: ConversationConnectionRequest):
             "success": True,
             "message": "Backend registered session successfully",
             "conversation_id": request.conversation_id,
-            "daily_available": DAILY_AVAILABLE
+            "daily_available": False # Removed Daily.co integration
         }
     except Exception as e:
         print(f"❌ Failed to connect to conversation: {e}")
@@ -296,7 +273,7 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
         return StreamingResponse(generate(), media_type="text/plain")
 
     except Exception as e:
-        print(f"Rosa endpoint error: {traceback.format_exc()}")
+        print(f"Rosa endpoint error: {e}") # Removed traceback.format_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 # Additional endpoint for testing weather functionality
@@ -313,20 +290,6 @@ async def test_weather(location: str = "Vienna"):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/pending-messages/{session_id}")
-async def get_pending_messages(session_id: str):
-    """Get pending messages for a session"""
-    try:
-        if hasattr(rosa_backend, 'pending_messages') and session_id in rosa_backend.pending_messages:
-            messages = rosa_backend.pending_messages[session_id]
-            # Clear the messages after sending
-            rosa_backend.pending_messages[session_id] = []
-            return messages
-        return []
-    except Exception as e:
-        print(f"❌ Error retrieving pending messages: {e}")
-        return []
-
 @app.get("/latest-weather/{session_id}")
 async def get_latest_weather(session_id: str):
     """Get the latest weather data for a session"""
@@ -334,19 +297,10 @@ async def get_latest_weather(session_id: str):
         # Check if we have session-specific weather data
         if hasattr(rosa_backend, 'session_weather_data') and session_id in rosa_backend.session_weather_data:
             weather_data = rosa_backend.session_weather_data[session_id]
-            print(f"📊 Found session weather data for {session_id}: {weather_data.get('location')}")
             return weather_data
         
-        # Check if we have weather data in pending messages
-        if hasattr(rosa_backend, 'pending_messages') and session_id in rosa_backend.pending_messages:
-            messages = rosa_backend.pending_messages.get(session_id, [])
-            # Find the most recent weather update
-            for msg in reversed(messages):
-                if msg.get('event_type') == 'weather_update':
-                    return msg.get('data', {})
-        
-        # Also check if we have cached weather data
-        if hasattr(rosa_backend, 'latest_weather_data'):
+        # Fallback to latest weather data
+        if hasattr(rosa_backend, 'latest_weather_data') and rosa_backend.latest_weather_data:
             return rosa_backend.latest_weather_data
             
         return {"success": False, "error": "No weather data available"}
@@ -356,9 +310,7 @@ async def get_latest_weather(session_id: str):
 
 if __name__ == "__main__":
     import uvicorn
-    # Warmup before starting server
-    print("🚀 Starting Enhanced Rosa Pattern 1 API...")
+    print("🚀 Starting Rosa Pattern 1 API...")
     print("🌤️ Weather function calling enabled")
-    print("📱 Daily.co app message integration enabled" if DAILY_AVAILABLE else "📱 Daily.co integration disabled (install daily-python)")
     warmup_backend()
     uvicorn.run(app, host="0.0.0.0", port=8000) 
