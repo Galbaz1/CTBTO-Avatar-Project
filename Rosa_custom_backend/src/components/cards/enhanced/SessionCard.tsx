@@ -1,14 +1,42 @@
 import React from 'react';
-import { SessionCardData } from '../../../types';
+
+// Enhanced interface matching timetable.json structure
+interface TimetableSession {
+  session_id: string;
+  title: string;
+  description: string;
+  start_time: string;
+  end_time: string;
+  duration: number;
+  date: string;
+  venue: string;
+  session_type: string;
+  speakers: string[];
+  theme: string;
+  track: string;
+  audience_level: string;
+  day_of_week: string;
+  time_of_day: string;
+  duration_minutes: number;
+  has_speakers: boolean;
+  is_interactive: boolean;
+  is_social: boolean;
+  is_technical: boolean;
+  speaker_count: number;
+  related_topics?: string[];
+  search_keywords?: string[];
+}
 
 interface EnhancedSessionCardProps {
-  session: SessionCardData;
+  session: TimetableSession;
   showSpeakers?: boolean;
   showVenue?: boolean; 
   showTiming?: boolean;
+  showDescription?: boolean;
   compact?: boolean;
   onSpeakerClick?: (speaker: string) => void;
   onVenueClick?: (venue: string) => void;
+  onTopicClick?: (topic: string) => void;
   onClose?: () => void;
   className?: string;
 }
@@ -18,9 +46,11 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
   showSpeakers = true,
   showVenue = true,
   showTiming = true,
+  showDescription = true,
   compact = false,
   onSpeakerClick,
   onVenueClick,
+  onTopicClick,
   onClose,
   className = '' 
 }) => {
@@ -45,6 +75,18 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
     return colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800';
   };
 
+  const getTrackColor = (track: string) => {
+    const colors = {
+      'Technology': 'bg-cyan-100 text-cyan-800',
+      'Innovation': 'bg-orange-100 text-orange-800',
+      'Training': 'bg-indigo-100 text-indigo-800',
+      'Policy': 'bg-red-100 text-red-800',
+      'Social': 'bg-pink-100 text-pink-800',
+      'General': 'bg-gray-100 text-gray-800'
+    };
+    return colors[track as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
   const formatTime = (time: string) => {
     return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -53,124 +95,173 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
     });
   };
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     if (hours > 0) {
-      return `${hours}h ${mins > 0 ? `${mins}m` : ''}`;
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
     }
     return `${mins}m`;
   };
 
   return (
-    <div className={`
-      bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden 
-      hover:shadow-lg transition-shadow duration-200
-      ${compact ? 'max-w-sm' : 'max-w-lg'} 
-      ${className}
-    `}>
-      {/* Header */}
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">{getSessionTypeIcon(session.session_type)}</span>
-            <div>
-              <h3 className={`font-semibold text-gray-900 ${compact ? 'text-sm' : 'text-lg'}`}>
-                {session.title}
-              </h3>
-              <div className="flex items-center space-x-2 mt-1">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAudienceBadge(session.audience_level)}`}>
-                  {session.audience_level.replace('_', ' ')}
+    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}>
+      {/* Header with close button */}
+      <div className="flex justify-between items-start mb-4">
+        <div className="flex items-center space-x-3">
+          <span className="text-2xl">{getSessionTypeIcon(session.session_type)}</span>
+          <div>
+            <h3 className={`font-bold text-gray-900 ${compact ? 'text-sm' : 'text-lg'}`}>
+              {session.title}
+            </h3>
+            <div className="flex items-center space-x-2 mt-1">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAudienceBadge(session.audience_level)}`}>
+                {session.audience_level.replace('_', ' ')}
+              </span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTrackColor(session.track)}`}>
+                {session.track}
+              </span>
+              {session.is_interactive && (
+                <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                  Interactive
                 </span>
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium">
-                  {session.theme}
-                </span>
-                {session.is_interactive && (
-                  <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium">
-                    Interactive
-                  </span>
-                )}
-              </div>
+              )}
             </div>
           </div>
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              ✕
-            </button>
-          )}
         </div>
+        {onClose && (
+          <button 
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        {!compact && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+      {/* Description */}
+      {showDescription && !compact && (
+        <div className="mb-4">
+          <p className="text-gray-700 text-sm leading-relaxed">
             {session.description}
           </p>
-        )}
+        </div>
+      )}
 
-        {/* Timing Info */}
-        {showTiming && (
-          <div className="flex items-center space-x-4 mb-3 text-sm text-gray-600">
-            <div className="flex items-center space-x-1">
-              <span>📅</span>
-              <span>{new Date(session.date).toLocaleDateString('en-US', { 
-                weekday: 'short', month: 'short', day: 'numeric' 
-              })}</span>
+      {/* Timing Information */}
+      {showTiming && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-900">
+                📅 {formatDate(session.date)}
+              </p>
+              <p className="text-sm text-gray-600">
+                ⏰ {formatTime(session.start_time)} - {formatTime(session.end_time)}
+              </p>
             </div>
-            <div className="flex items-center space-x-1">
-              <span>⏰</span>
-              <span>{formatTime(session.start_time)} - {formatTime(session.end_time)}</span>
-              <span className="text-gray-400">({formatDuration(session.duration_minutes)})</span>
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">
+                Duration: {formatDuration(session.duration_minutes)}
+              </p>
+              <p className="text-xs text-gray-500 capitalize">
+                {session.day_of_week} {session.time_of_day}
+              </p>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Venue */}
-        {showVenue && (
-          <div className="flex items-center space-x-2 mb-3">
+      {/* Venue Information */}
+      {showVenue && (
+        <div className="mb-4">
+          <button
+            onClick={() => onVenueClick?.(session.venue)}
+            className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors"
+          >
             <span>📍</span>
-            <button
-              onClick={() => onVenueClick?.(session.venue)}
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              {session.venue}
-            </button>
-          </div>
-        )}
+            <span className="font-medium">{session.venue}</span>
+          </button>
+        </div>
+      )}
 
-        {/* Speakers */}
-        {showSpeakers && session.speakers.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-700">
-              {session.speakers.length === 1 ? 'Speaker:' : 'Speakers:'}
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {session.speakers.map((speaker, index) => (
-                <button
-                  key={index}
-                  onClick={() => onSpeakerClick?.(speaker)}
-                  className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm 
-                           hover:bg-blue-100 transition-colors duration-150"
-                >
-                  {speaker}
-                </button>
-              ))}
-            </div>
+      {/* Speakers */}
+      {showSpeakers && session.has_speakers && session.speakers.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-gray-900 mb-2">
+            👤 Speakers ({session.speaker_count})
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {session.speakers.map((speaker, index) => (
+              <button
+                key={index}
+                onClick={() => onSpeakerClick?.(speaker)}
+                className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm hover:bg-blue-100 transition-colors"
+              >
+                {speaker}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Track Info */}
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Track: {session.track}</span>
-            <span>Session: {session.session_id}</span>
+      {/* Theme and Topics */}
+      <div className="mb-4">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => onTopicClick?.(session.theme)}
+            className="flex items-center space-x-2 text-purple-600 hover:text-purple-800 transition-colors"
+          >
+            <span>🏷️</span>
+            <span className="font-medium">{session.theme}</span>
+          </button>
+          
+          {/* Session Characteristics */}
+          <div className="flex space-x-1">
+            {session.is_technical && (
+              <span className="w-2 h-2 bg-blue-500 rounded-full" title="Technical Content"></span>
+            )}
+            {session.is_social && (
+              <span className="w-2 h-2 bg-green-500 rounded-full" title="Social/Networking"></span>
+            )}
+            {session.is_interactive && (
+              <span className="w-2 h-2 bg-yellow-500 rounded-full" title="Interactive Session"></span>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Related Topics (if available) */}
+      {session.related_topics && session.related_topics.length > 0 && (
+        <div className="mb-4">
+          <h4 className="text-xs font-semibold text-gray-600 mb-2">Related Topics</h4>
+          <div className="flex flex-wrap gap-1">
+            {session.related_topics.map((topic, index) => (
+              <span
+                key={index}
+                className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
+              >
+                {topic.replace('_', ' ')}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Session ID (for debugging/reference) */}
+      {!compact && (
+        <div className="text-xs text-gray-400 border-t pt-2">
+          Session ID: {session.session_id}
+        </div>
+      )}
     </div>
   );
 });

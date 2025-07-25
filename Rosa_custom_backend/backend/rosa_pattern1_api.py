@@ -54,7 +54,7 @@ class ChatCompletionRequest(BaseModel):
 
 class RosaBackend:
     """
-    Backend service for Rosa with session management and weather data storage
+    Backend service for Rosa with session management, weather data storage, and RAG capabilities
     """
     def __init__(self):
         self.ctbto_agent = CTBTOAgent()
@@ -62,6 +62,7 @@ class RosaBackend:
         self.current_conversation_url = None
         self.session_weather_data = {}  # Weather data per session
         self.latest_weather_data = None  # Latest weather data (fallback)
+        self.session_rag_data = {}  # RAG data per session (for UI Intelligence)
     
     def register_session(self, session_id: str, conversation_url: str):
         """Register a session with its conversation URL"""
@@ -71,6 +72,23 @@ class RosaBackend:
     def get_session_url(self, session_id: str) -> Optional[str]:
         """Get conversation URL for a session"""
         return self.sessions.get(session_id)
+    
+    def get_current_session_id(self) -> str:
+        """Get current session ID (for demo purposes, use a default)"""
+        # In production, this would track the current active session
+        return "current_session"
+    
+    def store_rag_data_for_session(self, session_id: str, rag_data: dict):
+        """Store RAG results for UI Intelligence Agent"""
+        if session_id not in self.session_rag_data:
+            self.session_rag_data[session_id] = {}
+        
+        self.session_rag_data[session_id].update({
+            "query": rag_data.get("query"),
+            "categorized_results": rag_data.get("categorized_results", {}),
+            "search_timestamp": time.time(),
+            "total_results": rag_data.get("total_results", {})
+        })
     
     def send_app_message(self, message_data: dict, conversation_url: str = None, session_id: str = None):
         """Store app message for frontend polling"""
@@ -153,7 +171,14 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
         
         # Get conversation URL from headers if provided
         conversation_url = http_request.headers.get("X-Conversation-URL")
-        session_id = http_request.headers.get("X-Session-ID")
+        # Try multiple header formats for session ID
+        session_id = (http_request.headers.get("X-Session-ID") or 
+                     http_request.headers.get("conversation-id") or
+                     http_request.headers.get("conversation_id"))
+        
+        # Debug: print all headers
+        print(f"📋 Request headers: {dict(http_request.headers)}")
+        print(f"🔑 Extracted session_id: {session_id}")
         
         if conversation_url:
             rosa_backend.current_conversation_url = conversation_url
@@ -219,11 +244,122 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                     
                     return weather_data
                 
+                # Helper to store RAG data when function is called
+                def handle_rag_function(args, captured_session_id=session_id):
+                    print(f"🔍 RAG function called with args: {args}, session_id: {captured_session_id}")
+                    query = args.get("query", "Unknown")
+                    search_type = args.get("search_type", "comprehensive")
+                    rag_data = rosa_backend.ctbto_agent.search_conference_knowledge(query, search_type)
+                    
+                    print(f"🔍 RAG data success: {rag_data.get('success')}, session_id: {captured_session_id}")
+                    
+                    # Store the RAG data for UI Intelligence and frontend retrieval
+                    if rag_data.get("success") and captured_session_id:
+                        rosa_backend.store_rag_data_for_session(captured_session_id, rag_data)
+                        print(f"💾 Stored RAG data for session {captured_session_id}: {query}")
+                        
+                        # Use UI Intelligence Agent to decide which cards to show
+                        try:
+                            from ui_intelligence_agent import UIIntelligenceAgent
+                            
+                            ui_agent = UIIntelligenceAgent()
+                            
+                            # Build conversation context for UI Intelligence
+                            conversation_context = {
+                                "user_message": user_message,
+                                "assistant_response": "Searching conference information...",  # Placeholder
+                                "turn_number": 1,  # Could be tracked from conversation history
+                                "elapsed_time": "30s"  # Could be calculated from session start
+                            }
+                            
+                            # Convert SearchResult objects to dicts for JSON serialization
+                            categorized_results = rag_data.get("categorized_results", {})
+                            serializable_results = {}
+                            
+                            for category, results in categorized_results.items():
+                                if isinstance(results, list):
+                                    serializable_results[category] = []
+                                    for result in results:
+                                        if hasattr(result, '__dict__'):
+                                            # Convert dataclass/object to dict
+                                            serializable_results[category].append({
+                                                'id': getattr(result, 'id', ''),
+                                                'title': getattr(result, 'title', ''),
+                                                'content': getattr(result, 'content', ''),
+                                                'metadata': getattr(result, 'metadata', {}),
+                                                'relevance_score': getattr(result, 'relevance_score', 0.0),
+                                                'collection': getattr(result, 'collection', ''),
+                                                'search_type': getattr(result, 'search_type', '')
+                                            })
+                                        else:
+                                            serializable_results[category].append(result)
+                                else:
+                                    serializable_results[category] = results
+                            
+                            # Get intelligent card decisions
+                            card_decisions = ui_agent.analyze_conversation_for_cards(
+                                conversation_context=conversation_context,
+                                rag_results=serializable_results,
+                                session_id=captured_session_id
+                            )
+                            
+                            # Store card decisions for frontend polling
+                            if captured_session_id not in rosa_backend.session_rag_data:
+                                rosa_backend.session_rag_data[captured_session_id] = {}
+                            
+                            for decision in card_decisions:
+                                if decision.card_type == "session":
+                                    rosa_backend.session_rag_data[captured_session_id]["latest_session"] = {
+                                        "card_data": decision.card_data,  # Changed from "session" to "card_data"
+                                        "display_reason": decision.display_reason,  # Changed from "reason"
+                                        "confidence": decision.confidence,
+                                        "timing": decision.timing
+                                    }
+                                    print(f"📊 Stored session card for {captured_session_id}")
+                                elif decision.card_type == "speaker":
+                                    rosa_backend.session_rag_data[captured_session_id]["latest_speaker"] = {
+                                        "card_data": decision.card_data,  # Changed to match frontend expectations
+                                        "display_reason": decision.display_reason,
+                                        "confidence": decision.confidence,
+                                        "timing": decision.timing
+                                    }
+                                    print(f"👤 Stored speaker card for {captured_session_id}")
+                                elif decision.card_type == "topic":
+                                    rosa_backend.session_rag_data[captured_session_id]["latest_topic"] = {
+                                        "card_data": decision.card_data,  # Changed to match frontend expectations
+                                        "display_reason": decision.display_reason,
+                                        "confidence": decision.confidence,
+                                        "timing": decision.timing
+                                    }
+                                    print(f"🏷️ Stored topic card for {captured_session_id}")
+                            
+                            print(f"🧠 UI Intelligence made {len(card_decisions)} card decisions for session {captured_session_id}")
+                            
+                        except Exception as e:
+                            print(f"⚠️ UI Intelligence failed, using fallback: {e}")
+                            import traceback
+                            traceback.print_exc()
+                            # Fallback to simple logic if UI Intelligence fails
+                            categorized_results = rag_data.get("categorized_results", {})
+                            if categorized_results.get("sessions"):
+                                first_session = categorized_results["sessions"][0]
+                                if session_id not in rosa_backend.session_rag_data:
+                                    rosa_backend.session_rag_data[session_id] = {}
+                                rosa_backend.session_rag_data[session_id]["latest_session"] = {
+                                    "session": first_session,
+                                    "reason": "Most relevant session found (fallback)",
+                                    "confidence": 0.7,
+                                    "timing": "immediate"
+                                }
+                    
+                    return rag_data
+                
                 # Use enhanced conversation stream with app message callback
                 for chunk in rosa_backend.ctbto_agent.process_conversation_stream(
                     user_message,
                     conversation_history,
-                    handle_weather_function
+                    handle_weather_function,
+                    handle_rag_function
                 ):
                     if chunk:  # Only yield non-empty chunks
                         # Format as OpenAI streaming response
@@ -307,6 +443,40 @@ async def get_latest_weather(session_id: str):
     except Exception as e:
         print(f"❌ Error retrieving weather data: {e}")
         return {"success": False, "error": str(e)}
+
+@app.get("/latest-session/{session_id}")
+async def get_latest_session_data(session_id: str):
+    """Get latest session card data for frontend polling"""
+    try:
+        if session_id in rosa_backend.session_rag_data and "latest_session" in rosa_backend.session_rag_data[session_id]:
+            print(f"📅 Returning session data for {session_id}")
+            return rosa_backend.session_rag_data[session_id]["latest_session"]
+        return None
+    except Exception as e:
+        print(f"❌ Error retrieving session data: {e}")
+        return None
+
+@app.get("/latest-speaker/{session_id}")  
+async def get_latest_speaker_data(session_id: str):
+    """Get latest speaker card data for frontend polling"""
+    try:
+        if session_id in rosa_backend.session_rag_data and "latest_speaker" in rosa_backend.session_rag_data[session_id]:
+            return rosa_backend.session_rag_data[session_id]["latest_speaker"]
+        return None
+    except Exception as e:
+        print(f"❌ Error retrieving speaker data: {e}")
+        return None
+
+@app.get("/latest-topic/{session_id}")
+async def get_latest_topic_data(session_id: str):
+    """Get latest topic card data for frontend polling"""
+    try:
+        if session_id in rosa_backend.session_rag_data and "latest_topic" in rosa_backend.session_rag_data[session_id]:
+            return rosa_backend.session_rag_data[session_id]["latest_topic"]
+        return None
+    except Exception as e:
+        print(f"❌ Error retrieving topic data: {e}")
+        return None
 
 if __name__ == "__main__":
     import uvicorn

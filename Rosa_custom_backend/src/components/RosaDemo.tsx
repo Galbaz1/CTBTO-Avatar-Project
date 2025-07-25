@@ -4,6 +4,7 @@ import { CVIProvider } from './cvi/components/cvi-provider';
 import { Conversation } from './cvi/components/conversation';
 import { ConferenceHandler } from './ConferenceHandler';
 import { WeatherHandler } from './WeatherHandler';
+import { RagHandler } from './RagHandler';
 
 type ConversationStatus = 'idle' | 'connecting' | 'connected' | 'disconnecting';
 
@@ -26,8 +27,11 @@ export const RosaDemo: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Weather UI state
-  const [currentContent, setCurrentContent] = useState<'welcome' | 'weather'>('welcome');
+  const [currentContent, setCurrentContent] = useState<'welcome' | 'weather' | 'rag'>('welcome');
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  
+  // RAG UI state
+  const [ragData, setRagData] = useState<any>(null);
   
   // Reference for tracking current conversation URL (for backend integration)
   const currentConversationRef = useRef<string | null>(null);
@@ -46,6 +50,7 @@ export const RosaDemo: React.FC = () => {
       const conversation = await createConversation(apiKey);
       console.log('Created conversation:', conversation);
       setConversationUrl(conversation.conversation_url);
+      setConversationId(conversation.conversation_id); // Set the state!
       
       // Store conversation ID globally for WeatherHandler
       (window as any).currentConversationId = conversation.conversation_id;
@@ -131,9 +136,17 @@ export const RosaDemo: React.FC = () => {
     }, 100);
   }, [currentContent, weatherData]);
 
+  // Handle RAG updates from the RagHandler  
+  const handleRagUpdate = useCallback((ragUpdate: any) => {
+    console.log('🔍 RosaDemo: RAG update received:', ragUpdate);
+    setRagData(ragUpdate);
+    setCurrentContent('rag');
+  }, []);
+
   const handleBackToWelcome = useCallback(() => {
     setCurrentContent('welcome');
     setWeatherData(null);
+    setRagData(null);
   }, []);
 
   // Content for right panel
@@ -394,6 +407,78 @@ export const RosaDemo: React.FC = () => {
         </div>
       ) : (
         <div>Loading weather data...</div>
+      )
+    },
+    rag: {
+      title: 'Conference Information',
+      content: ragData ? (
+        <div style={{
+          maxWidth: '600px',
+          margin: '0 auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px'
+        }}>
+          {/* Back button */}
+          <button
+            onClick={handleBackToWelcome}
+            style={{
+              alignSelf: 'flex-start',
+              background: 'rgba(102, 126, 234, 0.1)',
+              border: '1px solid rgba(102, 126, 234, 0.3)',
+              color: '#667eea',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500'
+            }}
+          >
+            ← Back to Welcome
+          </button>
+
+          {/* Display RAG cards */}
+          {ragData.session && (
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              padding: '32px',
+              borderRadius: '16px'
+            }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '24px' }}>📅 Recommended Session</h3>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '20px' }}>{ragData.session.card_data?.title || 'Session Found'}</h4>
+              <p style={{ margin: 0, opacity: 0.9 }}>{ragData.session.display_reason}</p>
+            </div>
+          )}
+
+          {ragData.speaker && (
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              padding: '24px',
+              borderRadius: '16px'
+            }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', color: '#1e293b' }}>👤 Featured Speaker</h3>
+              <h4 style={{ margin: '0 0 8px 0', color: '#334155' }}>{ragData.speaker.card_data?.name || 'Speaker Found'}</h4>
+              <p style={{ margin: 0, color: '#64748b' }}>{ragData.speaker.display_reason}</p>
+            </div>
+          )}
+
+          {ragData.topic && (
+            <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              padding: '24px',
+              borderRadius: '16px'
+            }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '20px', color: '#1e293b' }}>🏷️ Related Topic</h3>
+              <h4 style={{ margin: '0 0 8px 0', color: '#334155' }}>{ragData.topic.card_data?.theme || 'Topic Found'}</h4>
+              <p style={{ margin: 0, color: '#64748b' }}>{ragData.topic.display_reason}</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>Loading conference data...</div>
       )
     }
   };
@@ -740,6 +825,7 @@ export const RosaDemo: React.FC = () => {
               }}>
                 <div>📋 Content: {currentContent}</div>
                 <div>🌤️ Weather: {weatherData ? 'Available' : 'None'}</div>
+                <div>🔍 RAG: {ragData ? 'Available' : 'None'}</div>
                 <div>📍 Location: {weatherData?.location || 'N/A'}</div>
               </div>
             )}
@@ -750,6 +836,10 @@ export const RosaDemo: React.FC = () => {
       
       {/* Global Handlers - Always Active */}
       <WeatherHandler onWeatherUpdate={handleWeatherUpdate} />
+      <RagHandler 
+        conversationId={conversationId || ''} 
+        onRagUpdate={handleRagUpdate} 
+      />
       <ConferenceHandler
         conversationId={conversationId || ''}
         onSpeakerUpdate={(speaker) => console.log('Speaker:', speaker)}
