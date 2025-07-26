@@ -249,6 +249,8 @@ Remember: Give short and consise answers and use the tools to get the most relev
         except Exception as e:
             return {"error": f"Weather error: {str(e)}", "success": False}
     
+
+
     def search_conference_knowledge(self, query: str, search_type: str = "comprehensive") -> dict:
         """Enhanced conference search using hybrid search with perfect relevance scores"""
         try:
@@ -293,14 +295,13 @@ Remember: Give short and consise answers and use the tools to get the most relev
                     formatted_results.append(f"- {topic.title} (Relevance: {relevance_pct})")
                 formatted_results.append("")
             
-            # Create minimal response for speaking
-            total_found = len(categorized_results["sessions"]) + len(categorized_results["speakers"]) + len(categorized_results["topics"])
-            minimal_response = f"I found {total_found} relevant items about {query}. Let me show you the details."
+            # Return formatted chunks for LLM to process naturally (modern RAG)
+            formatted_response = "\n".join(formatted_results) if formatted_results else "No relevant conference information found for your query."
             
             return {
                 "success": True,
                 "query": query,
-                "formatted_response": minimal_response,
+                "formatted_response": formatted_response,
                 "categorized_results": categorized_results,
                 "total_results": {
                     "sessions": len(categorized_results["sessions"]),
@@ -417,14 +418,14 @@ Remember: Give short and consise answers and use the tools to get the most relev
     def process_conversation_stream(self, user_message: str, conversation_history: List[Dict] = None, 
                                     weather_function_callback=None, rag_function_callback=None) -> Generator[str, None, None]:
         """
-        Process a conversation with streaming response and function calling support.
-        Uses OpenAI Chat Completions API with function calling.
+        Optimized conversation processing with proper OpenAI tool calling patterns.
+        Uses single LLM instance for better efficiency and context preservation.
         """
         try:
-            # Build messages array
+            # Build messages array - this is our conversation thread
             messages = [{
                 "role": "system",
-                "content": self.system_message["content"] # Use the system message content directly
+                "content": self.system_message["content"]
             }]
             
             # Add conversation history if provided
@@ -437,121 +438,135 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 "content": user_message
             })
             
-            # Create streaming chat completion with function calling
-            stream = self.client.chat.completions.create(
-                model="gpt-4.1", # Changed from "gpt-4-turbo" to "gpt-4.1" to match existing model
+            print(f"🚀 Starting optimized conversation flow")
+            
+            # STEP 1: Initial LLM call to check for tool usage (non-streaming for tool handling)
+            initial_response = self.client.chat.completions.create(
+                model="gpt-4.1",
                 messages=messages,
-                tools=[WEATHER_FUNCTION, RAG_FUNCTION],  # Enable weather and RAG functions
+                tools=[WEATHER_FUNCTION, RAG_FUNCTION],
                 tool_choice="auto",
-                stream=True,
                 temperature=0.0,
                 max_tokens=1000
             )
             
-            # Track function calls
-            accumulated_function_calls = []
-            current_function_call = None
-            accumulated_function_data = {"name": "", "arguments": ""}
+            # Add the assistant's response to our conversation thread
+            assistant_message = initial_response.choices[0].message
+            messages.append(assistant_message)
             
-            for chunk in stream:
-                delta = chunk.choices[0].delta if chunk.choices else None
+            # STEP 2: Handle tool calls if present
+            if assistant_message.tool_calls:
+                print(f"🔧 Processing {len(assistant_message.tool_calls)} tool call(s)")
                 
-                if delta:
-                    # Handle regular content
-                    if delta.content:
+                # Process each tool call and add results to conversation
+                for tool_call in assistant_message.tool_calls:
+                    tool_result = self._execute_tool_call(
+                        tool_call, 
+                        weather_function_callback, 
+                        rag_function_callback
+                    )
+                    
+                    # Add tool result to conversation thread (proper OpenAI pattern)
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": tool_result
+                    })
+                
+                print(f"✅ Tool execution complete, continuing conversation")
+                
+                # STEP 3: Stream the final response (same LLM instance, continued conversation)
+                print(f"🗣️ Streaming final response from same LLM instance")
+                final_stream = self.client.chat.completions.create(
+                    model="gpt-4.1",
+                    messages=messages,  # Complete conversation thread with tool results
+                    stream=True,
+                    temperature=0.0,
+                    max_tokens=800
+                )
+                
+                # Stream the response
+                for chunk in final_stream:
+                    delta = chunk.choices[0].delta if chunk.choices else None
+                    if delta and delta.content:
                         yield delta.content
-                    
-                    # Handle tool calls
-                    if delta.tool_calls:
-                        for tool_call_delta in delta.tool_calls:
-                            if tool_call_delta.index is not None:
-                                # Start or continue a function call
-                                if tool_call_delta.id:
-                                    # New function call
-                                    current_function_call = {
-                                        "id": tool_call_delta.id,
-                                        "type": "function",
-                                        "function": {"name": "", "arguments": ""}
-                                    }
-                                    accumulated_function_calls.append(current_function_call)
-                                
-                                # Accumulate function data
-                                if tool_call_delta.function:
-                                    if tool_call_delta.function.name:
-                                        accumulated_function_data["name"] += tool_call_delta.function.name
-                                    if tool_call_delta.function.arguments:
-                                        accumulated_function_data["arguments"] += tool_call_delta.function.arguments
             
-            # Process function calls after streaming
-            if (accumulated_function_data.get("name") == "get_weather" and 
-                accumulated_function_data.get("arguments")):
-                try:
-                    # Parse function arguments
-                    import json
-                    args = json.loads(accumulated_function_data["arguments"])
-                    location = args.get("location", "Unknown")
-                    
-                    # Get weather data
-                    weather_data = self.get_weather(location)
-                    
-                    if weather_data.get("success"):
-                        # Call the callback if provided
-                        if weather_function_callback:
-                            weather_function_callback(args)
-                            print(f"📱 Called weather function callback for {location}")
-                        
-                        # Format weather response
-                        weather_response = f"\n\nCurrent weather in {weather_data['location']}, {weather_data.get('country', '')}:\n"
-                        weather_response += f"🌡️ Temperature: {weather_data['temperature']}°C ({weather_data.get('temperature_f', 'N/A')}°F)\n"
-                        weather_response += f"☁️ Condition: {weather_data['condition']}\n"
-                        weather_response += f"💧 Humidity: {weather_data['humidity']}%\n"
-                        weather_response += f"💨 Wind Speed: {weather_data['windSpeed']} km/h\n"
-                        
-                        yield weather_response
-                        
-                    else:
-                        yield f"\n\nI couldn't get the weather information for {location}. {weather_data.get('error', 'Please try again.')}"
-                        
-                except json.JSONDecodeError:
-                    yield "\n\nI had trouble processing the weather request. Please try asking again."
-                except Exception as e:
-                    yield f"\n\nError getting weather: {str(e)}"
-            
-            # Process RAG function calls after streaming
-            if (accumulated_function_data.get("name") == "search_conference_knowledge" and 
-                accumulated_function_data.get("arguments")):
-                try:
-                    # Parse function arguments
-                    import json
-                    args = json.loads(accumulated_function_data["arguments"])
-                    query = args.get("query", "Unknown")
-                    search_type = args.get("search_type", "comprehensive")
-                    
-                    # Get conference search results
-                    rag_data = self.search_conference_knowledge(query, search_type)
-                    
-                    if rag_data.get("success"):
-                        # Call the callback if provided
-                        if rag_function_callback:
-                            rag_function_callback(args)
-                            print(f"📱 Called RAG function callback for {query}")
-                        
-                        # Format RAG response
-                        rag_response = f"\n\n{rag_data['formatted_response']}"
-                        
-                        yield rag_response
-                        
-                    else:
-                        yield f"\n\n{rag_data.get('formatted_response', 'I could not search the conference database right now. Please try again.')}"
-                        
-                except json.JSONDecodeError:
-                    yield "\n\nI had trouble processing the conference search request. Please try asking again."
-                except Exception as e:
-                    yield f"\n\nError searching conference: {str(e)}"
+            # If no tool calls, yield the initial response content
+            else:
+                print(f"💬 No tools needed, streaming direct response")
+                if assistant_message.content:
+                    for char in assistant_message.content:
+                        yield char
                     
         except Exception as e:
             error_msg = f"I apologize, but I encountered an error! Please try again, or ask a human member of the CTBTO staff. Error: {str(e)}"
             yield error_msg
+
+    def _execute_tool_call(self, tool_call, weather_callback=None, rag_callback=None) -> str:
+        """
+        Execute a single tool call and return the formatted result.
+        Optimized for single LLM instance continuation.
+        """
+        try:
+            import json
+            
+            function_name = tool_call.function.name
+            function_args = json.loads(tool_call.function.arguments)
+            
+            print(f"🔧 Executing tool: {function_name} with args: {function_args}")
+            
+            if function_name == "get_weather":
+                location = function_args.get("location", "Unknown")
+                weather_data = self.get_weather(location)
+                
+                if weather_data.get("success"):
+                    # Call callback for async processing
+                    if weather_callback:
+                        weather_callback(function_args)
+                        print(f"📱 Called weather callback for {location}")
+                    
+                    # Return structured data for LLM to process naturally
+                    return json.dumps({
+                        "location": weather_data["location"],
+                        "country": weather_data.get("country", ""),
+                        "temperature": weather_data["temperature"],
+                        "temperature_f": weather_data.get("temperature_f"),
+                        "condition": weather_data["condition"],
+                        "humidity": weather_data["humidity"],
+                        "wind_speed": weather_data["windSpeed"],
+                        "wind_direction": weather_data.get("windDirection", ""),
+                        "feels_like": weather_data.get("feelsLike"),
+                        "pressure": weather_data.get("pressure"),
+                        "success": True
+                    })
+                else:
+                    return json.dumps({
+                        "error": weather_data.get("error", "Weather data unavailable"),
+                        "success": False
+                    })
+            
+            elif function_name == "search_conference_knowledge":
+                query = function_args.get("query", "")
+                search_type = function_args.get("search_type", "comprehensive")
+                rag_data = self.search_conference_knowledge(query, search_type)
+                
+                if rag_data.get("success"):
+                    # Call callback for async card generation with BOTH args and rag_data
+                    if rag_callback:
+                        rag_callback(function_args, rag_data)
+                        print(f"📱 Called RAG callback for {query} with rag_data")
+                    
+                    # Return the formatted conference information for LLM to process
+                    return rag_data.get("formatted_response", "No conference information found")
+                else:
+                    return rag_data.get("formatted_response", "Conference search failed")
+            
+            else:
+                return f"Unknown tool: {function_name}"
+                
+        except Exception as e:
+            print(f"❌ Tool execution failed: {e}")
+            return f"Tool execution failed: {str(e)}"
 
 
 def test_agent():

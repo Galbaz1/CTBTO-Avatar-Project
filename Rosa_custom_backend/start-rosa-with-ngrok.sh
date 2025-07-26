@@ -139,7 +139,7 @@ from dotenv import load_dotenv
 load_dotenv('../.env')
 
 tavus_api_key = os.getenv('TAVUS_API_KEY')
-persona_id = 'peea5e466a91'
+persona_id = 'pfa22a49cab9'
 ngrok_url = '$NGROK_URL'
 
 if not tavus_api_key:
@@ -198,7 +198,7 @@ echo "=================================================="
 echo -e "${BLUE}📡 Rosa Backend:${NC} http://localhost:8000"
 echo -e "${BLUE}🌐 Public Tunnel:${NC} $NGROK_URL"
 echo -e "${BLUE}🖥️  Frontend:${NC} http://localhost:5173"
-echo -e "${BLUE}🧠 Persona ID:${NC} peea5e466a91"
+echo -e "${BLUE}🧠 Persona ID:${NC} pfa22a49cab9"
 echo ""
 echo -e "${YELLOW}🎤 Ready to test! Go to http://localhost:5173 and speak to Rosa${NC}"
 echo ""

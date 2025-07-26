@@ -6,8 +6,9 @@ Supports function calling for weather and app message integration
 import os
 import json
 import time
+import asyncio
 from typing import List, Dict, Optional
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -29,6 +30,7 @@ app = FastAPI(title="Rosa Pattern 1 API", version="1.1.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", 
+                   "http://localhost:5176", "http://localhost:5177", "http://localhost:5178",
                    "https://*.ngrok-free.app", "https://*.ngrok.io"],
     allow_credentials=True,
     allow_methods=["*"],
@@ -51,6 +53,113 @@ class ChatCompletionRequest(BaseModel):
     stream: bool = True
     temperature: float = 0.7
     max_tokens: int = 150
+
+# Async functions for card generation
+
+async def generate_cards_async(user_message: str, rag_data: dict, session_id: str, backend: 'RosaBackend'):
+    """
+    Generate UI Intelligence cards asynchronously in the background.
+    This allows the conversation to continue while cards are being prepared.
+    """
+    try:
+        print(f"🤖 Starting async card generation for session {session_id}")
+        
+        from ui_intelligence_agent import UIIntelligenceAgent
+        
+        ui_agent = UIIntelligenceAgent()
+        
+        # Build conversation context for UI Intelligence
+        conversation_context = {
+            "user_message": user_message,
+            "assistant_response": rag_data.get("formatted_response", "Searching conference information..."),
+            "turn_number": 1,  # Could be tracked from conversation history
+            "elapsed_time": "30s"  # Could be calculated from session start
+        }
+        
+        # Convert SearchResult objects to dicts for JSON serialization
+        categorized_results = rag_data.get("categorized_results", {})
+        serializable_results = {}
+        
+        for category, results in categorized_results.items():
+            if isinstance(results, list):
+                serializable_results[category] = []
+                for result in results:
+                    if hasattr(result, '__dict__'):
+                        # Convert dataclass/object to dict
+                        serializable_results[category].append({
+                            'id': getattr(result, 'id', ''),
+                            'title': getattr(result, 'title', ''),
+                            'content': getattr(result, 'content', ''),
+                            'metadata': getattr(result, 'metadata', {}),
+                            'relevance_score': getattr(result, 'relevance_score', 0.0),
+                            'collection': getattr(result, 'collection', ''),
+                            'search_type': getattr(result, 'search_type', '')
+                        })
+                    else:
+                        serializable_results[category].append(result)
+            else:
+                serializable_results[category] = results
+        
+        # Get intelligent card decisions (this is the expensive part that runs async)
+        card_decisions = ui_agent.analyze_conversation_for_cards(
+            conversation_context=conversation_context,
+            rag_results=serializable_results,
+            session_id=session_id
+        )
+        
+        # Store card decisions for frontend polling
+        if session_id not in backend.session_rag_data:
+            backend.session_rag_data[session_id] = {}
+        
+        for decision in card_decisions:
+            if decision.card_type == "session":
+                backend.session_rag_data[session_id]["latest_session"] = {
+                    "card_data": decision.card_data,
+                    "display_reason": decision.display_reason,
+                    "confidence": decision.confidence,
+                    "timing": decision.timing
+                }
+                print(f"📊 Async: Stored session card for {session_id}")
+            elif decision.card_type == "speaker":
+                backend.session_rag_data[session_id]["latest_speaker"] = {
+                    "card_data": decision.card_data,
+                    "display_reason": decision.display_reason,
+                    "confidence": decision.confidence,
+                    "timing": decision.timing
+                }
+                print(f"👤 Async: Stored speaker card for {session_id}")
+            elif decision.card_type == "topic":
+                backend.session_rag_data[session_id]["latest_topic"] = {
+                    "card_data": decision.card_data,
+                    "display_reason": decision.display_reason,
+                    "confidence": decision.confidence,
+                    "timing": decision.timing
+                }
+                print(f"🏷️ Async: Stored topic card for {session_id}")
+        
+        print(f"🧠 Async: UI Intelligence made {len(card_decisions)} card decisions for session {session_id}")
+        
+    except Exception as e:
+        print(f"⚠️ Async card generation failed for session {session_id}: {e}")
+        import traceback
+        traceback.print_exc()
+        
+        # Fallback to simple logic if UI Intelligence fails
+        try:
+            categorized_results = rag_data.get("categorized_results", {})
+            if categorized_results.get("sessions"):
+                first_session = categorized_results["sessions"][0]
+                if session_id not in backend.session_rag_data:
+                    backend.session_rag_data[session_id] = {}
+                backend.session_rag_data[session_id]["latest_session"] = {
+                    "session": first_session,
+                    "reason": "Most relevant session found (async fallback)",
+                    "confidence": 0.7,
+                    "timing": "background"
+                }
+                print(f"📊 Async fallback: Stored simple session card for {session_id}")
+        except Exception as fallback_error:
+            print(f"⚠️ Async fallback also failed for session {session_id}: {fallback_error}")
 
 class RosaBackend:
     """
@@ -197,6 +306,13 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
         messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
         print(f"Rosa processing messages: {messages}")
 
+        # Shared container for pending async tasks (accessible from both generate() and main function)
+        shared_pending_tasks = []
+        
+        # Initialize global backend queue early to ensure it exists
+        if not hasattr(rosa_backend, 'pending_card_tasks'):
+            rosa_backend.pending_card_tasks = []
+
         # Enhanced streaming response with function calling and app message support
         def generate():
             try:
@@ -244,137 +360,84 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                     
                     return weather_data
                 
-                # Helper to store RAG data when function is called
-                def handle_rag_function(args, captured_session_id=session_id):
+                # Use shared container for pending async tasks
+                
+                # Helper to store RAG data when function is called (OPTIMIZED VERSION)
+                def handle_rag_function(args, rag_data, captured_session_id=session_id):
                     print(f"🔍 RAG function called with args: {args}, session_id: {captured_session_id}")
                     query = args.get("query", "Unknown")
-                    search_type = args.get("search_type", "comprehensive")
-                    rag_data = rosa_backend.ctbto_agent.search_conference_knowledge(query, search_type)
                     
-                    print(f"🔍 RAG data success: {rag_data.get('success')}, session_id: {captured_session_id}")
+                    # RAG search already done in Agent1.py _execute_tool_call method
+                    print(f"🔍 RAG data received: {rag_data.get('success')}, session_id: {captured_session_id}")
                     
-                    # Store the RAG data for UI Intelligence and frontend retrieval
+                    # Step 1: Store RAG data immediately for frontend access
                     if rag_data.get("success") and captured_session_id:
                         rosa_backend.store_rag_data_for_session(captured_session_id, rag_data)
                         print(f"💾 Stored RAG data for session {captured_session_id}: {query}")
                         
-                        # Use UI Intelligence Agent to decide which cards to show
+                        # Step 2: Queue task in global backend storage (fixed scoping)
+                        if not hasattr(rosa_backend, 'pending_card_tasks'):
+                            rosa_backend.pending_card_tasks = []
+                        
+                        rosa_backend.pending_card_tasks.append({
+                            "user_message": user_message,
+                            "rag_data": rag_data,
+                            "session_id": captured_session_id,
+                            "backend": rosa_backend
+                        })
+                        print(f"📋 Queued async card generation for session {captured_session_id} in global backend")
+                    
+                    # No need to return anything since RAG processing is handled in Agent1.py
+                    return None
+                
+                # Use enhanced conversation stream with comprehensive error handling
+                try:
+                    for chunk in rosa_backend.ctbto_agent.process_conversation_stream(
+                        user_message,
+                        conversation_history,
+                        handle_weather_function,
+                        handle_rag_function
+                    ):
                         try:
-                            from ui_intelligence_agent import UIIntelligenceAgent
-                            
-                            ui_agent = UIIntelligenceAgent()
-                            
-                            # Build conversation context for UI Intelligence
-                            conversation_context = {
-                                "user_message": user_message,
-                                "assistant_response": "Searching conference information...",  # Placeholder
-                                "turn_number": 1,  # Could be tracked from conversation history
-                                "elapsed_time": "30s"  # Could be calculated from session start
-                            }
-                            
-                            # Convert SearchResult objects to dicts for JSON serialization
-                            categorized_results = rag_data.get("categorized_results", {})
-                            serializable_results = {}
-                            
-                            for category, results in categorized_results.items():
-                                if isinstance(results, list):
-                                    serializable_results[category] = []
-                                    for result in results:
-                                        if hasattr(result, '__dict__'):
-                                            # Convert dataclass/object to dict
-                                            serializable_results[category].append({
-                                                'id': getattr(result, 'id', ''),
-                                                'title': getattr(result, 'title', ''),
-                                                'content': getattr(result, 'content', ''),
-                                                'metadata': getattr(result, 'metadata', {}),
-                                                'relevance_score': getattr(result, 'relevance_score', 0.0),
-                                                'collection': getattr(result, 'collection', ''),
-                                                'search_type': getattr(result, 'search_type', '')
-                                            })
-                                        else:
-                                            serializable_results[category].append(result)
-                                else:
-                                    serializable_results[category] = results
-                            
-                            # Get intelligent card decisions
-                            card_decisions = ui_agent.analyze_conversation_for_cards(
-                                conversation_context=conversation_context,
-                                rag_results=serializable_results,
-                                session_id=captured_session_id
-                            )
-                            
-                            # Store card decisions for frontend polling
-                            if captured_session_id not in rosa_backend.session_rag_data:
-                                rosa_backend.session_rag_data[captured_session_id] = {}
-                            
-                            for decision in card_decisions:
-                                if decision.card_type == "session":
-                                    rosa_backend.session_rag_data[captured_session_id]["latest_session"] = {
-                                        "card_data": decision.card_data,  # Changed from "session" to "card_data"
-                                        "display_reason": decision.display_reason,  # Changed from "reason"
-                                        "confidence": decision.confidence,
-                                        "timing": decision.timing
-                                    }
-                                    print(f"📊 Stored session card for {captured_session_id}")
-                                elif decision.card_type == "speaker":
-                                    rosa_backend.session_rag_data[captured_session_id]["latest_speaker"] = {
-                                        "card_data": decision.card_data,  # Changed to match frontend expectations
-                                        "display_reason": decision.display_reason,
-                                        "confidence": decision.confidence,
-                                        "timing": decision.timing
-                                    }
-                                    print(f"👤 Stored speaker card for {captured_session_id}")
-                                elif decision.card_type == "topic":
-                                    rosa_backend.session_rag_data[captured_session_id]["latest_topic"] = {
-                                        "card_data": decision.card_data,  # Changed to match frontend expectations
-                                        "display_reason": decision.display_reason,
-                                        "confidence": decision.confidence,
-                                        "timing": decision.timing
-                                    }
-                                    print(f"🏷️ Stored topic card for {captured_session_id}")
-                            
-                            print(f"🧠 UI Intelligence made {len(card_decisions)} card decisions for session {captured_session_id}")
-                            
+                            if chunk:  # Only yield non-empty chunks
+                                # Format as OpenAI streaming response
+                                data = {
+                                    "id": f"rosa-{int(time.time())}",
+                                    "object": "chat.completion.chunk",
+                                    "created": int(time.time()),
+                                    "model": "rosa-ctbto-agent",
+                                    "choices": [{
+                                        "index": 0,
+                                        "delta": {"content": chunk},
+                                        "finish_reason": None
+                                    }]
+                                }
+                                yield f"data: {json.dumps(data)}\n\n"
                         except Exception as e:
-                            print(f"⚠️ UI Intelligence failed, using fallback: {e}")
+                            print(f"🚨 STREAMING CHUNK ERROR: {e}")
+                            print(f"🚨 Problematic chunk: {repr(chunk)}")
                             import traceback
                             traceback.print_exc()
-                            # Fallback to simple logic if UI Intelligence fails
-                            categorized_results = rag_data.get("categorized_results", {})
-                            if categorized_results.get("sessions"):
-                                first_session = categorized_results["sessions"][0]
-                                if session_id not in rosa_backend.session_rag_data:
-                                    rosa_backend.session_rag_data[session_id] = {}
-                                rosa_backend.session_rag_data[session_id]["latest_session"] = {
-                                    "session": first_session,
-                                    "reason": "Most relevant session found (fallback)",
-                                    "confidence": 0.7,
-                                    "timing": "immediate"
-                                }
-                    
-                    return rag_data
-                
-                # Use enhanced conversation stream with app message callback
-                for chunk in rosa_backend.ctbto_agent.process_conversation_stream(
-                    user_message,
-                    conversation_history,
-                    handle_weather_function,
-                    handle_rag_function
-                ):
-                    if chunk:  # Only yield non-empty chunks
-                        # Format as OpenAI streaming response
-                        data = {
-                            "id": f"rosa-{int(time.time())}",
-                            "object": "chat.completion.chunk",
-                            "created": int(time.time()),
-                            "model": "rosa-ctbto-agent",
-                            "choices": [{
-                                "index": 0,
-                                "delta": {"content": chunk},
-                                "finish_reason": None
-                            }]
-                        }
-                        yield f"data: {json.dumps(data)}\n\n"
+                            # Continue with next chunk instead of crashing
+                            continue
+                            
+                except Exception as e:
+                    print(f"🚨 CONVERSATION STREAM FATAL ERROR: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    # Send error message to client
+                    error_data = {
+                        "id": f"rosa-error-{int(time.time())}",
+                        "object": "chat.completion.chunk",
+                        "created": int(time.time()),
+                        "model": "rosa-ctbto-agent",
+                        "choices": [{
+                            "index": 0,
+                            "delta": {"content": "I apologize, but I encountered an error processing your request. Please try again."},
+                            "finish_reason": "error"
+                        }]
+                    }
+                    yield f"data: {json.dumps(error_data)}\n\n"
                 
                 # Send final chunk
                 final_data = {
@@ -405,8 +468,41 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                 yield f"data: {json.dumps(error_data)}\n\n"
                 yield "data: [DONE]\n\n"
 
-        # Return streaming response
-        return StreamingResponse(generate(), media_type="text/plain")
+        # Create the streaming response
+        response = StreamingResponse(generate(), media_type="text/plain")
+        
+        # Start async card generation tasks AFTER streaming completes
+        async def start_pending_tasks_after_streaming():
+            # Wait for streaming to complete and tool calls to be processed
+            await asyncio.sleep(2.0)  # Give enough time for tool calls to complete
+            
+            # Check global backend queue for tasks queued during tool processing
+            if hasattr(rosa_backend, 'pending_card_tasks'):
+                pending_tasks = rosa_backend.pending_card_tasks[:]  # Copy list
+                print(f"🔍 Post-streaming check: {len(pending_tasks)} tasks queued")
+                
+                for task_data in pending_tasks:
+                    asyncio.create_task(generate_cards_async(
+                        user_message=task_data["user_message"],
+                        rag_data=task_data["rag_data"],
+                        session_id=task_data["session_id"],
+                        backend=task_data["backend"]
+                    ))
+                    print(f"🚀 Started async card generation for session {task_data['session_id']}")
+                
+                if pending_tasks:
+                    print(f"🎯 Started {len(pending_tasks)} async card generation tasks")
+                    # Clear processed tasks
+                    rosa_backend.pending_card_tasks = []
+                else:
+                    print(f"⚠️ No pending tasks found in backend queue after streaming")
+            else:
+                print(f"⚠️ No pending_card_tasks attribute found on backend after streaming")
+        
+        # Start the background task creation AFTER streaming
+        asyncio.create_task(start_pending_tasks_after_streaming())
+        
+        return response
 
     except Exception as e:
         print(f"Rosa endpoint error: {e}") # Removed traceback.format_exc()
