@@ -284,7 +284,7 @@ class VectorSearchTool:
                    prompt_template: Optional[str] = None) -> Dict[str, Any]:
         """
         RAG (Retrieval-Augmented Generation) search
-        Returns both search results and AI-generated response
+        Returns search results only - generation handled by main ROSA agent
         """
         with self._get_client() as client:
             coll = client.collections.get(collection)
@@ -292,33 +292,18 @@ class VectorSearchTool:
             # Build filters
             where_filter = self._build_filters(filters) if filters else None
             
-            # Default prompt template for conference content
-            if not prompt_template:
-                prompt_template = """
-                Based on the following conference information, answer the user's question concisely and accurately.
-                
-                Question: {query}
-                
-                Conference Information:
-                {context}
-                
-                Please provide a helpful response based on the conference data above.
-                """
-            
-            # Execute RAG search (only pass where if not None)
+            # Execute pure vector search (NO LLM generation to avoid double calls)
             if where_filter is not None:
-                response = coll.generate.near_text(
+                response = coll.query.near_text(
                     query=query,
                     limit=limit,
                     where=where_filter,
-                    single_prompt=prompt_template,
                     return_metadata=wq.MetadataQuery(distance=True)
                 )
             else:
-                response = coll.generate.near_text(
+                response = coll.query.near_text(
                     query=query,
                     limit=limit,
-                    single_prompt=prompt_template,
                     return_metadata=wq.MetadataQuery(distance=True)
                 )
             
@@ -326,10 +311,10 @@ class VectorSearchTool:
             search_results = [self._format_result(obj, "rag", collection) for obj in response.objects]
             
             return {
-                "generated_response": response.generated,
                 "search_results": search_results,
                 "query": query,
-                "collection": collection
+                "collection": collection,
+                "success": True
             }
     
     def multi_collection_search(self, query: str, collections: List[str], search_type: str = "hybrid", 
@@ -428,10 +413,11 @@ class VectorSearchTool:
         
         if search_mode == "comprehensive":
             # Multi-field hybrid search (combines semantic + keyword for best relevance scores)
+            # Reduced limits for faster response times
             session_results = self.hybrid_search(
                 query=query,
                 collection="ConferenceSession", 
-                limit=10,
+                limit=6,  # Reduced from 10 to 6
                 filters=base_filters
             )
             
@@ -439,7 +425,7 @@ class VectorSearchTool:
             chunk_results = self.hybrid_search(
                 query=query,
                 collection="ConferenceChunk",
-                limit=5, 
+                limit=3,  # Reduced from 5 to 3
                 filters=base_filters
             )
             

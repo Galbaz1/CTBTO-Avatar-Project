@@ -77,6 +77,9 @@ class CTBTOAgent:
         # Weather API setup - using WeatherAPI.com
         self.weather_api_key = os.getenv("WEATHER_API_KEY")  # Change from OPENWEATHER_API_KEY to WEATHER_API_KEY
         
+        # Simple cache for RAG searches (prevents duplicate calls)
+        self._search_cache = {}
+        
         # Enhanced system message with weather capabilities
         self.system_message = {
             "role": "system",
@@ -183,8 +186,15 @@ Assistant: The first day of the conference is Tuesday, ninth of September Twenty
 
 The more information you can get from the user, the more you can populate the search_conference_knowledge function. This will drastically improve the quality of your answers.
 
-- After calling a tool you will be given the result of the tool call. The raw result must be used to formaluat a informative, consise and relevant answer. Do not read out the raw result as such, but use it to formualte a answer.
-- You can call call one or multiple tools in one turn. In which case you need to wait for all the results to be returned before you can give a answer.
+- After calling a tool you will be given the result of the tool call. The raw result must be used to formulate an informative, concise and relevant answer. Do not read out the raw result as such, but use it to formulate an answer.
+
+- **RAG Tool Response Guidelines:** When using search_conference_knowledge, provide BRIEF responses since detailed information cards will appear separately for the user. Your spoken response should be:
+  * One to two sentences maximum
+  * High-level summary only (e.g., "I found several relevant sessions on seismology")
+  * No lists of specific sessions, speakers, or detailed information
+  * Let the visual cards provide the details
+
+- You can call one or multiple tools in one turn. In which case you need to wait for all the results to be returned before you can give an answer.
 
 </Tools>
 
@@ -257,6 +267,12 @@ Remember: Give short and consise answers and use the tools to get the most relev
     def search_conference_knowledge(self, query: str, search_type: str = "comprehensive") -> dict:
         """Enhanced conference search using hybrid search with perfect relevance scores"""
         try:
+            # Simple caching to prevent duplicate searches
+            cache_key = f"{query.lower().strip()}_{search_type}"
+            if hasattr(self, '_search_cache') and cache_key in self._search_cache:
+                print(f"📦 Using cached results for query: {query}")
+                return self._search_cache[cache_key]
+            
             from vector_search_tool import VectorSearchTool
             
             search_tool = VectorSearchTool()
@@ -301,7 +317,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
             # Return formatted chunks for LLM to process naturally (modern RAG)
             formatted_response = "\n".join(formatted_results) if formatted_results else "No relevant conference information found for your query."
             
-            return {
+            result = {
                 "success": True,
                 "query": query,
                 "formatted_response": formatted_response,
@@ -312,6 +328,12 @@ Remember: Give short and consise answers and use the tools to get the most relev
                     "topics": len(categorized_results["topics"])
                 }
             }
+            
+            # Cache the result for future queries
+            self._search_cache[cache_key] = result
+            print(f"📦 Cached results for query: {query}")
+            
+            return result
             
         except Exception as e:
             return {
@@ -426,14 +448,29 @@ Remember: Give short and consise answers and use the tools to get the most relev
         """
         try:
             # Build messages array - this is our conversation thread
-            messages = [{
-                "role": "system",
-                "content": self.system_message["content"]
-            }]
-            
-            # Add conversation history if provided
+            # Check if Tavus already provided a system message (Custom LLM mode)
+            tavus_system_message = None
             if conversation_history:
-                messages.extend(conversation_history)
+                for msg in conversation_history:
+                    if msg.get("role") == "system":
+                        tavus_system_message = msg
+                        break
+            
+            # Use Tavus system prompt if provided, otherwise use our default
+            if tavus_system_message:
+                print(f"🎯 Using Tavus system prompt (Custom LLM mode)")
+                messages = [tavus_system_message]
+                # Add remaining conversation history (excluding the system message we already added)
+                messages.extend([msg for msg in conversation_history if msg.get("role") != "system"])
+            else:
+                print(f"🎯 Using Agent1.py system prompt (fallback mode)")
+                messages = [{
+                    "role": "system",
+                    "content": self.system_message["content"]
+                }]
+                # Add conversation history if provided
+                if conversation_history:
+                    messages.extend(conversation_history)
             
             # Add current user message
             messages.append({
@@ -490,9 +527,16 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 )
                 
                 # Stream the response
+                first_token = True
                 for chunk in final_stream:
                     delta = chunk.choices[0].delta if chunk.choices else None
                     if delta and delta.content:
+                        # ⏱️ TIMING: First token from LLM
+                        if first_token:
+                            import time
+                            first_token_time = time.perf_counter() * 1000
+                            logger.debug(f"⏱️ LLM first token at: {first_token_time:.0f}ms", session_id, LLMInstance.MAIN_ROSA)
+                            first_token = False
                         yield delta.content
             
             # If no tool calls, yield the initial response content

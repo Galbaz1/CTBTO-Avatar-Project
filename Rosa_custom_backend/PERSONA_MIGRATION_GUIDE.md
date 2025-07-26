@@ -6,7 +6,7 @@ This guide explains the migration from the previous simple Rosa persona to the n
 
 ## What Changed
 
-### Before (Old Persona: `peea5e466a91`)
+### Before (Old Persona: `peea5e466a91`) → Current (Rosa Persona: `pfa22a49cab9`)
 - **Simple System Message**: Basic conversational prompt for video conferences
 - **Limited Capabilities**: No specialized knowledge about CTBTO or SnT 2025
 - **No Tool Integration**: No weather or conference search capabilities

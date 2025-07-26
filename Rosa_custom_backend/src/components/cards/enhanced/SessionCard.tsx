@@ -147,36 +147,34 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
         )}
       </div>
 
-      {/* Description */}
-      {showDescription && !compact && (
-        <div className="mb-4">
-          <p className="text-gray-700 text-sm leading-relaxed">
-            {session.description}
-          </p>
+      {/* Compact Timing - Priority Info First */}
+      {showTiming && (
+        <div className="mb-3 flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-3">
+            <span className="font-semibold text-gray-900">
+              📅 {formatDate(session.date)}
+            </span>
+            <span className="font-medium text-blue-600">
+              ⏰ {formatTime(session.start_time)}
+            </span>
+          </div>
+          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+            {formatDuration(session.duration_minutes)}
+          </span>
         </div>
       )}
 
-      {/* Timing Information */}
-      {showTiming && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                📅 {formatDate(session.date)}
-              </p>
-              <p className="text-sm text-gray-600">
-                ⏰ {formatTime(session.start_time)} - {formatTime(session.end_time)}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">
-                Duration: {formatDuration(session.duration_minutes)}
-              </p>
-              <p className="text-xs text-gray-500 capitalize">
-                {session.day_of_week} {session.time_of_day}
-              </p>
-            </div>
-          </div>
+      {/* Description - Truncated and Expandable */}
+      {showDescription && !compact && (
+        <div className="mb-3">
+          <p className="text-gray-600 text-sm leading-relaxed" style={{
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden'
+          }}>
+            {session.description}
+          </p>
         </div>
       )}
 

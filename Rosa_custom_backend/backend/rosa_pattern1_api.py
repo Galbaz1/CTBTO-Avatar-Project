@@ -175,6 +175,7 @@ class RosaBackend:
         self.session_weather_data = {}  # Weather data per session
         self.latest_weather_data = None  # Latest weather data (fallback)
         self.session_rag_data = {}  # RAG data per session (for UI Intelligence)
+        self.rag_cache = {}  # Simple cache for RAG queries (key: query_hash, value: results)
     
     def register_session(self, session_id: str, conversation_url: str):
         """Register a session with its conversation URL"""
@@ -312,6 +313,11 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
         # Extract user message for logging
         user_message = messages[-1].get("content", "") if messages else ""
         logger.info(f"Processing: {user_message}", session_id)
+        
+        # ⏱️ TIMING: Backend received request
+        import time
+        backend_start_time = time.perf_counter() * 1000  # Convert to milliseconds
+        logger.debug(f"⏱️ Backend received at: {backend_start_time:.0f}ms", session_id)
 
         # Shared container for pending async tasks (accessible from both generate() and main function)
         shared_pending_tasks = []

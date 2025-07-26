@@ -300,8 +300,11 @@ Remember: You're not following rigid rules but making intelligent, context-aware
             memory["patterns"]["confidence_trend"] = avg_confidence
     
     def _format_cards_for_display(self, card_decisions: List[dict], rag_results: dict) -> List[CardDecision]:
-        """Format AI decisions into actual card data for frontend"""
+        """Format AI decisions into actual card data for frontend with relevance filtering"""
         formatted_cards = []
+        
+        # Quality threshold: Only show cards with >60% relevance
+        RELEVANCE_THRESHOLD = 0.60
         
         for card in card_decisions:
             card_type = card.get("type")
@@ -313,8 +316,13 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 for session in rag_results.get("sessions", []):
                     session_metadata = session.get('metadata', {}) if isinstance(session, dict) else session.metadata
                     session_id_in_metadata = session_metadata.get("session_id")
-                    rosa_logger.debug(f"🔍 Checking session metadata: {session_id_in_metadata}", session_id, LLMInstance.UI_INTEL)
-                    if session_id_in_metadata == session_id:
+                    
+                    # Check relevance score - only show high-quality results
+                    relevance_score = session.get('relevance_score', 0) if isinstance(session, dict) else session.relevance_score
+                    
+                    rosa_logger.debug(f"🔍 Session {session_id_in_metadata}: relevance={relevance_score:.2f}", session_id, LLMInstance.UI_INTEL)
+                    
+                    if session_id_in_metadata == session_id and relevance_score >= RELEVANCE_THRESHOLD:
                         formatted_cards.append(CardDecision(
                             card_type="session",
                             card_data=session,
@@ -322,6 +330,10 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                             confidence=card.get("confidence", 0.8),
                             timing=card.get("timing", "immediate")
                         ))
+                        rosa_logger.info(f"✅ Approved session card: {session_id_in_metadata} (relevance={relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
+                        break
+                    elif session_id_in_metadata == session_id:
+                        rosa_logger.info(f"❌ Filtered low-relevance session: {session_id_in_metadata} (relevance={relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
                         break
             
             elif card_type == "speaker":
@@ -330,15 +342,19 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 if not speaker_name:
                     continue  # Skip if no speaker name
                     
-                # Find all sessions for this speaker
+                # Find all high-relevance sessions for this speaker
                 speaker_sessions = []
                 for session in rag_results.get("sessions", []):
                     session_metadata = session.get('metadata', {}) if isinstance(session, dict) else session.metadata
                     speakers = session_metadata.get("speakers", [])
-                    if speaker_name and speaker_name in speakers:
+                    relevance_score = session.get('relevance_score', 0) if isinstance(session, dict) else session.relevance_score
+                    
+                    if speaker_name and speaker_name in speakers and relevance_score >= RELEVANCE_THRESHOLD:
                         speaker_sessions.append(session)
                 
                 if speaker_sessions:
+                    avg_relevance = sum(s.get('relevance_score', 0) if isinstance(s, dict) else s.relevance_score for s in speaker_sessions) / len(speaker_sessions)
+                    rosa_logger.info(f"✅ Approved speaker card: {speaker_name} ({len(speaker_sessions)} sessions, avg_relevance={avg_relevance:.2f})", session_id, LLMInstance.UI_INTEL)
                     formatted_cards.append(CardDecision(
                         card_type="speaker",
                         card_data={
@@ -361,10 +377,14 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 for session in rag_results.get("sessions", []):
                     session_metadata = session.get('metadata', {}) if isinstance(session, dict) else session.metadata
                     session_theme = session_metadata.get("theme", "")
-                    if topic_theme and session_theme and topic_theme.lower() in session_theme.lower():
+                    relevance_score = session.get('relevance_score', 0) if isinstance(session, dict) else session.relevance_score
+                    
+                    if topic_theme and session_theme and topic_theme.lower() in session_theme.lower() and relevance_score >= RELEVANCE_THRESHOLD:
                         related_sessions.append(session)
                 
                 if related_sessions:
+                    avg_relevance = sum(s.get('relevance_score', 0) if isinstance(s, dict) else s.relevance_score for s in related_sessions) / len(related_sessions)
+                    rosa_logger.info(f"✅ Approved topic card: {topic_theme} ({len(related_sessions)} sessions, avg_relevance={avg_relevance:.2f})", session_id, LLMInstance.UI_INTEL)
                     formatted_cards.append(CardDecision(
                         card_type="topic",
                         card_data={

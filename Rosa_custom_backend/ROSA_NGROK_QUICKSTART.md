@@ -66,7 +66,7 @@ bun start
    📡 Rosa Backend: http://localhost:8000
    🌐 Public Tunnel: https://d9a8299943df.ngrok-free.app
    🖥️  Frontend: http://localhost:3000
-   🧠 Persona ID: peea5e466a91
+   🧠 Persona ID: pfa22a49cab9
    
    🎤 Ready to test! Go to http://localhost:3000 and speak to Rosa
    ```

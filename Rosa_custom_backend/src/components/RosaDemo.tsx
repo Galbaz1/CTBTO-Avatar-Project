@@ -32,6 +32,8 @@ export const RosaDemo: React.FC = () => {
   
   // RAG UI state
   const [ragData, setRagData] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchingFor, setSearchingFor] = useState<string>('');
   
   // Reference for tracking current conversation URL (for backend integration)
   const currentConversationRef = useRef<string | null>(null);
@@ -123,11 +125,15 @@ export const RosaDemo: React.FC = () => {
     // Only log meaningful state changes
     if (currentContent !== 'weather') {
       console.log('🌤️ Weather card displayed:', weather.location);
+      
+      // ⏱️ TIMING: Weather card displayed
+      const { timingTracker } = require('../utils/timingTracker');
+      timingTracker.recordCardDisplayed(conversationId || '', 'weather');
     }
     
     setWeatherData(weather);
     setCurrentContent('weather');
-  }, [currentContent]);
+  }, [currentContent, conversationId]);
 
   // Handle RAG updates from the RagHandler  
   const handleRagUpdate = useCallback((ragUpdate: any) => {
@@ -139,17 +145,152 @@ export const RosaDemo: React.FC = () => {
     
     if (cardTypes.length > 0) {
       console.log('🎴 RAG cards displayed:', cardTypes.join(', '));
+      
+      // ⏱️ TIMING: Cards displayed
+      const { timingTracker } = require('../utils/timingTracker');
+      timingTracker.recordCardDisplayed(conversationId || '', cardTypes.join(', '));
+      
+      // Clear searching state when cards arrive
+      setIsSearching(false);
+      setSearchingFor('');
     }
     
     setRagData(ragUpdate);
     setCurrentContent('rag');
+  }, [conversationId]);
+
+  // Monitor conversation for RAG trigger keywords
+  const handleConversationMessage = useCallback((message: string, isFromUser: boolean) => {
+    if (!isFromUser) return; // Only monitor user messages
+    
+    const ragKeywords = [
+      'sessions', 'speakers', 'conference', 'workshop', 'presentation',
+      'schedule', 'when', 'where', 'who', 'what sessions', 'tell me about',
+      'find', 'show me', 'interested in', 'looking for', 'quantum', 'nuclear',
+      'seismology', 'monitoring', 'verification', 'ctbto', 'detection'
+    ];
+    
+    const messageWords = message.toLowerCase();
+    const hasRagKeywords = ragKeywords.some(keyword => messageWords.includes(keyword));
+    
+    if (hasRagKeywords) {
+      console.log('🔍 Detected potential RAG query, showing loading...');
+      setIsSearching(true);
+      setSearchingFor(getSearchContext(message));
+      
+      // Auto-clear after 20 seconds if no results
+      setTimeout(() => {
+        setIsSearching(false);
+        setSearchingFor('');
+      }, 20000);
+    }
   }, []);
+  
+  // Extract search context from user message
+  const getSearchContext = (message: string): string => {
+    const messageWords = message.toLowerCase();
+    
+    if (messageWords.includes('session')) return 'relevant sessions';
+    if (messageWords.includes('speaker')) return 'speakers';
+    if (messageWords.includes('schedule')) return 'schedule information';
+    if (messageWords.includes('workshop')) return 'workshops';
+    if (messageWords.includes('quantum')) return 'quantum technology sessions';
+    if (messageWords.includes('nuclear')) return 'nuclear verification content';
+    if (messageWords.includes('seismology')) return 'seismology sessions';
+    
+    return 'conference information';
+  };
 
   const handleBackToWelcome = useCallback(() => {
     setCurrentContent('welcome');
     setWeatherData(null);
     setRagData(null);
+    setIsSearching(false);
+    setSearchingFor('');
   }, []);
+
+  // Searching indicator component
+  const SearchingIndicator = () => (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100%',
+      textAlign: 'center',
+      padding: '40px'
+    }}>
+      <div style={{
+        background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+        borderRadius: '20px',
+        padding: '30px',
+        boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3)',
+        maxWidth: '400px',
+        width: '100%'
+      }}>
+        {/* Animated search icon */}
+        <div style={{
+          fontSize: '3rem',
+          marginBottom: '20px',
+          animation: 'pulse 2s infinite'
+        }}>
+          🔍
+        </div>
+        
+        <h3 style={{
+          color: 'white',
+          margin: '0 0 15px 0',
+          fontSize: '1.5rem',
+          fontWeight: '600'
+        }}>
+          Searching for {searchingFor}
+        </h3>
+        
+        <div style={{
+          color: 'rgba(255, 255, 255, 0.9)',
+          fontSize: '1rem',
+          lineHeight: '1.5',
+          marginBottom: '20px'
+        }}>
+          Rosa is analyzing the conference database to find the most relevant information for you.
+        </div>
+        
+        {/* Progress dots */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                animation: `bounce 1.4s infinite ease-in-out both`,
+                animationDelay: `${i * 0.16}s`
+              }}
+            />
+          ))}
+        </div>
+      </div>
+      
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+        @keyframes bounce {
+          0%, 80%, 100% { 
+            transform: scale(0);
+            opacity: 0.5;
+          } 
+          40% { 
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
+  );
 
   // Content for right panel
   const contentData: Record<string, { title: string; content: React.ReactElement }> = {
@@ -692,6 +833,7 @@ export const RosaDemo: React.FC = () => {
             <Conversation
               conversationUrl={conversationUrl}
               onLeave={handleEndConversation}
+              onMessage={handleConversationMessage}
             />
           </div>
 
@@ -831,7 +973,7 @@ export const RosaDemo: React.FC = () => {
                 <div>📍 Location: {weatherData?.location || 'N/A'}</div>
               </div>
             )}
-            {contentData[currentContent].content}
+            {isSearching ? <SearchingIndicator /> : contentData[currentContent].content}
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useDailyEvent, useMeetingState } from '@daily-co/daily-react';
 import { loggers } from '../utils/logger';
+import { timingTracker } from '../utils/timingTracker';
 
 interface SimpleConversationLoggerProps {
   conversationId?: string;
@@ -35,13 +36,17 @@ export const SimpleConversationLogger: React.FC<SimpleConversationLoggerProps> =
   useDailyEvent('app-message', (event: any) => {
     const data = event.data;
     
-    // Track who's speaking to better identify message source
+    // Track who's speaking and capture timing
     if (data?.event_type === 'conversation.user.started_speaking') {
       isUserSpeakingRef.current = true;
     } else if (data?.event_type === 'conversation.user.stopped_speaking') {
       isUserSpeakingRef.current = false;
+      // ⏱️ TIMING: User stopped speaking - start of response latency measurement
+      timingTracker.recordUserStoppedSpeaking(conversationId || '');
     } else if (data?.event_type === 'conversation.replica.started_speaking') {
       isUserSpeakingRef.current = false;
+      // ⏱️ TIMING: Avatar started speaking - end of total response latency
+      timingTracker.recordAvatarStartedSpeaking(conversationId || '');
     }
     
     // Extract actual conversation text from utterances
@@ -100,6 +105,8 @@ export const SimpleConversationLogger: React.FC<SimpleConversationLoggerProps> =
       if (conversationId) {
         conversationLogger.sessionState('ended');
         conversationLogger.setSessionId(null);
+        // Clean up timing data
+        timingTracker.cleanup(conversationId);
       }
     };
   }, [conversationId, enabled]);
