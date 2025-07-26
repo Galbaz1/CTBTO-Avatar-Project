@@ -4,4 +4,5 @@ fastapi
 uvicorn[standard]
 ngrok
 pytz
-requests 
+requests
+protobuf>=5.29.0,<6.0.0 

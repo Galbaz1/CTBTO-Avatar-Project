@@ -17,6 +17,9 @@ from dotenv import load_dotenv
 # Import our CTBTO agent
 from Agent1 import CTBTOAgent
 
+# Import structured logging
+from logger import logger, LLMInstance
+
 # Load environment variables from parent directory
 load_dotenv('../.env')
 
@@ -225,7 +228,7 @@ def warmup_backend():
     global _warmed_up
     if not _warmed_up:
         try:
-            print("🔥 Warming up Rosa backend...")
+            logger.warmup_start()
             start_time = time.perf_counter()
             
             # Make a quick test call to warm up the agent
@@ -233,10 +236,10 @@ def warmup_backend():
                 break  # Just get the first chunk to warm up
                 
             warmup_time = time.perf_counter() - start_time
-            print(f"✅ Rosa backend warmed up in {warmup_time:.3f}s")
+            logger.warmup_complete(warmup_time)
             _warmed_up = True
         except Exception as e:
-            print(f"⚠️ Warmup failed (will continue): {e}")
+            logger.warmup_failed(str(e))
 
 @app.get("/")
 async def root():
@@ -285,13 +288,14 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                      http_request.headers.get("conversation-id") or
                      http_request.headers.get("conversation_id"))
         
-        # Debug: print all headers
-        print(f"📋 Request headers: {dict(http_request.headers)}")
-        print(f"🔑 Extracted session_id: {session_id}")
+        # Log session start if we have a session ID
+        if session_id:
+            logger.debug(f"🔑 Session ID: {session_id}", session_id)
+            logger.debug(f"📋 Request headers", session_id, data=dict(http_request.headers))
         
         if conversation_url:
             rosa_backend.current_conversation_url = conversation_url
-            print(f"📍 Using conversation URL from header: {conversation_url}")
+            logger.debug(f"📍 Using conversation URL from header", session_id)
             
             # If we have both session ID and URL, register them
             if session_id:
@@ -300,11 +304,14 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
             # Try to get URL from session
             conversation_url = rosa_backend.get_session_url(session_id)
             if conversation_url:
-                print(f"📍 Using conversation URL from session {session_id}: {conversation_url}")
+                logger.debug(f"📍 Using conversation URL from session", session_id)
             
         start_time = time.perf_counter()
         messages = [{"role": msg.role, "content": msg.content} for msg in request.messages]
-        print(f"Rosa processing messages: {messages}")
+        
+        # Extract user message for logging
+        user_message = messages[-1].get("content", "") if messages else ""
+        logger.info(f"Processing: {user_message}", session_id)
 
         # Shared container for pending async tasks (accessible from both generate() and main function)
         shared_pending_tasks = []
@@ -362,7 +369,7 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                 
                 # Use shared container for pending async tasks
                 
-                # Helper to store RAG data when function is called (OPTIMIZED VERSION)
+                # Helper to store RAG data when function is called (FIRE-AND-FORGET VERSION)
                 def handle_rag_function(args, rag_data, captured_session_id=session_id):
                     print(f"🔍 RAG function called with args: {args}, session_id: {captured_session_id}")
                     query = args.get("query", "Unknown")
@@ -375,17 +382,49 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                         rosa_backend.store_rag_data_for_session(captured_session_id, rag_data)
                         print(f"💾 Stored RAG data for session {captured_session_id}: {query}")
                         
-                        # Step 2: Queue task in global backend storage (fixed scoping)
-                        if not hasattr(rosa_backend, 'pending_card_tasks'):
-                            rosa_backend.pending_card_tasks = []
-                        
-                        rosa_backend.pending_card_tasks.append({
-                            "user_message": user_message,
-                            "rag_data": rag_data,
-                            "session_id": captured_session_id,
-                            "backend": rosa_backend
-                        })
-                        print(f"📋 Queued async card generation for session {captured_session_id} in global backend")
+                        # Step 2: Fire card generation IMMEDIATELY using proper async scheduling
+                        try:
+                            import threading
+                            # Get the current event loop or create a new one in a thread
+                            try:
+                                loop = asyncio.get_event_loop()
+                                if loop.is_running():
+                                    # Schedule in the running loop
+                                    asyncio.run_coroutine_threadsafe(
+                                        generate_cards_async(
+                                            user_message=user_message,
+                                            rag_data=rag_data,
+                                            session_id=captured_session_id,
+                                            backend=rosa_backend
+                                        ), loop
+                                    )
+                                    print(f"🚀 Scheduled async card generation in running loop for session {captured_session_id}")
+                                else:
+                                    # Create task in the loop
+                                    loop.create_task(generate_cards_async(
+                                        user_message=user_message,
+                                        rag_data=rag_data,
+                                        session_id=captured_session_id,
+                                        backend=rosa_backend
+                                    ))
+                                    print(f"🚀 Created task in event loop for session {captured_session_id}")
+                            except RuntimeError:
+                                # No event loop in current thread, use thread pool
+                                def run_async_task():
+                                    import asyncio
+                                    asyncio.run(generate_cards_async(
+                                        user_message=user_message,
+                                        rag_data=rag_data,
+                                        session_id=captured_session_id,
+                                        backend=rosa_backend
+                                    ))
+                                
+                                thread = threading.Thread(target=run_async_task, daemon=True)
+                                thread.start()
+                                print(f"🚀 Started async card generation in background thread for session {captured_session_id}")
+                        except Exception as e:
+                            print(f"⚠️ Error scheduling async card generation task: {e}")
+                            # Don't raise - let RAG response continue even if card generation fails
                     
                     # No need to return anything since RAG processing is handled in Agent1.py
                     return None
@@ -396,7 +435,8 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                         user_message,
                         conversation_history,
                         handle_weather_function,
-                        handle_rag_function
+                        handle_rag_function,
+                        session_id
                     ):
                         try:
                             if chunk:  # Only yield non-empty chunks
@@ -455,10 +495,10 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                 yield "data: [DONE]\n\n"
                 
                 processing_time = time.perf_counter() - start_time
-                print(f"✅ Rosa response completed in {processing_time:.3f}s")
+                logger.performance(session_id, "Total response time", processing_time)
                 
             except Exception as e:
-                print(f"❌ Error in generate(): {str(e)}")
+                logger.error(f"❌ Error in generate(): {str(e)}", session_id)
                 error_data = {
                     "error": {
                         "message": str(e),
@@ -471,36 +511,7 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
         # Create the streaming response
         response = StreamingResponse(generate(), media_type="text/plain")
         
-        # Start async card generation tasks AFTER streaming completes
-        async def start_pending_tasks_after_streaming():
-            # Wait for streaming to complete and tool calls to be processed
-            await asyncio.sleep(2.0)  # Give enough time for tool calls to complete
-            
-            # Check global backend queue for tasks queued during tool processing
-            if hasattr(rosa_backend, 'pending_card_tasks'):
-                pending_tasks = rosa_backend.pending_card_tasks[:]  # Copy list
-                print(f"🔍 Post-streaming check: {len(pending_tasks)} tasks queued")
-                
-                for task_data in pending_tasks:
-                    asyncio.create_task(generate_cards_async(
-                        user_message=task_data["user_message"],
-                        rag_data=task_data["rag_data"],
-                        session_id=task_data["session_id"],
-                        backend=task_data["backend"]
-                    ))
-                    print(f"🚀 Started async card generation for session {task_data['session_id']}")
-                
-                if pending_tasks:
-                    print(f"🎯 Started {len(pending_tasks)} async card generation tasks")
-                    # Clear processed tasks
-                    rosa_backend.pending_card_tasks = []
-                else:
-                    print(f"⚠️ No pending tasks found in backend queue after streaming")
-            else:
-                print(f"⚠️ No pending_card_tasks attribute found on backend after streaming")
-        
-        # Start the background task creation AFTER streaming
-        asyncio.create_task(start_pending_tasks_after_streaming())
+
         
         return response
 
@@ -576,7 +587,42 @@ async def get_latest_topic_data(session_id: str):
 
 if __name__ == "__main__":
     import uvicorn
+    import logging
+    import os
+    
+    # Suppress noisy logging from various libraries
+    logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("vector_search_tool").setLevel(logging.WARNING)
+    
+    # Set root logger to WARNING to reduce overall noise
+    logging.getLogger().setLevel(logging.WARNING)
+    
     print("🚀 Starting Rosa Pattern 1 API...")
     print("🌤️ Weather function calling enabled")
+    print("📊 Logging: Session-focused, minimal noise")
+    
+    # Show color guide if colors are enabled
+    from logger import Colors
+    use_colors = os.getenv("NO_COLOR", "").lower() != "true"
+    if use_colors:
+        print("\n🎨 Agent Color Guide:")
+        print(f"  {Colors.MAIN_ROSA}🔵 MAIN_ROSA{Colors.RESET} - Primary conversation agent")
+        print(f"  {Colors.UI_INTEL}🟣 UI_INTEL{Colors.RESET} - UI Intelligence & card decisions")  
+        print(f"  {Colors.WARMUP}🟡 WARMUP{Colors.RESET} - Backend warmup calls")
+        print(f"  {Colors.SESSION}🟢 [session-id]{Colors.RESET} - Session tracking")
+        print(f"  {Colors.PERFORMANCE}🔵 ⏱️ Performance{Colors.RESET} - Timing metrics")
+        print(f"📖 Full reference: See AGENT_COLOR_INDEX.md\n")
+    else:
+        print("🎨 Colors disabled (NO_COLOR set)")
+    
     warmup_backend()
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    
+    # Configure uvicorn with minimal logging
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=8000,
+        log_level="warning",  # Only show warnings and errors
+        access_log=False      # Disable HTTP request access logs
+    ) 

@@ -120,25 +120,27 @@ export const RosaDemo: React.FC = () => {
 
   // Handle weather updates from the WeatherHandler
   const handleWeatherUpdate = useCallback((weather: WeatherData) => {
-    console.log('🌤️ RosaDemo: Weather update received for split screen:', weather);
-    console.log('📊 RosaDemo: Current content before update:', currentContent);
-    console.log('📊 RosaDemo: Previous weather data:', weatherData);
+    // Only log meaningful state changes
+    if (currentContent !== 'weather') {
+      console.log('🌤️ Weather card displayed:', weather.location);
+    }
     
     setWeatherData(weather);
     setCurrentContent('weather');
-    
-    console.log('✅ RosaDemo: State update triggered - switching to weather view');
-    console.log('🎯 RosaDemo: New weather data set:', weather);
-    
-    // Force a small delay to ensure state updates are applied
-    setTimeout(() => {
-      console.log('📊 RosaDemo: Post-update content state should be:', 'weather');
-    }, 100);
-  }, [currentContent, weatherData]);
+  }, [currentContent]);
 
   // Handle RAG updates from the RagHandler  
   const handleRagUpdate = useCallback((ragUpdate: any) => {
-    console.log('🔍 RosaDemo: RAG update received:', ragUpdate);
+    // Only log when cards are actually displayed
+    const cardTypes = [];
+    if (ragUpdate.session) cardTypes.push('session');
+    if (ragUpdate.speaker) cardTypes.push('speaker'); 
+    if (ragUpdate.topic) cardTypes.push('topic');
+    
+    if (cardTypes.length > 0) {
+      console.log('🎴 RAG cards displayed:', cardTypes.join(', '));
+    }
+    
     setRagData(ragUpdate);
     setCurrentContent('rag');
   }, []);

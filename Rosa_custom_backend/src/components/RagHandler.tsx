@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { loggers } from '../utils/logger';
 
 interface RagHandlerProps {
   conversationId: string;
@@ -10,26 +11,23 @@ export const RagHandler: React.FC<RagHandlerProps> = ({
   onRagUpdate 
 }) => {
   useEffect(() => {
-    console.log('🔍 RagHandler effect triggered with conversationId:', conversationId);
-    
     if (!conversationId || conversationId === '') {
-      console.log('❌ RagHandler: No conversationId, skipping polling');
       return;
     }
     
-    console.log('✅ RagHandler: Starting polling for conversationId:', conversationId);
+    // Set session ID for correlation
+    loggers.connection.setSessionId(conversationId);
+    loggers.connection.sessionState('RAG polling started');
 
     const pollRagData = async () => {
       try {
-        console.log('🔍 RagHandler: Polling RAG endpoints for:', conversationId);
-        
-        // Poll all RAG endpoints
+        // Silent polling - only log meaningful events
         const [sessionRes, speakerRes, topicRes] = await Promise.all([
           fetch(`http://localhost:8000/latest-session/${conversationId}`),
           fetch(`http://localhost:8000/latest-speaker/${conversationId}`),
           fetch(`http://localhost:8000/latest-topic/${conversationId}`)
         ]).catch(error => {
-          console.error('❌ RagHandler: Failed to fetch:', error);
+          loggers.connection.error(`RAG polling failed: ${error.message}`);
           return [null, null, null];
         });
         
@@ -37,34 +35,21 @@ export const RagHandler: React.FC<RagHandlerProps> = ({
           return;
         }
 
-        console.log('🔍 RagHandler: Response status:', {
-          session: sessionRes.status,
-          speaker: speakerRes.status, 
-          topic: topicRes.status
-        });
-
         const [sessionData, speakerData, topicData] = await Promise.all([
           sessionRes.ok ? sessionRes.json() : null,
           speakerRes.ok ? speakerRes.json() : null,
           topicRes.ok ? topicRes.json() : null
         ]);
 
-        console.log('🔍 RagHandler: Parsed data:', {
-          session: sessionData,
-          speaker: speakerData,
-          topic: topicData
-        });
-        
-        // Add endpoint URLs for debugging
-        console.log('🔍 RagHandler: Polled endpoints:', {
-          session: `http://localhost:8000/latest-session/${conversationId}`,
-          speaker: `http://localhost:8000/latest-speaker/${conversationId}`,
-          topic: `http://localhost:8000/latest-topic/${conversationId}`
-        });
-
-        // If any data found, trigger update
+        // Only log when new data is found
         if (sessionData || speakerData || topicData) {
-          console.log('🔍 RagHandler: Triggering RAG update!');
+          const cardTypes = [];
+          if (sessionData) cardTypes.push('session');
+          if (speakerData) cardTypes.push('speaker');
+          if (topicData) cardTypes.push('topic');
+          
+          loggers.connection.cardShow('RAG', `${cardTypes.join(', ')} cards available`);
+          
           onRagUpdate?.({
             session: sessionData,
             speaker: speakerData,
@@ -72,7 +57,7 @@ export const RagHandler: React.FC<RagHandlerProps> = ({
           });
         }
       } catch (error) {
-        console.error('❌ RAG polling error:', error);
+        loggers.connection.error(`RAG polling error: ${error.message}`);
       }
     };
 
@@ -81,7 +66,7 @@ export const RagHandler: React.FC<RagHandlerProps> = ({
     pollRagData(); // Initial poll
 
     return () => {
-      console.log('🔍 RagHandler: Cleaning up polling for:', conversationId);
+      loggers.connection.sessionState('RAG polling stopped');
       clearInterval(interval);
     };
   }, [conversationId, onRagUpdate]);

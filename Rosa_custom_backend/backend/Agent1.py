@@ -11,6 +11,9 @@ import json
 from typing import List, Dict, Any, Optional, Callable, Generator
 from dotenv import load_dotenv
 
+# Import structured logging
+from logger import logger, LLMInstance
+
 # Load environment variables from .env file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
 
@@ -19,7 +22,7 @@ WEATHER_FUNCTION = {
     "type": "function",
     "function": {
         "name": "get_weather",
-        "description": "Get current weather and conditions for a location. Use when user asks about weather, temperature, conditions, or climate.",
+        "description": "Get current weather and conditions for a location. Use when user asks about weather, temperature, conditions, or climate. location defaults to Vienna, Austria.",
         "parameters": {
             "type": "object",
             "properties": {
@@ -416,7 +419,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
             return error_response
     
     def process_conversation_stream(self, user_message: str, conversation_history: List[Dict] = None, 
-                                    weather_function_callback=None, rag_function_callback=None) -> Generator[str, None, None]:
+                                    weather_function_callback=None, rag_function_callback=None, session_id: str = None) -> Generator[str, None, None]:
         """
         Optimized conversation processing with proper OpenAI tool calling patterns.
         Uses single LLM instance for better efficiency and context preservation.
@@ -438,7 +441,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 "content": user_message
             })
             
-            print(f"🚀 Starting optimized conversation flow")
+            logger.llm_call_start(session_id, LLMInstance.MAIN_ROSA)
             
             # STEP 1: Initial LLM call to check for tool usage (non-streaming for tool handling)
             initial_response = self.client.chat.completions.create(
@@ -456,14 +459,15 @@ Remember: Give short and consise answers and use the tools to get the most relev
             
             # STEP 2: Handle tool calls if present
             if assistant_message.tool_calls:
-                print(f"🔧 Processing {len(assistant_message.tool_calls)} tool call(s)")
+                logger.debug(f"🔧 Processing {len(assistant_message.tool_calls)} tool call(s)", session_id, LLMInstance.MAIN_ROSA)
                 
                 # Process each tool call and add results to conversation
                 for tool_call in assistant_message.tool_calls:
                     tool_result = self._execute_tool_call(
                         tool_call, 
                         weather_function_callback, 
-                        rag_function_callback
+                        rag_function_callback,
+                        session_id
                     )
                     
                     # Add tool result to conversation thread (proper OpenAI pattern)
@@ -473,10 +477,10 @@ Remember: Give short and consise answers and use the tools to get the most relev
                         "content": tool_result
                     })
                 
-                print(f"✅ Tool execution complete, continuing conversation")
+                logger.debug(f"✅ Tool execution complete, continuing conversation", session_id, LLMInstance.MAIN_ROSA)
                 
                 # STEP 3: Stream the final response (same LLM instance, continued conversation)
-                print(f"🗣️ Streaming final response from same LLM instance")
+                logger.debug(f"🗣️ Streaming final response from same LLM instance", session_id, LLMInstance.MAIN_ROSA)
                 final_stream = self.client.chat.completions.create(
                     model="gpt-4.1",
                     messages=messages,  # Complete conversation thread with tool results
@@ -493,16 +497,19 @@ Remember: Give short and consise answers and use the tools to get the most relev
             
             # If no tool calls, yield the initial response content
             else:
-                print(f"💬 No tools needed, streaming direct response")
+                logger.debug(f"💬 No tools needed, streaming direct response", session_id, LLMInstance.MAIN_ROSA)
                 if assistant_message.content:
                     for char in assistant_message.content:
                         yield char
+            
+            # Log completion
+            logger.llm_call_end(session_id, LLMInstance.MAIN_ROSA)
                     
         except Exception as e:
             error_msg = f"I apologize, but I encountered an error! Please try again, or ask a human member of the CTBTO staff. Error: {str(e)}"
             yield error_msg
 
-    def _execute_tool_call(self, tool_call, weather_callback=None, rag_callback=None) -> str:
+    def _execute_tool_call(self, tool_call, weather_callback=None, rag_callback=None, session_id: str = None) -> str:
         """
         Execute a single tool call and return the formatted result.
         Optimized for single LLM instance continuation.
@@ -513,7 +520,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
             function_name = tool_call.function.name
             function_args = json.loads(tool_call.function.arguments)
             
-            print(f"🔧 Executing tool: {function_name} with args: {function_args}")
+            logger.tool_call(session_id, LLMInstance.MAIN_ROSA, function_name, function_args)
             
             if function_name == "get_weather":
                 location = function_args.get("location", "Unknown")
@@ -523,7 +530,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
                     # Call callback for async processing
                     if weather_callback:
                         weather_callback(function_args)
-                        print(f"📱 Called weather callback for {location}")
+                        logger.debug(f"📱 Called weather callback for {location}", session_id, LLMInstance.MAIN_ROSA)
                     
                     # Return structured data for LLM to process naturally
                     return json.dumps({
@@ -554,7 +561,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
                     # Call callback for async card generation with BOTH args and rag_data
                     if rag_callback:
                         rag_callback(function_args, rag_data)
-                        print(f"📱 Called RAG callback for {query} with rag_data")
+                        logger.debug(f"📱 Called RAG callback for {query} with rag_data", session_id, LLMInstance.MAIN_ROSA)
                     
                     # Return the formatted conference information for LLM to process
                     return rag_data.get("formatted_response", "No conference information found")
@@ -565,7 +572,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 return f"Unknown tool: {function_name}"
                 
         except Exception as e:
-            print(f"❌ Tool execution failed: {e}")
+            logger.tool_error(session_id, LLMInstance.MAIN_ROSA, function_name, str(e))
             return f"Tool execution failed: {str(e)}"
 
 

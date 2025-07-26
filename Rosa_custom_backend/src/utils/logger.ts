@@ -14,15 +14,15 @@ export interface LogConfig {
   };
 }
 
-// Default logging configuration
+// Default logging configuration (reduced noise)
 const defaultConfig: LogConfig = {
   enabled: true,
-  level: 'debug',
+  level: 'info',  // Changed from 'debug' to 'info' to reduce noise
   categories: {
-    api: true,
+    api: false,        // Disable API polling logs
     conversation: true,
     toolCalls: true,
-    connection: true,
+    connection: false, // Disable connection polling logs
     ui: true,
     weather: true,
   }
@@ -78,10 +78,20 @@ const logLevels = {
 export class ROSALogger {
   private config: LogConfig;
   private category: keyof LogConfig['categories'] | 'general';
+  private sessionId: string | null = null;
 
   constructor(category: keyof LogConfig['categories'] | 'general' = 'general') {
     this.category = category;
     this.config = getLogConfig();
+  }
+
+  // Set session ID for correlation with backend logs
+  setSessionId(sessionId: string | null) {
+    this.sessionId = sessionId;
+    // Debug: Verify session ID is properly set
+    if (sessionId && sessionId !== 'undefined') {
+      console.log(`📍 Logger session set: [${sessionId.slice(0, 8)}]`);
+    }
   }
 
   private shouldLog(level: 'debug' | 'info' | 'warn' | 'error'): boolean {
@@ -96,7 +106,10 @@ export class ROSALogger {
     const timestamp = new Date().toISOString();
     const emoji = level === 'error' ? '❌' : level === 'warn' ? '⚠️' : level === 'info' ? 'ℹ️' : '🔍';
     const color = categoryColors[this.category as keyof typeof categoryColors] || categoryColors[level];
-    const logPrefix = `${emoji} ROSA ${this.category.toUpperCase()} - ${event.toUpperCase()}`;
+    
+    // Format session ID like backend logger
+    const sessionPrefix = this.sessionId ? `[${this.sessionId.slice(0, 8)}]` : '[no-session]';
+    const logPrefix = `${sessionPrefix} ${emoji} ${event}`;
 
     console.group(`%c${logPrefix} [${timestamp}]`, `color: ${color}; font-weight: bold;`);
     if (data) {
@@ -140,6 +153,52 @@ export class ROSALogger {
       duration: duration ? `${duration}ms` : undefined,
       timestamp: new Date().toISOString()
     });
+  }
+
+  // Specialized logging methods for structured conversation flow
+  user(message: string) {
+    const cleanMessage = message.length > 50 ? message.slice(0, 50) + '...' : message;
+    this.log('info', `🟢 USER: "${cleanMessage}"`);
+  }
+
+  assistant(message: string) {
+    const cleanMessage = message.length > 50 ? message.slice(0, 50) + '...' : message;
+    this.log('info', `💬 ROSA: "${cleanMessage}"`);
+  }
+
+  toolCall(toolName: string, args: any) {
+    // Create clean args display
+    let cleanArgs = '';
+    if (toolName === 'get_weather' && args.location) {
+      cleanArgs = `location="${args.location}"`;
+    } else if (toolName === 'search_conference_knowledge' && args.query) {
+      cleanArgs = `query="${args.query}"`;
+    } else {
+      // Generic fallback
+      cleanArgs = Object.entries(args)
+        .map(([key, value]) => `${key}="${value}"`)
+        .join(', ');
+    }
+    this.log('info', `🔧 TOOL_CALL: ${toolName}(${cleanArgs})`);
+  }
+
+  cardShow(cardType: string, details?: string) {
+    const detailsStr = details ? `: ${details}` : '';
+    this.log('info', `🎴 CARD_SHOW: ${cardType}${detailsStr}`);
+  }
+
+  sessionState(state: string, details?: string) {
+    const detailsStr = details ? `: ${details}` : '';
+    this.log('info', `📍 SESSION: ${state}${detailsStr}`);
+  }
+
+  performance(operation: string, duration: number) {
+    this.log('info', `⏱️ ${operation}: ${duration.toFixed(2)}ms`);
+  }
+
+  connection(status: string, details?: string) {
+    const detailsStr = details ? `: ${details}` : '';
+    this.log('info', `🔗 CONNECTION: ${status}${detailsStr}`);
   }
 }
 
@@ -194,6 +253,7 @@ export const toggleLogCategory = (category: keyof LogConfig['categories'], enabl
 
 // Log initialization
 console.log('%cROSA Logging System Initialized', 'color: #2ed573; font-weight: bold; font-size: 16px;');
+console.log('%c📊 Frontend Logging: Conversation-focused, minimal polling noise', 'color: #70a1ff; font-style: italic;');
 console.log('%cUse window.ROSALogging to control logging settings', 'color: #54a0ff; font-style: italic;');
 
 export default loggers; 

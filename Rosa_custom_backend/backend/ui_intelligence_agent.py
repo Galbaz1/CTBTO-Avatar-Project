@@ -18,6 +18,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Import structured logging
+from logger import logger as rosa_logger, LLMInstance
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -97,33 +100,52 @@ class UIIntelligenceAgent:
 
 {json.dumps(analysis_request, indent=2)}
 
-Use your advanced reasoning to make a human-like decision. Consider all factors and explain your thinking.
+Use structured logical reasoning to make your decision. Follow this chain of thought:
 
-Please respond in JSON format with your decision."""
+1. **Context Analysis**: What is the user trying to achieve?
+2. **Information Relevance**: How relevant is available data to their current need?
+3. **Decision Logic**: Should cards be shown based on context + relevance?
+
+Be concise and logical. Use deductive reasoning: premises → conclusion.
+
+Respond in JSON format:
+{{
+  "reasoning": "Brief logical analysis (2-3 sentences max)",
+  "show_cards": boolean,
+  "confidence": 0.0-1.0,
+  "cards": [...] // if show_cards is true
+}}"""
         })
         
         try:
-            # Use GPT-4 for advanced reasoning
+            # Use GPT-4.1 Mini for fast, focused reasoning
             response = self.client.chat.completions.create(
-                model="gpt-4.1",  # Use most capable model
+                model="gpt-4.1-mini",  # Faster model for focused UI decisions
                 messages=messages,
-                temperature=0.3,  # Some creativity in decision making
+                temperature=0.2,  # Reduced temperature for more consistent logic
                 response_format={"type": "json_object"}
             )
             
             decision = json.loads(response.choices[0].message.content)
-            print(f"🤖 UI Intelligence decision: {json.dumps(decision, indent=2)}")
+            
+            # Log the full reasoning from UI Intelligence Agent
+            reasoning = decision.get("reasoning", "No reasoning provided")
+            show_cards = decision.get("show_cards", False)
+            confidence = decision.get("confidence", 0.0)
+            
+            rosa_logger.info(f"🧠 Decision: {show_cards} | Confidence: {confidence:.2f}", session_id, LLMInstance.UI_INTEL)
+            rosa_logger.info(f"🧠 Reasoning: {reasoning}", session_id, LLMInstance.UI_INTEL)
             
             # Learn from this decision
             self._update_conversation_memory(session_id, decision)
             
             # Convert to card display format if cards should be shown
-            if decision.get("show_cards", False):
+            if show_cards:
                 cards_to_format = decision.get("cards", [])
-                print(f"🎴 Formatting {len(cards_to_format)} cards for display")
+                rosa_logger.card_decision(session_id, True, len(cards_to_format), confidence)
                 return self._format_cards_for_display(cards_to_format, rag_results)
             
-            print(f"🚫 UI Intelligence decided not to show cards (show_cards={decision.get('show_cards', False)})")
+            rosa_logger.card_decision(session_id, False, 0, confidence)
             return []
             
         except Exception as e:
@@ -139,15 +161,14 @@ Please respond in JSON format with your decision."""
 ## Your Core Mission
 Analyze conversations and decide when to display information cards that enhance user understanding without interrupting the flow. Think like a helpful human assistant who knows when to show supporting materials.
 
-## Decision Framework (Chain-of-Thought Process)
+## Decision Framework (Structured Logic)
 
-When analyzing a conversation, follow this reasoning chain:
+Apply deductive reasoning in this order:
 
-1. **Context Understanding**: What is the user trying to achieve? What stage of the conversation are we in?
-2. **Information Relevance**: How relevant is the available information to the current moment?
-3. **User Intent Recognition**: Is the user exploring, deciding, or seeking specific details?
-4. **Timing Sensitivity**: Would showing a card now help or hinder the conversation?
-5. **Cognitive Load**: How much information can the user process right now?
+1. **Context**: User's current goal and conversation stage
+2. **Relevance**: Available information value to user's immediate need  
+3. **Logic**: If context + relevance = high → show cards, else don't
+4. **Confidence**: Rate certainty of decision (0.0-1.0)
 
 ## Dynamic Decision Rules (Not Hardcoded)
 
@@ -210,13 +231,12 @@ Reasoning: Biographical query benefits from structured presenter information
 
 ## Output Format
 
-Return a decision object with your reasoning:
+Return a decision object with reasoning FIRST (chain-of-thought structure):
 {
+  "reasoning": "Concise logical analysis (2-3 sentences: context → relevance → conclusion)",
   "show_cards": boolean,
-  "cards": [...],
-  "reasoning": "Step-by-step thought process",
   "confidence": 0.0-1.0,
-  "alternative_considered": "What else you considered"
+  "cards": [...]
 }
 
 ## Card Structure
@@ -289,11 +309,11 @@ Remember: You're not following rigid rules but making intelligent, context-aware
             if card_type == "session":
                 # Find the session in RAG results
                 session_id = card.get("session_id") or card.get("id")  # Try both field names
-                print(f"🔍 Looking for session: {session_id}")
+                rosa_logger.debug(f"🔍 Looking for session: {session_id}", session_id, LLMInstance.UI_INTEL)
                 for session in rag_results.get("sessions", []):
                     session_metadata = session.get('metadata', {}) if isinstance(session, dict) else session.metadata
                     session_id_in_metadata = session_metadata.get("session_id")
-                    print(f"🔍 Checking session metadata: {session_id_in_metadata}")
+                    rosa_logger.debug(f"🔍 Checking session metadata: {session_id_in_metadata}", session_id, LLMInstance.UI_INTEL)
                     if session_id_in_metadata == session_id:
                         formatted_cards.append(CardDecision(
                             card_type="session",
@@ -357,7 +377,7 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                         timing=card.get("timing", "immediate")
                     ))
         
-        print(f"🎴 Returning {len(formatted_cards)} formatted cards")
+        rosa_logger.debug(f"🎴 Returning {len(formatted_cards)} formatted cards", None, LLMInstance.UI_INTEL)
         return formatted_cards
 
 class ContextualIntelligenceEngine:
