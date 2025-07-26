@@ -30,11 +30,11 @@ export const SessionCard: React.FC<SessionCardProps> = ({
 }) => {
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'keynote': return '🎤';
-      case 'technical': return '🔬';
-      case 'workshop': return '🛠️';
-      case 'networking': return '☕';
-      default: return '📅';
+      case 'keynote': return 'KEYNOTE';
+      case 'technical': return 'TECHNICAL';
+      case 'workshop': return 'WORKSHOP';
+      case 'networking': return 'NETWORKING';
+      default: return 'SESSION';
     }
   };
 
@@ -243,7 +243,7 @@ export const SessionCard: React.FC<SessionCardProps> = ({
           flexWrap: 'wrap',
           gap: '6px'
         }}>
-          {session.topics.map((topic, index) => (
+          {(session.topics || []).map((topic, index) => (
             <span
               key={index}
               style={{

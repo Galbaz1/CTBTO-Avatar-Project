@@ -37,9 +37,21 @@ export const WelcomeScreen = ({ onStart, loading }: { onStart: (key: string) => 
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>
-        Welcome to Rosa - AI Conference Assistant
-      </h1>
+      <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+        <h1 className={styles.title}>
+          Rosa - CTBTO S&T 2025 Event Host
+        </h1>
+        <p style={{ 
+          color: 'rgba(255, 255, 255, 0.8)', 
+          fontSize: '1.1rem', 
+          margin: '0.5rem 0 0 0',
+          position: 'relative',
+          zIndex: 1
+        }}>
+          Science & Technology Conference 2025<br/>
+          Hofburg Palace, Vienna | 8-12 September 2025
+        </p>
+      </div>
       {isEnvApiKey && (
         <div style={{ 
           background: '#e1f5fe', 
@@ -49,7 +61,7 @@ export const WelcomeScreen = ({ onStart, loading }: { onStart: (key: string) => 
           border: '1px solid #01579b'
         }}>
           <p style={{ margin: 0, color: '#01579b', fontSize: '14px' }}>
-            ✅ API key loaded from environment
+            API key loaded from environment
           </p>
         </div>
       )}
@@ -63,7 +75,7 @@ export const WelcomeScreen = ({ onStart, loading }: { onStart: (key: string) => 
           disabled={isEnvApiKey}
         />
         <button type='submit' className={styles.button} onClick={handleStart} disabled={!apiKey || loading}>
-          {loading ? 'Starting Rosa...' : 'Start Rosa Conversation'}
+          {loading ? 'Connecting to Rosa...' : 'Join Conference with Rosa'}
         </button>
       </form>
     </div >

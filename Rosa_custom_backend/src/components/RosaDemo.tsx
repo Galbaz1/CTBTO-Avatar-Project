@@ -5,6 +5,8 @@ import { Conversation } from './cvi/components/conversation';
 import { ConferenceHandler } from './ConferenceHandler';
 import { WeatherHandler } from './WeatherHandler';
 import { RagHandler } from './RagHandler';
+import { CardLayerManager } from './CardLayerManager';
+import { timingTracker } from '../utils/timingTracker';
 
 type ConversationStatus = 'idle' | 'connecting' | 'connected' | 'disconnecting';
 
@@ -26,14 +28,16 @@ export const RosaDemo: React.FC = () => {
   const [conversationUrl, setConversationUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
-  // Weather UI state
+  // Content UI state  
   const [currentContent, setCurrentContent] = useState<'welcome' | 'weather' | 'rag'>('welcome');
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
-  
-  // RAG UI state
-  const [ragData, setRagData] = useState<any>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [searchingFor, setSearchingFor] = useState<string>('');
+  
+  // Floating Cards State
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [showWeatherCard, setShowWeatherCard] = useState(false);
+  const [ragData, setRagData] = useState<any>(null);
+  const [showRagCards, setShowRagCards] = useState(false);
   
   // Reference for tracking current conversation URL (for backend integration)
   const currentConversationRef = useRef<string | null>(null);
@@ -122,18 +126,14 @@ export const RosaDemo: React.FC = () => {
 
   // Handle weather updates from the WeatherHandler
   const handleWeatherUpdate = useCallback((weather: WeatherData) => {
-    // Only log meaningful state changes
-    if (currentContent !== 'weather') {
-      console.log('🌤️ Weather card displayed:', weather.location);
-      
-      // ⏱️ TIMING: Weather card displayed
-      const { timingTracker } = require('../utils/timingTracker');
-      timingTracker.recordCardDisplayed(conversationId || '', 'weather');
-    }
+    console.log('🌤️ Weather card displayed:', weather.location);
+    
+    // ⏱️ TIMING: Weather card displayed
+    timingTracker.recordCardDisplayed(conversationId || '', 'weather');
     
     setWeatherData(weather);
-    setCurrentContent('weather');
-  }, [currentContent, conversationId]);
+    setShowWeatherCard(true); // Show floating card
+  }, [conversationId]);
 
   // Handle RAG updates from the RagHandler  
   const handleRagUpdate = useCallback((ragUpdate: any) => {
@@ -147,16 +147,15 @@ export const RosaDemo: React.FC = () => {
       console.log('🎴 RAG cards displayed:', cardTypes.join(', '));
       
       // ⏱️ TIMING: Cards displayed
-      const { timingTracker } = require('../utils/timingTracker');
       timingTracker.recordCardDisplayed(conversationId || '', cardTypes.join(', '));
       
       // Clear searching state when cards arrive
       setIsSearching(false);
       setSearchingFor('');
+      
+      setRagData(ragUpdate);
+      setShowRagCards(true); // Show floating cards
     }
-    
-    setRagData(ragUpdate);
-    setCurrentContent('rag');
   }, [conversationId]);
 
   // Monitor conversation for RAG trigger keywords
@@ -295,7 +294,7 @@ export const RosaDemo: React.FC = () => {
   // Content for right panel
   const contentData: Record<string, { title: string; content: React.ReactElement }> = {
     welcome: {
-      title: 'Rosa AI Assistant',
+      title: 'CTBTO S&T 2025',
       content: (
         <div style={{ 
           maxWidth: '600px', 
@@ -316,7 +315,7 @@ export const RosaDemo: React.FC = () => {
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              Welcome to Rosa
+              Welcome to S&T 2025
             </h1>
             <h2 style={{ 
               fontSize: '24px', 
@@ -324,7 +323,7 @@ export const RosaDemo: React.FC = () => {
               color: '#475569',
               margin: '0 0 12px 0'
             }}>
-              Enhanced with Weather Intelligence
+              Rosa - Your AI Conference Host
             </h2>
             <p style={{ 
               fontSize: '18px', 
@@ -332,8 +331,8 @@ export const RosaDemo: React.FC = () => {
               margin: 0,
               fontWeight: '400'
             }}>
-              CTBTO Science and Technology Conference Assistant<br/>
-              Vienna International Centre
+              CTBTO Science & Technology Conference 2025<br/>
+              Hofburg Palace, Vienna | 8-12 September 2025
             </p>
           </div>
           
@@ -353,11 +352,11 @@ export const RosaDemo: React.FC = () => {
               gap: '16px'
             }}>
               {[
-                'CTBTO Conference Information',
-                'Weather Updates & Forecasts', 
-                'Nuclear Verification Topics',
-                'Technical Questions',
-                'Logistical Support'
+                'Session Discovery & Scheduling',
+                'Speaker & Expert Profiles', 
+                'Nuclear Monitoring Technologies',
+                'Venue Navigation & Logistics',
+                'Technical Documentation'
               ].map((topic, index) => (
                 <div key={index} style={{
                   background: '#ffffff',
@@ -378,19 +377,30 @@ export const RosaDemo: React.FC = () => {
           <div style={{
             background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
             color: 'white',
-            padding: '24px',
-            borderRadius: '12px',
+            padding: '28px',
+            borderRadius: '16px',
             textAlign: 'center'
           }}>
-            <h4 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
-              🌤️ Try the Weather Feature
+            <h4 style={{ margin: "0 0 12px 0", fontSize: "20px", fontWeight: "700" }}>
+              Start Your Conference Experience
             </h4>
-            <p style={{ margin: '0 0 12px 0', fontSize: '14px', opacity: 0.9 }}>
-              Ask Rosa about weather in any city and see the generative UI in action
+            <p style={{ margin: "0 0 16px 0", fontSize: "15px", opacity: 0.9 }}>
+              Ask Rosa about sessions, speakers, or conference logistics
             </p>
-            <div style={{ fontSize: '12px', opacity: 0.8 }}>
-              💬 Try: "What's the weather in Vienna?" or "How's the weather in London today?"
-            </div>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: '1fr', 
+              gap: '8px',
+              fontSize: '13px', 
+              opacity: 0.85,
+              background: 'rgba(255, 255, 255, 0.1)',
+              padding: '16px',
+              borderRadius: '12px'
+                         }}>
+               <div>"What sessions are about seismic monitoring?"</div>
+               <div>"Who's speaking about nuclear verification?"</div>
+               <div>"What's the weather like for lunch?"</div>
+             </div>
           </div>
         </div>
       )
@@ -431,13 +441,13 @@ export const RosaDemo: React.FC = () => {
             borderRadius: '20px',
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '64px', marginBottom: '16px' }}>
-              {weatherData.icon === 'partly-cloudy' ? '⛅' : 
-               weatherData.icon === 'sunny' ? '☀️' : 
-               weatherData.icon === 'cloudy' ? '☁️' : 
-               weatherData.icon === 'rainy' ? '🌧️' : 
-               weatherData.icon === 'snowy' ? '❄️' : 
-               weatherData.icon === 'stormy' ? '⛈️' : '🌤️'}
+            <div style={{ fontSize: '20px', fontWeight: '700', marginBottom: '16px', color: 'rgba(255,255,255,0.9)' }}>
+              {weatherData.icon === 'partly-cloudy' ? 'PARTLY CLOUDY' : 
+               weatherData.icon === 'sunny' ? 'SUNNY' : 
+               weatherData.icon === 'cloudy' ? 'CLOUDY' : 
+               weatherData.icon === 'rainy' ? 'RAINY' : 
+               weatherData.icon === 'snowy' ? 'SNOWY' : 
+               weatherData.icon === 'stormy' ? 'STORMY' : 'WEATHER'}
             </div>
             
             <h2 style={{ 
@@ -649,14 +659,14 @@ export const RosaDemo: React.FC = () => {
             margin: '0 0 10px 0',
             textShadow: '0 2px 4px rgba(0,0,0,0.3)'
           }}>
-            🤖 Rosa AI Assistant
+            Rosa - S&T 2025 Host
           </h1>
           <p style={{ 
             fontSize: '1.1rem', 
             opacity: 0.9,
             margin: '0'
           }}>
-            Enhanced with Weather Intelligence & Generative UI
+            CTBTO Science & Technology Conference 2025
           </p>
           <div style={{
             marginTop: '10px',
@@ -667,7 +677,7 @@ export const RosaDemo: React.FC = () => {
             borderRadius: '20px',
             display: 'inline-block'
           }}>
-            🎤 Voice-Only: Ask about CTBTO or weather: "What's the weather in Vienna?"
+            Ask about sessions, speakers, or conference details
           </div>
         </div>
 
@@ -722,7 +732,7 @@ export const RosaDemo: React.FC = () => {
                 color: '#334155'
               }}>
                 <p style={{ margin: '0 0 8px 0', fontWeight: '600' }}>
-                  🎯 Split Screen Interface
+                  Split Screen Interface
                 </p>
                 <p style={{ margin: '0', fontSize: '0.8rem', opacity: 0.8 }}>
                   Rosa responds with voice + generative UI on split screen • No camera needed
@@ -738,7 +748,7 @@ export const RosaDemo: React.FC = () => {
               textAlign: 'center',
               color: '#667eea'
             }}>
-              <div style={{ fontSize: '2rem', marginBottom: '15px' }}>🔄</div>
+              <div style={{ fontSize: '1.2rem', marginBottom: '15px', fontWeight: '600' }}>Connecting...</div>
               <p style={{ fontSize: '1.1rem', fontWeight: '500' }}>
                 Connecting to Rosa...
               </p>
@@ -756,7 +766,7 @@ export const RosaDemo: React.FC = () => {
               borderRadius: '12px',
               textAlign: 'center'
             }}>
-              ❌ {error}
+              Error: {error}
             </div>
           )}
         </div>
@@ -979,7 +989,10 @@ export const RosaDemo: React.FC = () => {
       </div>
       
       {/* Global Handlers - Always Active */}
-      <WeatherHandler onWeatherUpdate={handleWeatherUpdate} />
+      <WeatherHandler 
+        conversationId={conversationId || ''} 
+        onWeatherUpdate={handleWeatherUpdate} 
+      />
       <RagHandler 
         conversationId={conversationId || ''} 
         onRagUpdate={handleRagUpdate} 
@@ -989,6 +1002,16 @@ export const RosaDemo: React.FC = () => {
         onSpeakerUpdate={(speaker) => console.log('Speaker:', speaker)}
         onSessionUpdate={(session) => console.log('Session:', session)}
         onScheduleUpdate={(schedule) => console.log('Schedule:', schedule)}
+      />
+      
+      {/* Professional Card Layer System */}
+      <CardLayerManager 
+        weatherData={weatherData}
+        showWeatherCard={showWeatherCard}
+        onCloseWeather={() => setShowWeatherCard(false)}
+        ragData={ragData}
+        showRagCards={showRagCards}
+        onCloseRag={() => setShowRagCards(false)}
       />
     </CVIProvider>
   );

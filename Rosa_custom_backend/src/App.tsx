@@ -34,7 +34,7 @@ function App() {
         borderBottom: '1px solid rgba(0,0,0,0.1)'
       }}>
         <h1 style={{ margin: 0, fontSize: '1.2rem', color: '#333' }}>
-          🤖 Rosa - Enhanced with Weather Intelligence
+          Rosa - CTBTO S&T 2025 Event Host
         </h1>
       </div>
 

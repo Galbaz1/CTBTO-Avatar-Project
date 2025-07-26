@@ -269,13 +269,13 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
       )}
 
       {/* Key Speakers */}
-      {showSpeakers && topic.speakers.length > 0 && (
+      {showSpeakers && (topic.speakers || []).length > 0 && (
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900 mb-2">
             👤 Key Speakers
           </h4>
           <div className="flex flex-wrap gap-2">
-            {topic.speakers.slice(0, compact ? 3 : 6).map((speaker, index) => (
+            {(topic.speakers || []).slice(0, compact ? 3 : 6).map((speaker, index) => (
               <button
                 key={index}
                 onClick={() => onSpeakerClick?.(speaker)}
@@ -284,9 +284,9 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
                 {speaker}
               </button>
             ))}
-            {topic.speakers.length > (compact ? 3 : 6) && (
+            {(topic.speakers || []).length > (compact ? 3 : 6) && (
               <span className="px-3 py-1 bg-gray-100 text-gray-600 rounded-full text-sm">
-                +{topic.speakers.length - (compact ? 3 : 6)} more
+                +{(topic.speakers || []).length - (compact ? 3 : 6)} more
               </span>
             )}
           </div>
@@ -320,7 +320,7 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
             📅 Related Sessions
           </h4>
           <div className="space-y-2">
-            {topic.sessions.slice(0, maxSessions).map((session, index) => (
+            {(topic.sessions || []).slice(0, maxSessions).map((session, index) => (
               <div
                 key={index}
                 onClick={() => onSessionClick?.(session.session_id)}
@@ -346,9 +346,9 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
                     </div>
                     
                     {/* Speakers for this session */}
-                    {session.speakers.length > 0 && (
+                    {(session.speakers || []).length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
-                        {session.speakers.slice(0, 2).map((speaker, idx) => (
+                        {(session.speakers || []).slice(0, 2).map((speaker, idx) => (
                           <button
                             key={idx}
                             onClick={(e) => {
@@ -360,9 +360,9 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
                             {speaker}
                           </button>
                         ))}
-                        {session.speakers.length > 2 && (
+                        {(session.speakers || []).length > 2 && (
                           <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
-                            +{session.speakers.length - 2}
+                            +{(session.speakers || []).length - 2}
                           </span>
                         )}
                       </div>

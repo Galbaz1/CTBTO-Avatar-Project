@@ -45,7 +45,7 @@ Your production-quality script automatically handles:
    - Tests tunnel connectivity
 
 4. **Tavus Integration**
-   - Automatically updates persona `peea5e466a91`
+   - Automatically updates persona `pfa22a49cab9`
    - Patches `base_url` with new NGROK URL
    - Preserves all other persona settings
 

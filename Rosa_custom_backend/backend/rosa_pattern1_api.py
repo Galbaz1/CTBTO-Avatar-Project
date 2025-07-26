@@ -315,7 +315,6 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
         logger.info(f"Processing: {user_message}", session_id)
         
         # ⏱️ TIMING: Backend received request
-        import time
         backend_start_time = time.perf_counter() * 1000  # Convert to milliseconds
         logger.debug(f"⏱️ Backend received at: {backend_start_time:.0f}ms", session_id)
 
@@ -579,6 +578,16 @@ async def get_latest_speaker_data(session_id: str):
     except Exception as e:
         print(f"❌ Error retrieving speaker data: {e}")
         return None
+
+@app.get("/debug-session/{session_id}")
+async def debug_session_data(session_id: str):
+    """Debug endpoint to inspect session data storage"""
+    return {
+        "session_exists": session_id in rosa_backend.session_rag_data,
+        "session_keys": list(rosa_backend.session_rag_data.get(session_id, {}).keys()),
+        "session_data": rosa_backend.session_rag_data.get(session_id, {}),
+        "all_sessions": list(rosa_backend.session_rag_data.keys())
+    }
 
 @app.get("/latest-topic/{session_id}")
 async def get_latest_topic_data(session_id: str):

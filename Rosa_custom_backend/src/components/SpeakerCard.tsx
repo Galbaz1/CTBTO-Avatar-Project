@@ -27,9 +27,9 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = ({
 }) => {
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'keynote': return '🎤';
-      case 'technical': return '🔬';
-      default: return '👤';
+      case 'keynote': return 'KEYNOTE';
+      case 'technical': return 'TECHNICAL';
+      default: return 'SPEAKER';
     }
   };
 

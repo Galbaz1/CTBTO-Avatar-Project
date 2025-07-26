@@ -21,16 +21,16 @@ interface WeatherCardProps {
 
 const getWeatherIcon = (icon: string) => {
   const iconMap: { [key: string]: string } = {
-    sunny: '☀️',
-    clear: '🌙',
-    'partly-cloudy': '⛅',
-    cloudy: '☁️',
-    rainy: '🌧️',
-    snowy: '❄️',
-    stormy: '⛈️',
-    foggy: '🌫️'
+    sunny: 'SUNNY',
+    clear: 'CLEAR',
+    'partly-cloudy': 'PARTLY CLOUDY',
+    cloudy: 'CLOUDY',
+    rainy: 'RAINY',
+    snowy: 'SNOWY',
+    stormy: 'STORMY',
+    foggy: 'FOGGY'
   };
-  return iconMap[icon] || '☀️';
+  return iconMap[icon] || 'WEATHER';
 };
 
 const LoadingSkeleton = ({ className }: { className?: string }) => (
@@ -126,9 +126,9 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
         background: 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)',
         borderRadius: '12px'
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '8px' }}>
+        <div style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: '#667eea' }}>
           {weatherData?.icon ? getWeatherIcon(weatherData.icon) : 
-            isLoading ? <LoadingSkeleton className="h-12 w-12 mx-auto rounded-full" /> : '🌤️'}
+            isLoading ? <LoadingSkeleton className="h-4 w-20 mx-auto" /> : 'WEATHER'}
         </div>
         
         <div style={{
@@ -228,7 +228,7 @@ export const WeatherCard: React.FC<WeatherCardProps> = ({
           margin: '0',
           fontWeight: '600'
         }}>
-          🤖 Powered by Rosa AI
+          Powered by Rosa AI
         </p>
       </div>
 

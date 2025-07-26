@@ -1,0 +1,110 @@
+{
+  "test_configuration": {
+    "collections": [
+      "ConferenceChunk",
+      "ConferenceSession"
+    ],
+    "search_strategies": [
+      "semantic",
+      "keyword", 
+      "hybrid",
+      "rag"
+    ],
+    "result_limits": {
+      "default": 5,
+      "multi_collection": 3,
+      "enhanced_search": 6,
+      "filter_test": 10,
+      "performance_test": 3
+    },
+    "performance_settings": {
+      "rapid_query_count": 15,
+      "max_execution_time_warning_ms": 1000,
+      "min_relevance_score_warning": 0.5
+    }
+  },
+  "output_settings": {
+    "save_detailed_results": true,
+    "save_test_queries": true,
+    "generate_summary": true,
+    "include_result_previews": true,
+    "max_preview_results": 3
+  },
+  "test_phases": {
+    "individual_strategies": true,
+    "multi_collection": true,
+    "enhanced_conference": true,
+    "filtering_mechanisms": true,
+    "query_routing": true,
+    "performance_stress": true
+  },
+  "filter_test_scenarios": [
+    {
+      "name": "venue_filter",
+      "query": "sessions",
+      "filters": {"venue": "Festsaal"},
+      "description": "Filter by specific venue"
+    },
+    {
+      "name": "interactive_filter",
+      "query": "workshops", 
+      "filters": {"is_interactive": true},
+      "description": "Filter for interactive sessions only"
+    },
+    {
+      "name": "time_filter",
+      "query": "presentations",
+      "filters": {"time_of_day": "morning"},
+      "description": "Filter by time of day"
+    },
+    {
+      "name": "date_range_filter",
+      "query": "conference sessions",
+      "filters": {"date": {"gte": "2025-09-09", "lte": "2025-09-12"}},
+      "description": "Filter by date range"
+    },
+    {
+      "name": "topic_array_filter",
+      "query": "technical sessions",
+      "filters": {"related_topics": ["machine learning", "seismic detection"]},
+      "description": "Filter by multiple topics"
+    },
+    {
+      "name": "complex_combined_filter",
+      "query": "morning workshops",
+      "filters": {
+        "time_of_day": "morning",
+        "is_interactive": true,
+        "related_topics": ["quantum sensing"],
+        "date": {"gte": "2025-09-10"}
+      },
+      "description": "Complex multi-criteria filtering"
+    }
+  ],
+  "performance_test_queries": [
+    "quantum",
+    "nuclear", 
+    "seismic",
+    "AI",
+    "detection",
+    "machine learning",
+    "monitoring",
+    "verification",
+    "sensing",
+    "analysis"
+  ],
+  "benchmarking": {
+    "good_performance_thresholds": {
+      "execution_time_ms": 500,
+      "relevance_score": 0.7,
+      "success_rate_percent": 95,
+      "min_result_count": 3
+    },
+    "optimization_needed_thresholds": {
+      "execution_time_ms": 1000,
+      "relevance_score": 0.5,
+      "error_rate_percent": 5,
+      "empty_result_rate_percent": 10
+    }
+  }
+} 

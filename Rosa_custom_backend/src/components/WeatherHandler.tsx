@@ -14,23 +14,22 @@ interface WeatherData {
 }
 
 interface WeatherHandlerProps {
+  conversationId: string;
   onWeatherUpdate?: (weatherData: WeatherData) => void;
 }
 
-export const WeatherHandler: React.FC<WeatherHandlerProps> = ({ onWeatherUpdate }) => {
+export const WeatherHandler: React.FC<WeatherHandlerProps> = ({ conversationId, onWeatherUpdate }) => {
   const daily = useDaily();
   const meetingState = useMeetingState();
   const lastWeatherLocation = useRef<string>('');
 
   // Poll for weather data from backend when meeting is active
   useEffect(() => {
-    if (!daily || meetingState !== 'joined-meeting') {
+    if (!daily || meetingState !== 'joined-meeting' || !conversationId) {
       return;
     }
 
     const checkForWeatherData = async () => {
-      const conversationId = (window as any).currentConversationId;
-      if (!conversationId) return;
 
       try {
         const response = await fetch(`http://localhost:8000/latest-weather/${conversationId}`);
@@ -56,7 +55,7 @@ export const WeatherHandler: React.FC<WeatherHandlerProps> = ({ onWeatherUpdate 
     const interval = setInterval(checkForWeatherData, 2000);
 
     return () => clearInterval(interval);
-  }, [daily, onWeatherUpdate, meetingState]);
+  }, [daily, onWeatherUpdate, meetingState, conversationId]);
 
   return null; // This is a headless component
 }; 

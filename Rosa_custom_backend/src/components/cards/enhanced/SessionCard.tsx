@@ -124,10 +124,10 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
             </h3>
             <div className="flex items-center space-x-2 mt-1">
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getAudienceBadge(session.audience_level)}`}>
-                {session.audience_level.replace('_', ' ')}
+                {session.audience_level?.replace('_', ' ') || 'All Attendees'}
               </span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTrackColor(session.track)}`}>
-                {session.track}
+                {session.track || 'General'}
               </span>
               {session.is_interactive && (
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -192,13 +192,13 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
       )}
 
       {/* Speakers */}
-      {showSpeakers && session.has_speakers && session.speakers.length > 0 && (
+      {showSpeakers && session.has_speakers && (session.speakers || []).length > 0 && (
         <div className="mb-4">
           <h4 className="text-sm font-semibold text-gray-900 mb-2">
             👤 Speakers ({session.speaker_count})
           </h4>
           <div className="flex flex-wrap gap-2">
-            {session.speakers.map((speaker, index) => (
+            {(session.speakers || []).map((speaker, index) => (
               <button
                 key={index}
                 onClick={() => onSpeakerClick?.(speaker)}
@@ -238,11 +238,11 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
       </div>
 
       {/* Related Topics (if available) */}
-      {session.related_topics && session.related_topics.length > 0 && (
+      {session.related_topics && (session.related_topics || []).length > 0 && (
         <div className="mb-4">
           <h4 className="text-xs font-semibold text-gray-600 mb-2">Related Topics</h4>
           <div className="flex flex-wrap gap-1">
-            {session.related_topics.map((topic, index) => (
+            {(session.related_topics || []).map((topic, index) => (
               <span
                 key={index}
                 className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"

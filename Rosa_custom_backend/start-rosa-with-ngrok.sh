@@ -124,13 +124,64 @@ else
     exit 1
 fi
 
-# Step 5: Sync Tavus persona with Agent1.py system prompt
-echo -e "\n${BLUE}📋 Step 5: Syncing Tavus persona with system prompt...${NC}"
-python3 sync-persona-with-agent.py
+# Step 5: Update Tavus persona with new ngrok URL
+echo -e "\n${BLUE}📋 Step 5: Updating Tavus persona with ngrok URL...${NC}"
+echo "🌐 Updating persona base_url to: $NGROK_URL"
+
+# Update persona URL using python
+cd backend
+source venv/bin/activate
+./venv/bin/python3 -c "
+import os
+import requests
+import json
+from dotenv import load_dotenv
+
+load_dotenv('../.env')
+
+tavus_api_key = os.getenv('TAVUS_API_KEY')
+persona_id = 'pfa22a49cab9'
+ngrok_url = '$NGROK_URL'
+
+if not tavus_api_key:
+    print('❌ TAVUS_API_KEY not found in .env')
+    exit(1)
+
+patch_data = [{
+    'op': 'replace',
+    'path': '/layers/llm/base_url',
+    'value': ngrok_url
+}]
+
+try:
+    response = requests.patch(
+        f'https://tavusapi.com/v2/personas/{persona_id}',
+        headers={
+            'Content-Type': 'application/json',
+            'x-api-key': tavus_api_key
+        },
+        json=patch_data,
+        timeout=10
+    )
+    
+    if response.status_code == 200:
+        print('✅ Persona base_url updated successfully!')
+    elif response.status_code == 304:
+        print('✅ Persona base_url already up to date')
+    else:
+        print(f'❌ Failed to update persona: {response.status_code}')
+        print(response.text)
+        exit(1)
+except Exception as e:
+    print(f'❌ Error updating persona: {e}')
+    exit(1)
+"
+cd ..
+
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ Tavus persona synced with Agent1.py${NC}"
+    echo -e "${GREEN}✅ Tavus persona updated with ngrok URL${NC}"
 else
-    echo -e "${YELLOW}⚠️ Persona sync failed, continuing anyway...${NC}"
+    echo -e "${YELLOW}⚠️ Persona URL update failed, continuing anyway...${NC}"
 fi
 
 # Step 6: Start frontend (optional)
@@ -149,8 +200,7 @@ echo -e "${BLUE}🌐 Public Tunnel:${NC} $NGROK_URL"
 echo -e "${BLUE}🖥️  Frontend:${NC} http://localhost:5173"
 echo -e "${BLUE}🧠 Persona ID:${NC} pfa22a49cab9"
 echo ""
-echo -e "${YELLOW}⚠️ IMPORTANT: If using Tavus, update persona manually:${NC}"
-echo -e "${YELLOW}   ./update-persona-url.sh${NC}"
+
 echo -e "${YELLOW}🎤 Ready to test! Go to http://localhost:5173 and speak to Rosa${NC}"
 echo ""
 echo -e "${YELLOW}📊 Process IDs:${NC}"
