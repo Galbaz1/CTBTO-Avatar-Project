@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { createConversation, endConversation } from '../api';
 import { CVIProvider } from './cvi/components/cvi-provider';
 import { Conversation } from './cvi/components/conversation';
@@ -6,21 +6,14 @@ import { ConferenceHandler } from './ConferenceHandler';
 import { WeatherHandler } from './WeatherHandler';
 import { RagHandler } from './RagHandler';
 import { CardLayerManager } from './CardLayerManager';
+import { FullScreenCardContainer } from './FullScreenCardContainer';
+import type { CardData, WeatherData } from '../types/cards';
+import { StickyInterface } from './StickyInterface';
 import { timingTracker } from '../utils/timingTracker';
 
 type ConversationStatus = 'idle' | 'connecting' | 'connected' | 'disconnecting';
 
-interface WeatherData {
-  location: string;
-  country?: string;
-  temperature: number;
-  condition: string;
-  description: string;
-  humidity: number;
-  windSpeed: number;
-  icon: string;
-  success: boolean;
-}
+// WeatherData interface moved to ../types/cards.ts
 
 export const RosaDemo: React.FC = () => {
   const [status, setStatus] = useState<ConversationStatus>('idle');
@@ -157,9 +150,105 @@ export const RosaDemo: React.FC = () => {
     }
   }, [conversationId]);
 
+  // Cache for deduplicating logs
+  const lastSessionDataHash = useRef<string>('');
+  const lastCardArrayHash = useRef<string>('');
 
+  // Generate cards to display
+  const cards = useMemo(() => {
+    const cardArray: any[] = [];
+          
+    // RAG cards (most recent) take priority over weather
+    if (showRagCards && ragData?.session) {
+      const sessionData = ragData.session;
+      
+      // Only log session processing when data actually changes
+      const sessionDataHash = JSON.stringify(sessionData);
+      if (sessionDataHash !== lastSessionDataHash.current) {
+        const sessionTitle = sessionData.card_data?.title || sessionData.card_data?.metadata?.title || 'Unknown Session';
+        console.log(`🔍 New session: "${sessionTitle}" (${sessionData.card_data?.metadata?.session_type || 'Unknown Type'})`);
+        lastSessionDataHash.current = sessionDataHash;
+      }
+      
+      // Transform backend card_data structure to SessionCard format
+      const sessionContent = sessionData.card_data ? {
+        // Extract session properties from metadata
+        session_id: sessionData.card_data.metadata?.session_id || sessionData.card_data.id,
+        title: sessionData.card_data.title || sessionData.card_data.metadata?.title,
+        description: sessionData.card_data.metadata?.description || sessionData.card_data.content,
+        start_time: sessionData.card_data.metadata?.start_time,
+        end_time: sessionData.card_data.metadata?.end_time,
+        duration_minutes: sessionData.card_data.metadata?.duration_minutes,
+        date: sessionData.card_data.metadata?.date,
+        venue: sessionData.card_data.metadata?.venue,
+        session_type: sessionData.card_data.metadata?.session_type,
+        speakers: sessionData.card_data.metadata?.speakers || [],
+        theme: sessionData.card_data.metadata?.theme,
+        track: sessionData.card_data.metadata?.track,
+        audience_level: sessionData.card_data.metadata?.audience_level,
+        day_of_week: sessionData.card_data.metadata?.day_of_week,
+        time_of_day: sessionData.card_data.metadata?.time_of_day,
+        has_speakers: sessionData.card_data.metadata?.has_speakers,
+        is_interactive: sessionData.card_data.metadata?.is_interactive,
+        is_social: sessionData.card_data.metadata?.is_social,
+        is_technical: sessionData.card_data.metadata?.is_technical,
+        speaker_count: sessionData.card_data.metadata?.speaker_count,
+        related_topics: sessionData.card_data.metadata?.related_topics,
+        practical_info: sessionData.card_data.metadata?.practical_info
+      } : sessionData;
+       
+      const cardArray = [{
+        id: sessionContent.session_id || 'current-session-card',
+        type: 'session',
+        content: sessionContent,
+        size: 'full'
+      }];
+      
+      // Only log card array when it actually changes
+      const cardArrayHash = JSON.stringify(cardArray.map(c => ({ id: c.id, type: c.type, title: c.content?.title })));
+      if (cardArrayHash !== lastCardArrayHash.current) {
+        console.log(`🎯 Session card ready: "${sessionContent.title}" @ ${sessionContent.venue}`);
+        lastCardArrayHash.current = cardArrayHash;
+      }
+      
+      return cardArray;
+    }
+    
+    // Speaker cards
+    if (showRagCards && ragData?.speaker) {
+      const speakerCard = {
+        id: 'current-speaker-card',
+        type: 'speaker',
+        content: ragData.speaker,
+        size: 'full'
+      };
+      cardArray.push(speakerCard);
+    }
+    
+    // Topic cards
+    if (showRagCards && ragData?.topic) {
+      const topicCard = {
+        id: 'current-topic-card',
+        type: 'topic',
+        content: ragData.topic,
+        size: 'full'
+      };
+      cardArray.push(topicCard);
+    }
 
-
+    // Weather card (lower priority)
+    if (showWeatherCard && weatherData) {
+      const weatherCard = {
+        id: 'weather-card',
+        type: 'weather',
+        content: weatherData,
+        size: 'full'
+      };
+      cardArray.push(weatherCard);
+    }
+    
+    return cardArray;
+  }, [showRagCards, ragData, showWeatherCard, weatherData]);
 
 
   // Show welcome screen when not connected
@@ -549,14 +638,21 @@ export const RosaDemo: React.FC = () => {
         onScheduleUpdate={(schedule) => console.log('Schedule:', schedule)}
       />
       
-      {/* Professional Card Layer System */}
-      <CardLayerManager 
-        weatherData={weatherData}
-        showWeatherCard={showWeatherCard}
+      {/* Phase 1: Full-Screen Conversation Canvas + Sticky Interface */}
+      {/* Single card system - most recent card replaces previous */}
+      <FullScreenCardContainer
+        cards={cards}
+        maxCards={1}
         onCloseWeather={() => setShowWeatherCard(false)}
-        ragData={ragData}
-        showRagCards={showRagCards}
         onCloseRag={() => setShowRagCards(false)}
+      />
+
+      {/* Phase 1: Sticky Interface MVP - Bottom 15vh */}
+      <StickyInterface
+        meetingState={status}
+        conversationId={conversationId || undefined}
+        isUserSpeaking={false} // TODO: Connect to real microphone state
+        isRosaSpeaking={false} // TODO: Connect to Rosa speaking state
       />
     </CVIProvider>
   );

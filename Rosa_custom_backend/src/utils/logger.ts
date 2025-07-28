@@ -257,3 +257,109 @@ console.log('%c📊 Frontend Logging: Conversation-focused, minimal polling nois
 console.log('%cUse window.ROSALogging to control logging settings', 'color: #54a0ff; font-style: italic;');
 
 export default loggers; 
+
+/**
+ * Card debugging utilities for optimized logging
+ */
+export const cardDebug = {
+  // Summarize card state for copy-paste debugging
+  summarizeCards: (cards: any[]) => {
+    if (cards.length === 0) return '🎴 No cards';
+    
+    const summary = cards.map(card => {
+      const title = card.content?.title || card.content?.name || card.content?.location || 'Untitled';
+      return `${card.type}("${title}")`;
+    }).join(', ');
+    
+    return `🎴 [${summary}]`;
+  },
+  
+  // Log card state changes only when different
+  logCardChange: (() => {
+    let lastState = '';
+    return (cards: any[], context: string = '') => {
+      const currentState = JSON.stringify(cards.map(c => ({ id: c.id, type: c.type, title: c.content?.title })));
+      if (currentState !== lastState) {
+        const prefix = context ? `${context}: ` : '';
+        console.log(prefix + cardDebug.summarizeCards(cards));
+        lastState = currentState;
+        return true; // State changed
+      }
+      return false; // No change
+    };
+  })(),
+
+  // Quick card content preview for debugging
+  previewCard: (card: any) => {
+    const baseInfo = `${card.type}(${card.id})`;
+    
+    switch (card.type) {
+      case 'session':
+        const session = card.content;
+        return `${baseInfo}: "${session.title}" @ ${session.venue} (${session.session_type})`;
+      case 'speaker':
+        const speaker = card.content;
+        return `${baseInfo}: ${speaker.name} (${speaker.totalSessions} sessions)`;
+      case 'topic':
+        const topic = card.content;
+        return `${baseInfo}: ${topic.theme} (${topic.totalSessions} sessions)`;
+      case 'weather':
+        const weather = card.content;
+        return `${baseInfo}: ${weather.location} - ${weather.temperature}°C`;
+             default:
+         return baseInfo;
+     }
+   },
+
+   // Debug helper for copy-paste diagnostics
+   debugSummary: (cards: any[], context: any = {}) => {
+     const timestamp = new Date().toISOString().split('T')[1].split('.')[0];
+     console.log(`\n=== 🎴 CARD DEBUG [${timestamp}] ===`);
+     console.log(`Cards: ${cards.length > 0 ? cardDebug.summarizeCards(cards) : '🎴 No cards'}`);
+     
+     if (cards.length > 0) {
+       cards.forEach((card, i) => {
+         console.log(`  ${i + 1}. ${cardDebug.previewCard(card)}`);
+       });
+     }
+     
+     if (context.ragData) {
+       const ragTypes = Object.keys(context.ragData).join(', ');
+       console.log(`RAG Data: ${ragTypes || 'none'}`);
+     }
+     
+     if (context.weatherData) {
+       console.log(`Weather: ${context.weatherData.location || 'available'}`);
+     }
+     
+     console.log(`=== END DEBUG ===\n`);
+   }
+};
+
+// Make card debug available globally for browser console debugging
+if (typeof window !== 'undefined') {
+  (window as any).ROSACardDebug = () => {
+    console.log(`
+🎴 ROSA Card Debug Helper
+========================
+Use these commands in console:
+
+🔍 Debug current state:
+  ROSACardDebug.cards()    - Show current cards
+  ROSACardDebug.summary()  - Full debug summary
+  
+📊 Card utilities:
+  ROSACardDebug.utils.summarizeCards(cards)
+  ROSACardDebug.utils.previewCard(card)
+  
+Example: ROSACardDebug.summary()
+`);
+  };
+  
+  // Add utilities to the global debug object
+  (window as any).ROSACardDebug.utils = cardDebug;
+  (window as any).ROSACardDebug.summary = () => {
+    console.log('To use summary, pass cards and context from your component');
+    console.log('Example: cardDebug.debugSummary(cards, { ragData, weatherData })');
+  };
+} 

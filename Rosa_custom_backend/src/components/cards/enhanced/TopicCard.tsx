@@ -45,6 +45,7 @@ interface TopicCardProps {
   onDeepDive?: (topic: string) => void;
   onClose?: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const TopicCard: React.FC<TopicCardProps> = React.memo(({
@@ -59,7 +60,8 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
   onTopicClick,
   onDeepDive,
   onClose,
-  className = ''
+  className = '',
+  style
 }) => {
   const getTopicIcon = (theme: string) => {
     const iconMap: { [key: string]: string } = {
@@ -166,7 +168,10 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
   const uniqueSessionTypes = [...new Set(topic.sessions.map(s => s.session_type))];
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}>
+    <div 
+      className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}
+      style={style}
+    >
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">

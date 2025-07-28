@@ -25,7 +25,7 @@ export const WeatherHandler: React.FC<WeatherHandlerProps> = ({ conversationId, 
 
   // Poll for weather data from backend when meeting is active
   useEffect(() => {
-    if (!daily || meetingState !== 'joined-meeting' || !conversationId) {
+    if (!daily || meetingState !== 'connected' || !conversationId) {
       return;
     }
 

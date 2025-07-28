@@ -180,7 +180,8 @@ Apply deductive reasoning in this order:
 ### Principle 2: Information Density
 - Balance between too little and too much information
 - Use relevance scores as quality indicators (100% = definitely show, <50% = probably not)
-- Group related information intelligently
+- **PREFER SINGLE CARDS**: Show only the MOST relevant card to avoid overwhelming users
+- If multiple cards are relevant, choose the highest scoring one
 
 ### Principle 3: User Behavior Patterns
 - Learn from conversation history

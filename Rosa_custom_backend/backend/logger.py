@@ -7,7 +7,8 @@ Structured logging with session tracking and LLM instance naming
 import os
 import time
 import json
-from typing import Optional, Dict, Any
+import functools
+from typing import Optional, Dict, Any, Callable
 from datetime import datetime
 from enum import Enum
 
@@ -72,6 +73,16 @@ class ROSABackendLogger:
         # Performance tracking
         self.timers: Dict[str, float] = {}
         
+        # Card generation metrics
+        self.card_metrics = {
+            "tasks_started": 0,
+            "tasks_completed": 0,
+            "tasks_failed": 0,
+            "active_tasks": 0,
+            "total_duration": 0.0,
+            "avg_duration": 0.0
+        }
+    
     def _should_log(self, level: LogLevel) -> bool:
         """Check if message should be logged based on level"""
         return self.level_hierarchy[level] >= self.level_hierarchy[self.log_level]
@@ -275,6 +286,45 @@ class ROSABackendLogger:
         if not self.session_only:
             self.warn(f"⚠️ Warmup failed: {error}", instance=LLMInstance.WARMUP)
 
+    # Card generation metrics
+    def card_task_started(self, session_id: str, task_type: str = "generate_cards"):
+        """Log card generation task start and update metrics"""
+        self.card_metrics["tasks_started"] += 1
+        self.card_metrics["active_tasks"] += 1
+        self.info(f"🚀 Card task started: {task_type} (active: {self.card_metrics['active_tasks']})", 
+                 session_id, LLMInstance.UI_INTEL)
+    
+    def card_task_completed(self, session_id: str, task_type: str, duration: float):
+        """Log card generation task completion and update metrics"""
+        self.card_metrics["tasks_completed"] += 1
+        self.card_metrics["active_tasks"] = max(0, self.card_metrics["active_tasks"] - 1)
+        self.card_metrics["total_duration"] += duration
+        
+        # Calculate rolling average
+        if self.card_metrics["tasks_completed"] > 0:
+            self.card_metrics["avg_duration"] = self.card_metrics["total_duration"] / self.card_metrics["tasks_completed"]
+        
+        self.performance(session_id, f"Card task completed: {task_type}", duration)
+        self.info(f"📊 Card metrics: {self.card_metrics['tasks_completed']} completed, "
+                 f"avg: {self.card_metrics['avg_duration']:.2f}s, "
+                 f"active: {self.card_metrics['active_tasks']}", 
+                 session_id, LLMInstance.UI_INTEL)
+    
+    def card_task_failed(self, session_id: str, task_type: str, error: str, duration: float = 0.0):
+        """Log card generation task failure and update metrics"""
+        self.card_metrics["tasks_failed"] += 1
+        self.card_metrics["active_tasks"] = max(0, self.card_metrics["active_tasks"] - 1)
+        
+        self.error(f"❌ Card task failed: {task_type} after {duration:.2f}s - {error}", 
+                  session_id, LLMInstance.UI_INTEL)
+        self.error(f"📊 Card metrics: {self.card_metrics['tasks_failed']} failed, "
+                  f"active: {self.card_metrics['active_tasks']}", 
+                  session_id, LLMInstance.UI_INTEL)
+    
+    def get_card_metrics(self) -> Dict[str, Any]:
+        """Get current card generation metrics"""
+        return self.card_metrics.copy()
+
 # Global logger instance
 logger = ROSABackendLogger()
 
@@ -299,3 +349,93 @@ def log_info(message: str, session_id: Optional[str] = None):
 
 def log_error(message: str, session_id: Optional[str] = None):
     logger.error(message, session_id) 
+
+# Task duration decorator
+def log_task_duration(task_name: str = None, session_id_param: str = "session_id"):
+    """
+    Decorator for logging async task duration and handling card generation metrics.
+    
+    Args:
+        task_name: Name of the task for logging (defaults to function name)
+        session_id_param: Name of the parameter containing session_id
+    
+    Usage:
+        @log_task_duration("card_generation")
+        async def generate_cards_async(user_message, rag_data, session_id, backend):
+            # function implementation
+    """
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Extract session_id from parameters
+            session_id = None
+            
+            # Try to get session_id from kwargs first
+            if session_id_param in kwargs:
+                session_id = kwargs[session_id_param]
+            else:
+                # Try to get from function signature
+                import inspect
+                sig = inspect.signature(func)
+                param_names = list(sig.parameters.keys())
+                if session_id_param in param_names:
+                    param_index = param_names.index(session_id_param)
+                    if param_index < len(args):
+                        session_id = args[param_index]
+            
+            task_display_name = task_name or func.__name__
+            start_time = time.perf_counter()
+            
+            # Log task start (especially for card generation)
+            if "card" in task_display_name.lower():
+                logger.card_task_started(session_id, task_display_name)
+            else:
+                logger.info(f"🚀 Task started: {task_display_name}", session_id)
+            
+            try:
+                # Execute the async function
+                result = await func(*args, **kwargs)
+                
+                # Calculate duration
+                duration = time.perf_counter() - start_time
+                
+                # Log task completion
+                if "card" in task_display_name.lower():
+                    logger.card_task_completed(session_id, task_display_name, duration)
+                else:
+                    logger.performance(session_id, f"Task completed: {task_display_name}", duration)
+                
+                return result
+                
+            except Exception as e:
+                # Calculate duration even on failure
+                duration = time.perf_counter() - start_time
+                
+                # Log task failure
+                if "card" in task_display_name.lower():
+                    logger.card_task_failed(session_id, task_display_name, str(e), duration)
+                else:
+                    logger.error(f"❌ Task failed: {task_display_name} after {duration:.2f}s - {str(e)}", session_id)
+                
+                # Re-raise the exception
+                raise
+        
+        return wrapper
+    return decorator
+
+# Convenience functions for card metrics
+def get_card_generation_metrics() -> Dict[str, Any]:
+    """Get current card generation metrics"""
+    return logger.get_card_metrics()
+
+def log_card_task_started(session_id: str, task_type: str = "generate_cards"):
+    """Log card generation task start"""
+    logger.card_task_started(session_id, task_type)
+
+def log_card_task_completed(session_id: str, task_type: str, duration: float):
+    """Log card generation task completion"""
+    logger.card_task_completed(session_id, task_type, duration)
+
+def log_card_task_failed(session_id: str, task_type: str, error: str, duration: float = 0.0):
+    """Log card generation task failure"""
+    logger.card_task_failed(session_id, task_type, error, duration) 

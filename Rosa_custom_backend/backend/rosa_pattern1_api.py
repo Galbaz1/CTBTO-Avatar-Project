@@ -8,7 +8,7 @@ import json
 import time
 import asyncio
 from typing import List, Dict, Optional
-from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 from Agent1 import CTBTOAgent
 
 # Import structured logging
-from logger import logger, LLMInstance
+from logger import logger, LLMInstance, log_task_duration
 
 # Load environment variables (handle both run contexts)
 import os
@@ -72,6 +72,7 @@ class ChatCompletionRequest(BaseModel):
 
 # Async functions for card generation
 
+@log_task_duration("card_generation")
 async def generate_cards_async(user_message: str, rag_data: dict, session_id: str, backend: 'RosaBackend'):
     """
     Generate UI Intelligence cards asynchronously in the background.
@@ -389,8 +390,10 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                 
                 # Helper to store RAG data when function is called (FIRE-AND-FORGET VERSION)
                 def handle_rag_function(args, rag_data, captured_session_id=session_id):
-                    print(f"🔍 RAG function called with args: {args}, session_id: {captured_session_id}")
+                    """Handle RAG function call results with enhanced error handling"""
+                    
                     query = args.get("query", "Unknown")
+                    print(f"🔍 RAG function called with args: {args}, session_id: {captured_session_id}")
                     
                     # RAG search already done in Agent1.py _execute_tool_call method
                     print(f"🔍 RAG data received: {rag_data.get('success')}, session_id: {captured_session_id}")
@@ -444,7 +447,6 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                             print(f"⚠️ Error scheduling async card generation task: {e}")
                             # Don't raise - let RAG response continue even if card generation fails
                     
-                    # No need to return anything since RAG processing is handled in Agent1.py
                     return None
                 
                 # Use enhanced conversation stream with comprehensive error handling
@@ -612,6 +614,37 @@ async def get_latest_topic_data(session_id: str):
     except Exception as e:
         print(f"❌ Error retrieving topic data: {e}")
         return None
+
+@app.get("/metrics/card-generation")
+async def get_card_generation_metrics():
+    """Get card generation performance metrics for monitoring and debugging"""
+    from logger import get_card_generation_metrics
+    
+    try:
+        metrics = get_card_generation_metrics()
+        
+        # Add additional computed metrics
+        success_rate = 0.0
+        if metrics["tasks_started"] > 0:
+            success_rate = (metrics["tasks_completed"] / metrics["tasks_started"]) * 100
+        
+        error_rate = 0.0
+        if metrics["tasks_started"] > 0:
+            error_rate = (metrics["tasks_failed"] / metrics["tasks_started"]) * 100
+        
+        return {
+            **metrics,
+            "success_rate_percent": round(success_rate, 2),
+            "error_rate_percent": round(error_rate, 2),
+            "total_tasks": metrics["tasks_started"],
+            "status": "healthy" if metrics["active_tasks"] < 10 else "warning"
+        }
+    except Exception as e:
+        print(f"❌ Error retrieving card metrics: {e}")
+        return {
+            "error": str(e),
+            "status": "error"
+        }
 
 if __name__ == "__main__":
     import uvicorn

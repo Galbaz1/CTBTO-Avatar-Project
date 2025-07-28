@@ -39,6 +39,7 @@ interface EnhancedSessionCardProps {
   onTopicClick?: (topic: string) => void;
   onClose?: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.memo(({ 
@@ -52,7 +53,8 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
   onVenueClick,
   onTopicClick,
   onClose,
-  className = '' 
+  className = '',
+  style 
 }) => {
   const getSessionTypeIcon = (type: string) => {
     switch (type) {
@@ -113,7 +115,10 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}>
+    <div 
+      className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}
+      style={style}
+    >
       {/* Header with close button */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">

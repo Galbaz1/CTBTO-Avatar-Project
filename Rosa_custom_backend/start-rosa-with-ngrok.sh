@@ -68,8 +68,10 @@ fi
 
 # Start Rosa backend in background
 source venv/bin/activate
-./venv/bin/python3 backend/rosa_pattern1_api.py &
+cd backend
+python3 rosa_pattern1_api.py &
 ROSA_PID=$!
+cd ..
 
 # Wait for backend to start
 echo "⏳ Waiting for Rosa backend to start..."
@@ -133,15 +135,14 @@ echo -e "\n${BLUE}📋 Step 5: Updating Tavus persona with ngrok URL...${NC}"
 echo "🌐 Updating persona base_url to: $NGROK_URL"
 
 # Update persona URL using python
-cd backend
 source venv/bin/activate
-./venv/bin/python3 -c "
+python3 -c "
 import os
 import requests
 import json
 from dotenv import load_dotenv
 
-load_dotenv('../.env')
+load_dotenv('.env')
 
 tavus_api_key = os.getenv('TAVUS_API_KEY')
 persona_id = 'pfa22a49cab9'
@@ -180,7 +181,6 @@ except Exception as e:
     print(f'❌ Error updating persona: {e}')
     exit(1)
 "
-cd ..
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✅ Tavus persona updated with ngrok URL${NC}"

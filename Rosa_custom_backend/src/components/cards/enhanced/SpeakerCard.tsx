@@ -33,6 +33,7 @@ interface SpeakerCardProps {
   onTopicClick?: (topic: string) => void;
   onClose?: () => void;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 export const SpeakerCard: React.FC<SpeakerCardProps> = React.memo(({
@@ -42,7 +43,8 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = React.memo(({
   onSessionClick,
   onTopicClick,
   onClose,
-  className = ''
+  className = '',
+  style
 }) => {
   const getSpeakerIcon = (name: string) => {
     // Extract title/role for appropriate icon
@@ -98,7 +100,10 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = React.memo(({
   const uniqueThemes = [...new Set(speaker.sessions.map(s => s.theme))];
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}>
+    <div 
+      className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}
+      style={style}
+    >
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center space-x-3">
