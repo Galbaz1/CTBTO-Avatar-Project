@@ -1,0 +1,37 @@
+---
+alwaysApply: true
+---
+
+# Context7 MCP Integration Rules
+
+> These rules teach the Cursor agent **when** and **how** to leverage the Context7 MCP tools for real-time library documentation lookup and best-practice retrieval. They focus on resolving library IDs, fetching topic-specific docs, and guidelines for choosing Context7 over other tools.
+
+## 📚 Tool Cheat-Sheet
+| Tool | When to use |
+|------|-------------|
+| `mcp_Context7_resolve-library-id` | Resolve a package or product name to a Context7-compatible library ID. Always call this first unless the user provides a fully qualified ID (`/org/project` or `/org/project/version`). |
+| `mcp_Context7_get-library-docs` | Fetch up-to-date documentation for a resolved library ID, optionally scoped to a topic (e.g., `hooks`, `routing`). |
+
+## 🔧 Usage Guidelines
+- Always call `mcp_Context7_resolve-library-id` before `mcp_Context7_get-library-docs`.
+- Use Context7 when:
+  - The user asks for official documentation or code examples for a third-party library.
+  - You need library usage patterns, API signatures, or configuration examples not present in the codebase.
+  - In-depth, authoritative best practices or migration guides are required.
+- Do **not** use Context7 when:
+  - Performing codebase analysis, refactoring, or symbol lookups (use semantic or grep searches).
+  - Testing or validating UI interactions (use Browserbase tools).
+  - Accessing private or internal APIs not published to Context7.
+
+## ✅ Best-Practice Heuristics
+- If multiple library matches are returned, choose the highest trust score and snippet count; if ambiguity remains, inform the user.
+- Narrow documentation scope with the `topic` parameter to reduce token usage and improve relevance.
+- Limit `tokens` when fetching large docs to keep responses concise.
+- Prefer official docs for common patterns; use community snippets only for edge-case scenarios.
+
+## ℹ️ Reference Links
+- Context7 Official Site: <https://docs.context7.com/introduction>
+- MCP Specification: <https://docs.context7.com/mcp-specification>
+- Cursor Forum Discussion: <https://forum.cursor.com/t/context7-integration-guide>
+
+---

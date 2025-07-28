@@ -1,0 +1,183 @@
+---
+alwaysApply: true
+---
+
+# Modern React Development Patterns for Kiosk Applications
+
+## ✅ **CORE ARCHITECTURAL PATTERNS**
+
+### **1. Component Architecture**
+- ✅ **DO** use functional components with hooks
+- ✅ **DO** separate logic (Handler components) from UI (Card components)
+- ✅ **DO** use TypeScript for type safety
+- ✅ **DO** follow single responsibility principle - one component, one job
+- ❌ **DON'T** mix business logic with presentation logic
+- ❌ **DON'T** use class components unless absolutely necessary
+
+### **2. State Management**
+- ✅ **DO** use polling for real-time data when WebSockets aren't available
+- ✅ **DO** implement 2-second polling intervals for responsive UX
+- ✅ **DO** check connection state before polling
+- ✅ **DO** use session-based data storage for multi-user scenarios
+- ❌ **DON'T** use WebSockets if simple polling works
+- ❌ **DON'T** poll continuously without connection checks
+- ❌ **DON'T** modify proven polling intervals without performance testing
+
+### **3. Async Operations**
+- ✅ **DO** use fire-and-forget patterns for non-blocking operations
+- ✅ **DO** use `asyncio.run_coroutine_threadsafe()` for scheduling async tasks from non-async contexts
+- ✅ **DO** handle async errors gracefully without breaking main flow
+- ✅ **DO** store results immediately, process in background
+- ❌ **DON'T** await long-running operations in API response handlers
+- ❌ **DON'T** use `asyncio.create_task()` from non-async contexts
+- ❌ **DON'T** block user interactions for background processing
+
+## 🎨 **UI COMPONENT LIBRARIES**
+
+### **Headless + Utility CSS (Recommended)**
+- ✅ **DO** use Radix UI primitives for accessibility
+- ✅ **DO** use Tailwind CSS for styling control
+- ✅ **DO** use shadcn/ui for quick component scaffolding
+- ✅ **DO** own your component code (copy-paste vs dependencies)
+- ❌ **DON'T** ship heavy component libraries unless necessary
+- ❌ **DON'T** sacrifice accessibility for visual appeal
+
+### **Animation Libraries**
+- ✅ **DO** use Framer Motion sparingly for entrance/exit animations
+- ✅ **DO** respect `prefers-reduced-motion` for accessibility
+- ✅ **DO** keep animations subtle and purposeful
+- ❌ **DON'T** overuse animations (performance impact)
+- ❌ **DON'T** add animations that interfere with usability
+
+## 📱 **KIOSK-SPECIFIC PATTERNS**
+
+### **Accessibility & UX**
+- ✅ **DO** use minimum 18px font size for standing users
+- ✅ **DO** ensure high contrast ratios (#1a1a1a on white)
+- ✅ **DO** design for voice-only interaction when applicable
+- ✅ **DO** use large touch targets (44px minimum)
+- ❌ **DON'T** use hover states as primary interaction method
+- ❌ **DON'T** add close buttons if voice-controlled
+- ❌ **DON'T** create scrollable content in kiosk mode
+- ❌ **DON'T** use complex navigation patterns
+
+### **Layout Patterns**
+- ✅ **DO** use fixed positioning for persistent UI elements
+- ✅ **DO** implement split-screen layouts with percentage-based sizing
+- ✅ **DO** reserve space for sticky interfaces (bottom 15vh)
+- ✅ **DO** prevent content overflow with `overflow: hidden`
+- ❌ **DON'T** use complex grid layouts on kiosk screens
+- ❌ **DON'T** display multiple overlapping cards simultaneously
+
+## 🚀 **PERFORMANCE OPTIMIZATION**
+
+### **Bundle Size**
+- ✅ **DO** tree-shake unused library code
+- ✅ **DO** use dynamic imports for code splitting
+- ✅ **DO** prefer lightweight alternatives (React Spring vs Framer Motion)
+- ✅ **DO** measure bundle impact of each new dependency
+- ❌ **DON'T** import entire libraries for single functions
+- ❌ **DON'T** add dependencies without considering alternatives
+
+### **Runtime Performance**
+- ✅ **DO** use React.memo for expensive components
+- ✅ **DO** debounce rapid state updates
+- ✅ **DO** optimize images for kiosk display resolution
+- ❌ **DON'T** create unnecessary re-renders
+- ❌ **DON'T** use inline functions in render methods
+- ❌ **DON'T** perform heavy calculations in render
+
+## 🔧 **DEVELOPMENT WORKFLOW**
+
+### **Code Organization**
+- ✅ **DO** group related files by feature, not by type
+- ✅ **DO** use consistent import order (external, internal, relative)
+- ✅ **DO** implement proper error boundaries
+- ✅ **DO** use meaningful component and variable names
+- ❌ **DON'T** create deeply nested folder structures
+- ❌ **DON'T** mix CommonJS and ES6 imports
+
+### **Environment Management**
+- ✅ **DO** use environment variables for configuration
+- ✅ **DO** validate required environment variables at startup
+- ✅ **DO** use TypeScript for environment variable typing
+- ❌ **DON'T** hardcode API endpoints or keys
+- ❌ **DON'T** commit sensitive environment files
+
+### **Testing & Quality**
+- ✅ **DO** test components in isolation
+- ✅ **DO** test polling patterns with mock timers
+- ✅ **DO** validate accessibility with screen readers
+- ✅ **DO** test on actual kiosk hardware when possible
+- ❌ **DON'T** skip testing async operations
+- ❌ **DON'T** test only in desktop browsers
+
+## 🎯 **CARD COMPONENT PATTERNS**
+
+### **Data-Driven Design**
+- ✅ **DO** create flexible prop interfaces for dynamic content
+- ✅ **DO** handle missing data gracefully with fallbacks
+- ✅ **DO** use intelligent defaults for undefined properties
+- ✅ **DO** implement skeleton loading states
+- ❌ **DON'T** hardcode content in components
+- ❌ **DON'T** assume all data properties will be present
+
+### **Styling Patterns**
+- ✅ **DO** use design tokens for consistent spacing/colors
+- ✅ **DO** implement proper responsive design for different screen sizes
+- ✅ **DO** use CSS custom properties for theme switching
+- ❌ **DON'T** use inline styles for complex layouts
+- ❌ **DON'T** break design system consistency
+
+## 🔄 **POLLING IMPLEMENTATION**
+
+### **Standard Polling Pattern**
+```typescript
+useEffect(() => {
+  if (!isConnected || !sessionId) return;
+
+  const poll = async () => {
+    try {
+      const response = await fetch(`/api/endpoint/${sessionId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && hasDataChanged(data, lastData)) {
+          onUpdate(data);
+        }
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+  };
+
+  const interval = setInterval(poll, 2000);
+  return () => clearInterval(interval);
+}, [isConnected, sessionId, onUpdate]);
+```
+
+### **Polling Best Practices**
+- ✅ **DO** implement proper cleanup in useEffect
+- ✅ **DO** check for data changes before triggering updates
+- ✅ **DO** handle network errors gracefully
+- ✅ **DO** include connection state in dependency array
+- ❌ **DON'T** poll when component is unmounted
+- ❌ **DON'T** ignore error states
+- ❌ **DON'T** poll without rate limiting
+
+## 🧩 **COMPONENT COMPOSITION**
+
+### **Reusable Components**
+- ✅ **DO** build components that accept render props
+- ✅ **DO** use compound component patterns for complex UI
+- ✅ **DO** provide sensible defaults with customization options
+- ✅ **DO** document component APIs with TypeScript
+- ❌ **DON'T** create overly generic components that do everything
+- ❌ **DON'T** tightly couple components to specific data shapes
+
+### **Accessibility Integration**
+- ✅ **DO** use semantic HTML elements
+- ✅ **DO** implement proper ARIA labels and roles
+- ✅ **DO** ensure keyboard navigation works
+- ✅ **DO** test with assistive technologies
+- ❌ **DON'T** rely solely on color for information
+- ❌ **DON'T** create focus traps without escape routes
