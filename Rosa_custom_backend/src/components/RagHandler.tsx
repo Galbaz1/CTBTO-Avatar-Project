@@ -41,15 +41,8 @@ export const RagHandler: React.FC<RagHandlerProps> = ({
           topicRes.ok ? topicRes.json() : null
         ]);
 
-        // Only log when new data is found
+        // Only trigger update if there is new data
         if (sessionData || speakerData || topicData) {
-          const cardTypes = [];
-          if (sessionData) cardTypes.push('session');
-          if (speakerData) cardTypes.push('speaker');
-          if (topicData) cardTypes.push('topic');
-          
-          loggers.connection.cardShow('RAG', `${cardTypes.join(', ')} cards available`);
-          
           onRagUpdate?.({
             session: sessionData,
             speaker: speakerData,
@@ -62,7 +55,7 @@ export const RagHandler: React.FC<RagHandlerProps> = ({
       }
     };
 
-        // Poll every 2 seconds (same as weather)
+    // Poll every 2 seconds
     const interval = setInterval(pollRagData, 2000);
     pollRagData(); // Initial poll
 

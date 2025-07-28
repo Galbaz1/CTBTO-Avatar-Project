@@ -306,7 +306,7 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
                 onClick={() => onTopicClick?.(relatedTopic)}
                 className="px-2 py-1 bg-purple-50 text-purple-700 rounded-full text-xs hover:bg-purple-100 transition-colors"
               >
-                {relatedTopic.replace('_', ' ')}
+                {relatedTopic?.replace('_', ' ') || relatedTopic || 'Topic'}
               </button>
             ))}
           </div>
@@ -372,10 +372,10 @@ export const TopicCard: React.FC<TopicCardProps> = React.memo(({
                 
                 <div className="flex items-center justify-between mt-2">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTrackColor(session.track)}`}>
-                    {session.track}
+                    {session.track || 'General'}
                   </span>
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getExpertiseColor(session.audience_level)}`}>
-                    {session.audience_level.replace('_', ' ')}
+                    {session.audience_level?.replace('_', ' ') || 'All Attendees'}
                   </span>
                 </div>
               </div>

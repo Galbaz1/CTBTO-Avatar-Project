@@ -137,7 +137,6 @@ export const RosaDemo: React.FC = () => {
 
   // Handle RAG updates from the RagHandler  
   const handleRagUpdate = useCallback((ragUpdate: any) => {
-    // Only log when cards are actually displayed
     const cardTypes = [];
     if (ragUpdate.session) cardTypes.push('session');
     if (ragUpdate.speaker) cardTypes.push('speaker'); 
@@ -907,41 +906,61 @@ export const RosaDemo: React.FC = () => {
           `}</style>
         </div>
 
-        {/* Right Panel - Dynamic Content */}
+        {/* Right Panel - Transparent for Cards */}
         <div
           style={{
             width: '50vw',
             height: '100vh',
-            background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%, #f8fafc 100%)',
+            background: 'transparent',
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
             overflow: 'hidden'
           }}
         >
-          <div style={{ flex: 1, padding: '30px 20px 40px 20px', overflow: 'auto' }}>
-            {/* Debug info for content rendering */}
-            {import.meta.env.DEV && (
-              <div style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                background: 'rgba(0, 0, 0, 0.8)',
-                color: 'white',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                fontSize: '11px',
-                zIndex: 999,
-                fontFamily: 'monospace'
-              }}>
-                <div>📋 Content: {currentContent}</div>
-                <div>🌤️ Weather: {weatherData ? 'Available' : 'None'}</div>
-                <div>🔍 RAG: {ragData ? 'Available' : 'None'}</div>
-                <div>📍 Location: {weatherData?.location || 'N/A'}</div>
+          {/* Debug info for content rendering */}
+          {import.meta.env.DEV && (
+            <div style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              background: 'rgba(0, 0, 0, 0.8)',
+              color: 'white',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              fontSize: '11px',
+              zIndex: 999,
+              fontFamily: 'monospace'
+            }}>
+              <div>📋 Content: {currentContent}</div>
+              <div>🌤️ Weather: {weatherData ? 'Available' : 'None'}</div>
+              <div>🔍 RAG: {ragData ? 'Available' : 'None'}</div>
+              <div>📍 Location: {weatherData?.location || 'N/A'}</div>
+            </div>
+          )}
+          
+          {/* Minimal status indicator when searching */}
+          {isSearching && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              background: 'rgba(102, 126, 234, 0.95)',
+              color: 'white',
+              padding: '20px 30px',
+              borderRadius: '16px',
+              textAlign: 'center',
+              backdropFilter: 'blur(10px)',
+              boxShadow: '0 10px 25px rgba(102, 126, 234, 0.3)',
+              zIndex: 900
+            }}>
+              <div style={{ fontSize: '1.5rem', marginBottom: '8px' }}>🔍</div>
+              <div style={{ fontSize: '14px', fontWeight: '600' }}>
+                Searching for {searchingFor}
               </div>
-            )}
-            {isSearching ? <SearchingIndicator /> : contentData[currentContent].content}
-          </div>
+            </div>
+          )}
         </div>
       </div>
       

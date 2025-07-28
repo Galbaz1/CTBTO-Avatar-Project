@@ -247,7 +247,7 @@ export const EnhancedSessionCard: React.FC<EnhancedSessionCardProps> = React.mem
                 key={index}
                 className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
               >
-                {topic.replace('_', ' ')}
+                {topic?.replace('_', ' ') || topic || 'Topic'}
               </span>
             ))}
           </div>

@@ -33,124 +33,82 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
 }) => {
   // Memoize the session data mapping to prevent infinite re-renders
   const mappedSessionData = useMemo(() => {
-    console.log('🔧 CardLayerManager useMemo triggered:', { 
-      hasRagData: !!ragData, 
-      hasSession: !!ragData?.session,
-      sessionKeys: ragData?.session ? Object.keys(ragData.session) : null
-    });
-    
     if (!ragData?.session) return null;
     
     const sessionData = ragData.session.card_data || ragData.session;
-    console.log('🔧 SessionData for mapping:', { 
-      hasCardData: !!ragData.session.card_data,
-      sessionDataKeys: Object.keys(sessionData),
-      hasMetadata: !!sessionData.metadata
-    });
     
     // Map the nested metadata structure to the flat structure expected by EnhancedSessionCard
-    const mapped = {
-      session_id: sessionData.metadata?.session_id || sessionData.id,
+    return {
+      session_id: sessionData.metadata?.session_id || sessionData.session_id || sessionData.id,
       title: sessionData.title || sessionData.metadata?.title,
-      description: sessionData.metadata?.description || sessionData.content,
-      start_time: sessionData.metadata?.start_time,
-      end_time: sessionData.metadata?.end_time,
-      duration: sessionData.metadata?.duration_minutes,
-      date: sessionData.metadata?.date,
-      venue: sessionData.metadata?.venue,
-      session_type: sessionData.metadata?.session_type,
-      speakers: sessionData.metadata?.speakers || [],
-      theme: sessionData.metadata?.theme,
-      track: sessionData.metadata?.track,
-      audience_level: sessionData.metadata?.audience_level,
-      day_of_week: sessionData.metadata?.day_of_week,
-      time_of_day: sessionData.metadata?.time_of_day,
-      duration_minutes: sessionData.metadata?.duration_minutes,
-      has_speakers: sessionData.metadata?.has_speakers,
-      is_interactive: sessionData.metadata?.is_interactive,
-      is_social: sessionData.metadata?.is_social,
-      is_technical: sessionData.metadata?.is_technical,
-      speaker_count: sessionData.metadata?.speaker_count,
-      related_topics: sessionData.metadata?.related_topics,
-      search_keywords: sessionData.metadata?.search_keywords
+      description: sessionData.metadata?.description || sessionData.content || sessionData.description,
+      start_time: sessionData.metadata?.start_time || sessionData.start_time,
+      end_time: sessionData.metadata?.end_time || sessionData.end_time,
+      duration: sessionData.metadata?.duration_minutes || sessionData.duration_minutes,
+      date: sessionData.metadata?.date || sessionData.date,
+      venue: sessionData.metadata?.venue || sessionData.venue,
+      session_type: sessionData.metadata?.session_type || sessionData.session_type,
+      speakers: sessionData.metadata?.speakers || sessionData.speakers || [],
+      theme: sessionData.metadata?.theme || sessionData.theme,
+      track: sessionData.metadata?.track || sessionData.track,
+      audience_level: sessionData.metadata?.audience_level || sessionData.audience_level,
+      day_of_week: sessionData.metadata?.day_of_week || sessionData.day_of_week,
+      time_of_day: sessionData.metadata?.time_of_day || sessionData.time_of_day,
+      duration_minutes: sessionData.metadata?.duration_minutes || sessionData.duration_minutes,
+      has_speakers: sessionData.metadata?.has_speakers || sessionData.has_speakers,
+      is_interactive: sessionData.metadata?.is_interactive || sessionData.is_interactive,
+      is_social: sessionData.metadata?.is_social || sessionData.is_social,
+      is_technical: sessionData.metadata?.is_technical || sessionData.is_technical,
+      speaker_count: sessionData.metadata?.speaker_count || sessionData.speaker_count,
+      related_topics: sessionData.metadata?.related_topics || sessionData.related_topics,
+      search_keywords: sessionData.metadata?.search_keywords || sessionData.search_keywords
     };
-    
-    console.log('🔧 Mapped session result:', { 
-      hasTitle: !!mapped.title,
-      hasVenue: !!mapped.venue,
-      sessionId: mapped.session_id
-    });
-    
-    return mapped;
-  }, [ragData?.session, ragData?.session?.card_data]); // Add more specific dependency
+  }, [ragData?.session]);
 
-  // Calculate active cards to prevent overlapping
-  const activeCards = [];
-  if (showWeatherCard && weatherData) activeCards.push('weather');
-  if (showRagCards && mappedSessionData) activeCards.push('session');
-  if (showRagCards && ragData?.speaker) activeCards.push('speaker');
-  if (showRagCards && ragData?.topic) activeCards.push('topic');
-  
-  console.log('🔧 Card rendering state:', {
-    showRagCards,
-    hasMappedSessionData: !!mappedSessionData,
-    hasTopicData: !!ragData?.topic,
-    activeCards: activeCards.length,
-    cardTypes: activeCards
-  });
+  // Memoize active cards calculation
+  const activeCards = useMemo(() => {
+    const cards = [];
+    if (showWeatherCard && weatherData) cards.push('weather');
+    if (showRagCards && mappedSessionData) cards.push('session');
+    if (showRagCards && ragData?.speaker) cards.push('speaker');
+    if (showRagCards && ragData?.topic) cards.push('topic');
+    return cards;
+  }, [showWeatherCard, weatherData, showRagCards, mappedSessionData, ragData?.speaker, ragData?.topic]);
 
-  // Professional card positioning system
-  const getCardPosition = (cardType: string, index: number) => {
-    const baseTop = 80;
-    const baseRight = 20;
-    const cardWidth = 350;
-    const cardSpacing = 20;
-    
-    console.log('🔧 Getting position for card:', { cardType, index, baseTop, baseRight });
-    
-    // Intelligent cascading layout
-    switch (activeCards.length) {
-      case 1:
-        // Single card - prime position
-        return { top: `${baseTop}px`, right: `${baseRight}px` };
+  // Professional card positioning system, now more robust
+  const getCardPosition = useMemo(() => {
+    return (cardType: string, index: number) => {
+      const baseTop = 80;
+      // Position from the right edge for better consistency across screen sizes
+      const baseRight = 20;
       
-      case 2:
-        // Two cards - side by side
-        if (index === 0) return { top: `${baseTop}px`, right: `${baseRight}px` };
-        return { top: `${baseTop}px`, right: `${baseRight + cardWidth + cardSpacing}px` };
-      
-      case 3:
-        // Three cards - cascade pattern
-        if (index === 0) return { top: `${baseTop}px`, right: `${baseRight}px` };
-        if (index === 1) return { top: `${baseTop + 60}px`, right: `${baseRight + (cardWidth * 0.6)}px` };
-        return { top: `${baseTop + 120}px`, right: `${baseRight + (cardWidth * 1.2)}px` };
-      
-      default:
-        // Fallback for many cards
-        return { 
-          top: `${baseTop + (index * 50)}px`, 
-          right: `${baseRight + (index * (cardWidth * 0.3))}px` 
-        };
-    }
-  };
-
-  // Debug logging for session card rendering
-  if (showRagCards && mappedSessionData) {
-    const sessionPosition = getCardPosition('session', activeCards.indexOf('session'));
-    console.log('🔧 RENDERING SESSION CARD:', { 
-      position: sessionPosition,
-      mappedSessionData: !!mappedSessionData,
-      sessionTitle: mappedSessionData?.title
-    });
-  }
+      // Intelligent cascading layout
+      switch (activeCards.length) {
+        case 1:
+          return { top: `${baseTop}px`, right: `${baseRight}px` };
+        case 2:
+          if (index === 0) return { top: `${baseTop}px`, right: `${baseRight}px` };
+          return { top: `${baseTop + 220}px`, right: `${baseRight}px` };
+        case 3:
+          if (index === 0) return { top: `${baseTop}px`, right: `${baseRight}px` };
+          if (index === 1) return { top: `${baseTop + 200}px`, right: `${baseRight + 30}px` };
+          return { top: `${baseTop + 400}px`, right: `${baseRight + 60}px` };
+        default:
+          return { 
+            top: `${baseTop + (index * 180)}px`, 
+            right: `${baseRight + (index * 20)}px` 
+          };
+      }
+    };
+  }, [activeCards.length]);
 
   return (
     <>
-      {/* Weather Card - Contextual, always first priority */}
+      {/* Weather Card */}
       {showWeatherCard && weatherData && (
         <div style={{
           position: 'fixed',
-          ...getCardPosition('weather', 0),
+          ...getCardPosition('weather', activeCards.indexOf('weather')),
           zIndex: 1000,
           maxWidth: '350px',
           transition: 'all 0.3s ease-out'
@@ -163,7 +121,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
         </div>
       )}
       
-      {/* Session Card - High priority conference content */}
+      {/* Session Card */}
       {showRagCards && mappedSessionData && (
         <div style={{
           position: 'fixed',
@@ -180,7 +138,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
         </div>
       )}
       
-      {/* Speaker Card - Conference content */}
+      {/* Speaker Card */}
       {showRagCards && ragData?.speaker && (
         <div style={{
           position: 'fixed',
@@ -209,7 +167,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
         </div>
       )}
       
-      {/* Topic Card - Thematic conference content */}
+      {/* Topic Card */}
       {showRagCards && ragData?.topic && (
         <div style={{
           position: 'fixed',
@@ -241,12 +199,12 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
         </div>
       )}
       
-      {/* Professional overlay for many cards */}
+      {/* Active Cards Overlay */}
       {activeCards.length > 2 && (
         <div style={{
           position: 'fixed',
           top: '20px',
-          right: '20px',
+          right: '20px', // Position in right panel
           background: 'rgba(102, 126, 234, 0.9)',
           color: 'white',
           padding: '8px 16px',
@@ -256,7 +214,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
           zIndex: 1001,
           backdropFilter: 'blur(10px)'
         }}>
-{activeCards.length} Active Cards
+          {activeCards.length} Active Cards
         </div>
       )}
     </>
