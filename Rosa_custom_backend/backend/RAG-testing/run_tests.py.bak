@@ -77,7 +77,7 @@ def run_quick_test():
         test_query = SearchQuery(
             query_text="quantum sensing",
             search_type="hybrid",
-            collection="SnT25_GlossaryTerm",
+            collection="ConferenceChunk",
             limit=3
         )
         

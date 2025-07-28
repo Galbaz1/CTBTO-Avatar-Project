@@ -196,7 +196,7 @@ setConversationId(conversation.conversation_id);
 - **Enhanced Cards**: Session, Speaker, Topic, Venue, Schedule card components
 
 ### Database
-- **Weaviate Collections**: SnT25_Session, SnT25_GlossaryTerm
+- **Weaviate Collections**: ConferenceSession, ConferenceChunk
 - **Data Source**: `timetable.json` processed into vector embeddings
 
 ### Endpoints Working

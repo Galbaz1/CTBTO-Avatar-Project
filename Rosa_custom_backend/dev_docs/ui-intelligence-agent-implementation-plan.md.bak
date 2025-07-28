@@ -28,14 +28,14 @@ Implement semantic RAG search with intelligent UI card rendering that handles:
 
 ### 📊 WEAVIATE DATABASE STRUCTURE
 **Available Collections:**
-- **SnT25_Session**: Complete session information with session_id, speakers, venues, times
-- **SnT25_GlossaryTerm**: Research paper chunks and abstracts with scientific_field, themes, authors
+- **ConferenceSession**: Complete session information with session_id, speakers, venues, times
+- **ConferenceChunk**: Research paper chunks and abstracts with scientific_field, themes, authors
 
 **Key Fields for UI Intelligence:**
-- `session_id` (SnT25_Session): Maps directly to SessionCard components
-- `speakers` (SnT25_Session): Extract speaker names for SpeakerCard rendering
-- `theme` (SnT25_Session): Extract topics for TopicCard rendering  
-- `description` (SnT25_Session): Full session descriptions ✅ CONFIRMED AVAILABLE
+- `session_id` (ConferenceSession): Maps directly to SessionCard components
+- `speakers` (ConferenceSession): Extract speaker names for SpeakerCard rendering
+- `theme` (ConferenceSession): Extract topics for TopicCard rendering  
+- `description` (ConferenceSession): Full session descriptions ✅ CONFIRMED AVAILABLE
 - `venue`, `start_time`, `end_time`, `duration_minutes`: Rich scheduling metadata
 - `audience_level`, `is_interactive`, `is_technical`: Smart filtering capabilities
 

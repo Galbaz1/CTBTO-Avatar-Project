@@ -11,7 +11,7 @@ Instead of a single, monolithic agent, we will adopt a multi-agent architecture 
 -   **Coordinator Agent**: The "team lead." This agent receives the initial user query, analyzes it, and breaks it down into sub-tasks. It then orchestrates the workflow, routing tasks to the appropriate specialist agents.
 -   **Retrieval Agent(s)**: These are the data specialists. We can have multiple retrieval agents, each an expert on a specific part of our Weaviate schema (e.g., a `SpeakerRetriever`, a `SessionRetriever`, a `VenueRetriever`). They are responsible for querying the vector database to find relevant information.
 -   **Validation Agent**: The fact-checker. This agent verifies the accuracy and relevance of the data retrieved by the Retrieval Agents. It can perform cross-references in the knowledge graph to ensure consistency (e.g., "Does the session retrieved for this speaker actually list them as a presenter?").
--   **Synthesis Agent**: The storyteller. This agent takes the validated information from multiple sources and synthesizes it into a coherent, human-readable answer for the user. It can leverage Weaviate's generative search capabilities (`with_generate`) for this.
+-   **Synthesis Agent**: The storyteller. This agent takes the validated information from multiple sources and synthesizes it into a coherent, human-readable answer for the user. It can leverage Weaviate's generative search capabilities for this.
 -   **Memory Agent (Agentic Ingestion)**: This is a proactive agent that observes the interactions and outcomes. It can create new, summarized knowledge and embed it back into Weaviate, allowing the system to learn and improve over time. For example, if a user frequently asks about the relationship between two topics, the Memory Agent could create a new `TopicRelationship` object in Weaviate.
 
 ### Workflow Pattern:
@@ -33,16 +33,51 @@ To enable the Retrieval Agents to work in parallel, we will leverage Python's `a
 -   This approach maximizes throughput and minimizes latency, as we don't have to wait for one database lookup to finish before starting the next.
 
 ```python
-# Example of parallel retrieval
-async def parallel_retrieval(queries: list):
-    tasks = []
-    for query in queries:
-        # Each retrieval function is an async function
-        # that queries a specific Weaviate collection.
-        tasks.append(weaviate_client.search_async(query))
+# V4 SYNTAX: Example of parallel retrieval with Weaviate Python Client v4
+import asyncio
+import weaviate
+import weaviate.classes.config as wvc
+import weaviate.classes.query as wvc_query
+
+async def parallel_retrieval(client: weaviate.WeaviateClient):
+    """Executes multiple, independent Weaviate queries concurrently."""
+
+    async def get_sessions_by_topic(topic_code):
+        collection = client.collections.get("SnT25_Session")
+        return collection.query.fetch_objects(
+            where=wvc_query.Filter.by_ref(
+                link_on="hasTopic",
+                on="SnT25_Topic",
+                where=wvc_query.Filter.by_property("topicCode").equal(topic_code)
+            ),
+            limit=10,
+            return_properties=["title"]
+        )
+
+    async def get_speakers_by_expertise(expertise):
+        collection = client.collections.get("SnT25_Speaker")
+        return collection.query.near_text(
+            query=expertise,
+            limit=5,
+            return_properties=["name"]
+        )
+
+    # Execute all retrieval tasks in parallel
+    results = await asyncio.gather(
+        get_sessions_by_topic("T3.1"),
+        get_speakers_by_expertise("seismic monitoring"),
+        return_exceptions=True
+    )
     
-    results = await asyncio.gather(*tasks)
-    return results
+    return {
+        "sessions": [obj.properties['title'] for obj in results[0].objects],
+        "experts": [obj.properties['name'] for obj in results[1].objects]
+    }
+
+# To run this in your application:
+# async with weaviate.use_async_with_weaviate_cloud(...) as async_client:
+#     retrieved_data = await parallel_retrieval(async_client)
+#     print(retrieved_data)
 ```
 
 ## 3. Weaviate as a Knowledge Graph
@@ -52,4 +87,4 @@ We will fully leverage Weaviate's graph capabilities. The cross-references we've
 -   **Deep, Multi-Hop Queries**: The Validation Agent will perform multi-hop queries to verify information. For example, to check if a speaker is an expert on a topic, it could query: `Speaker -> presentsAt -> Session -> hasAbstract -> relatedTo -> Topic`.
 -   **Graph-Based Reasoning**: The Synthesis Agent can use the graph to infer new information. For example, if two speakers frequently co-author papers (`SnT25_Abstract`), the agent can infer a professional relationship.
 
-By combining these advanced architectural patterns, we can build a RAG system that is not only knowledgeable about the SnT2025 conference but can also reason, learn, and interact in a truly intelligent way. 
+By combining these advanced architectural patterns, we can build a RAG system that is not only knowledgeable about the SnT2025 conference but can also reason, learn, and interact in a truly intelligent way.

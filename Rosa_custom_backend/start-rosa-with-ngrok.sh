@@ -66,8 +66,11 @@ if [ ! -f "backend/rosa_pattern1_api.py" ]; then
     exit 1
 fi
 
-# Start Rosa backend in background
+# Activate the virtual environment
 source venv/bin/activate
+
+# Start the backend server using bun
+echo "Starting the backend server..."
 cd backend
 python3 rosa_pattern1_api.py &
 ROSA_PID=$!

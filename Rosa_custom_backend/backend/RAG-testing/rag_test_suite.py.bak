@@ -275,7 +275,7 @@ class RAGTestSuite:
     def _test_search_strategies(self):
         """Test each search strategy individually"""
         strategies = ["semantic", "keyword", "hybrid", "rag"]
-        collections = ["SnT25_GlossaryTerm", "SnT25_Session"]
+        collections = ["ConferenceChunk", "ConferenceSession"]
         
         for strategy in strategies:
             print(f"  Testing {strategy} search...")
@@ -359,7 +359,7 @@ class RAGTestSuite:
         print("  Testing multi-collection search...")
         
         test_queries = ["quantum sensing", "nuclear detection", "machine learning", "Dr. Elizabeth Hayes"]
-        collections = ["SnT25_GlossaryTerm", "SnT25_Session"]
+        collections = ["ConferenceChunk", "ConferenceSession"]
         
         for query in test_queries:
             try:
@@ -396,7 +396,7 @@ class RAGTestSuite:
                     test_id=f"multi_collection_{query.replace(' ', '_')}",
                     query=query,
                     search_type="multi_collection_hybrid",
-                    collection="SnT25_GlossaryTerm+SnT25_Session",
+                    collection="ConferenceChunk+ConferenceSession",
                     execution_time_ms=execution_time,
                     result_count=len(results),
                     avg_relevance_score=avg_relevance,
@@ -526,7 +526,7 @@ class RAGTestSuite:
                 search_query = SearchQuery(
                     query_text=filter_test["query"],
                     search_type="hybrid",
-                    collection="SnT25_Session",
+                    collection="ConferenceSession",
                     filters=filter_test["filters"],
                     limit=10
                 )
@@ -550,7 +550,7 @@ class RAGTestSuite:
                     test_id=f"filter_{filter_test['name']}",
                     query=filter_test["query"],
                     search_type="hybrid_with_filters",
-                    collection="SnT25_Session",
+                    collection="ConferenceSession",
                     execution_time_ms=execution_time,
                     result_count=len(results),
                     avg_relevance_score=avg_relevance,
@@ -623,7 +623,7 @@ class RAGTestSuite:
         for query in rapid_queries:
             try:
                 query_start = time.time()
-                results = self.search_tool.hybrid_search(query, "SnT25_GlossaryTerm", limit=3)
+                results = self.search_tool.hybrid_search(query, "ConferenceChunk", limit=3)
                 query_time = (time.time() - query_start) * 1000
                 rapid_results.append(query_time)
             except Exception as e:
@@ -635,7 +635,7 @@ class RAGTestSuite:
             test_id="performance_rapid_sequential",
             query=f"15 rapid queries: {rapid_queries[:5]}...",
             search_type="hybrid_performance_test",
-            collection="SnT25_GlossaryTerm",
+            collection="ConferenceChunk",
             execution_time_ms=total_rapid_time,
             result_count=len(rapid_queries),
             avg_relevance_score=0,
@@ -750,7 +750,7 @@ class RAGTestSuite:
         
         summary_content += f"""
 ## Test Configuration
-- **Collections Tested:** SnT25_GlossaryTerm, SnT25_Session
+- **Collections Tested:** ConferenceChunk, ConferenceSession
 - **Search Strategies:** semantic, keyword, hybrid, filtered, rag
 - **Result Limits:** 3-10 per query
 - **Total Test Queries:** {len(self.test_queries)}

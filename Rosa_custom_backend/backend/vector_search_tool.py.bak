@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # Type definitions for search results
 SearchType = Literal["semantic", "keyword", "hybrid", "filtered", "rag"]
-CollectionType = Literal["SnT25_GlossaryTerm", "SnT25_Session"]
+CollectionType = Literal["ConferenceChunk", "ConferenceSession"]
 
 @dataclass
 class SearchResult:
@@ -156,12 +156,12 @@ class VectorSearchTool:
         properties = obj.properties
         
         # Extract core fields based on collection type
-        if collection == "SnT25_GlossaryTerm":
-            title = properties.get("term", "")
-            content = properties.get("definition", "")
-        elif collection == "SnT25_Session":
+        if collection == "ConferenceChunk":
             title = properties.get("title", "")
-            content = properties.get("abstract", properties.get("sessionType", ""))
+            content = properties.get("contextualized_content", properties.get("content", ""))
+        elif collection == "ConferenceSession":
+            title = properties.get("title", "")
+            content = properties.get("semantic_context", properties.get("description", ""))
         else:
             # Fallback for any unknown collection types
             title = properties.get("title", "")
@@ -439,7 +439,7 @@ class VectorSearchTool:
             # Reduced limits for faster response times
             session_results = self.hybrid_search(
                 query=query,
-                collection="SnT25_Session", 
+                collection="ConferenceSession", 
                 limit=6,  # Reduced from 10 to 6
                 filters=base_filters
             )
@@ -447,7 +447,7 @@ class VectorSearchTool:
             # Also search chunks for topic-based content
             chunk_results = self.hybrid_search(
                 query=query,
-                collection="SnT25_GlossaryTerm",
+                collection="ConferenceChunk",
                 limit=3,  # Reduced from 5 to 3
                 filters=base_filters
             )
@@ -509,7 +509,7 @@ class VectorSearchTool:
 
 
 # Tool function for integration with existing agent architecture
-def vector_search_tool(ctx, query: str, search_type: str = "hybrid", collection: str = "SnT25_GlossaryTerm", 
+def vector_search_tool(ctx, query: str, search_type: str = "hybrid", collection: str = "ConferenceChunk", 
                       limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
     """
     Vector search tool function for CTBTO Avatar System
@@ -519,7 +519,7 @@ def vector_search_tool(ctx, query: str, search_type: str = "hybrid", collection:
         ctx: RunContextWrapper[SimpleContext] - Agent execution context
         query: Search query text
         search_type: Type of search ("semantic", "keyword", "hybrid", "filtered", "rag")
-        collection: Target collection ("SnT25_GlossaryTerm", "SnT25_Session")
+        collection: Target collection ("ConferenceChunk", "ConferenceSession")
         limit: Maximum number of results
         filters: Optional filters for search
     
@@ -574,7 +574,7 @@ def example_conference_searches():
     print("=== Semantic Search: Machine Learning ===")
     results = search_tool.semantic_search(
         "machine learning seismic detection",
-        "SnT25_GlossaryTerm",
+        "ConferenceChunk",
         limit=3
     )
     for result in results:
@@ -587,7 +587,7 @@ def example_conference_searches():
     print("=== Hybrid Search: Morning Workshops ===")
     results = search_tool.hybrid_search(
         "workshop training hands-on",
-        "SnT25_Session",
+        "ConferenceSession",
         limit=3,
         filters={"time_of_day": "morning", "is_interactive": True}
     )
@@ -600,7 +600,7 @@ def example_conference_searches():
     print("=== Filtered Search: Festsaal Sessions ===")
     results = search_tool.filtered_search(
         {"venue": "Festsaal"},
-        "SnT25_Session",
+        "ConferenceSession",
         limit=3
     )
     for result in results:
@@ -612,7 +612,7 @@ def example_conference_searches():
     print("=== RAG Search: Nuclear Detection ===")
     rag_result = search_tool.rag_search(
         "How does nuclear detection work?",
-        "SnT25_GlossaryTerm",
+        "ConferenceChunk",
         limit=3
     )
     print(f"Generated Response: {rag_result['generated_response']}")

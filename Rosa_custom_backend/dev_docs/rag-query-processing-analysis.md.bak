@@ -15,8 +15,8 @@ The RAG system operates through multiple interconnected components:
 4. **Weaviate** - Vector database with hybrid search capabilities
 
 ### Data Collections
-- **SnT25_GlossaryTerm** - Contextual content pieces
-- **SnT25_Session** - Session metadata and descriptions
+- **ConferenceChunk** - Contextual content pieces
+- **ConferenceSession** - Session metadata and descriptions
 - **Speaker profiles** - Extracted from session data
 - **Topics** - Thematic categorizations
 
@@ -228,10 +228,10 @@ def enhanced_conference_search(self, query: str, search_mode: str = "comprehensi
     if search_mode == "comprehensive":
         # Parallel execution: Sessions + Chunks
         session_results = self.hybrid_search(
-            query=query, collection="SnT25_Session", limit=6
+            query=query, collection="ConferenceSession", limit=6
         )
         chunk_results = self.hybrid_search(
-            query=query, collection="SnT25_GlossaryTerm", limit=3
+            query=query, collection="ConferenceChunk", limit=3
         )
         
         # Categorize and deduplicate results
@@ -278,9 +278,9 @@ def decompose_complex_query(self, query: str) -> List[Dict]:
     
     # 2. Parallel Sub-Queries
     sub_queries = [
-        {"type": "semantic", "query": "quantum sensing", "collection": "SnT25_GlossaryTerm"},
-        {"type": "filtered", "filters": {"speakers": ["Dr. Chen"]}, "collection": "SnT25_Session"},
-        {"type": "filtered", "filters": {"date": "2025-09-11", "time_of_day": "morning"}, "collection": "SnT25_Session"}
+        {"type": "semantic", "query": "quantum sensing", "collection": "ConferenceChunk"},
+        {"type": "filtered", "filters": {"speakers": ["Dr. Chen"]}, "collection": "ConferenceSession"},
+        {"type": "filtered", "filters": {"date": "2025-09-11", "time_of_day": "morning"}, "collection": "ConferenceSession"}
     ]
     
     # 3. Execute in Parallel
@@ -421,14 +421,14 @@ def _format_result(self, obj: Any, search_type: str, collection: str) -> SearchR
 # Optimization: Reduced limits for faster response
 session_results = self.hybrid_search(
     query=query,
-    collection="SnT25_Session", 
+    collection="ConferenceSession", 
     limit=6,  # Reduced from 10 to 6
     filters=base_filters
 )
 
 chunk_results = self.hybrid_search(
     query=query,
-    collection="SnT25_GlossaryTerm",
+    collection="ConferenceChunk",
     limit=3,  # Reduced from 5 to 3
     filters=base_filters
 )
@@ -461,7 +461,7 @@ complex_filter = {
 
 results = search_tool.hybrid_search(
     query="quantum sensing workshop",
-    collection="SnT25_Session",
+    collection="ConferenceSession",
     filters=complex_filter,
     alpha=0.6  # Slight bias toward semantic matching
 )

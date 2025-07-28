@@ -1,7 +1,7 @@
 ---
-alwaysApply: true
+description: Always use this rule before you call the context7 MCP tool.
+alwaysApply: false
 ---
-
 # Context7 MCP Integration Rules
 
 > These rules teach the Cursor agent **when** and **how** to leverage the Context7 MCP tools for real-time library documentation lookup and best-practice retrieval. They focus on resolving library IDs, fetching topic-specific docs, and guidelines for choosing Context7 over other tools.

@@ -8,7 +8,7 @@ This comprehensive testing suite evaluates your RAG (Retrieval-Augmented Generat
 
 ### 🔍 Core Functionality
 - **5 Search Strategies**: semantic, keyword, hybrid, filtered, RAG
-- **2 Collections**: SnT25_GlossaryTerm, SnT25_Session  
+- **2 Collections**: ConferenceChunk, ConferenceSession  
 - **Query Complexity**: Simple, medium, and complex queries
 - **Multi-Collection Search**: Cross-collection retrieval and merging
 - **Enhanced Conference Search**: Categorized results (sessions/speakers/topics)
@@ -186,7 +186,7 @@ TestQuery(
 ### Modifying Test Parameters
 Adjust test parameters in the respective methods:
 - Result limits: `limit=5`
-- Collections: `["SnT25_GlossaryTerm", "SnT25_Session"]`
+- Collections: `["ConferenceChunk", "ConferenceSession"]`
 - Search strategies: `["semantic", "keyword", "hybrid", "rag"]`
 
 ### Custom Filters

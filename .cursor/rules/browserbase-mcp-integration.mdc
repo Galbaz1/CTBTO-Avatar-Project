@@ -1,8 +1,7 @@
 ---
-name: Browserbase MCP Integration
-alwaysApply: true
+description: Always use this rule before you call the browser base MCP tool.
+alwaysApply: false
 ---
-
 # Browserbase MCP Integration Rules
 
 > These rules teach the Cursor agent **when** and **how** to leverage the Browserbase MCP tools for Rosa kiosk front-end development and testing.  They focus on our card components (Speaker, Session, Weather, etc.), the 2-second polling architecture, and the professional 2025 design standards.

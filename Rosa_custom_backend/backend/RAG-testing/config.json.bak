@@ -1,8 +1,8 @@
 {
   "test_configuration": {
     "collections": [
-      "SnT25_GlossaryTerm",
-      "SnT25_Session"
+      "ConferenceChunk",
+      "ConferenceSession"
     ],
     "search_strategies": [
       "semantic",
