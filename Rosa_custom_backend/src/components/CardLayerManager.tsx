@@ -77,7 +77,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
 
   // Professional card positioning system, now more robust
   const getCardPosition = useMemo(() => {
-    return (cardType: string, index: number) => {
+    return (index: number) => {
       const baseTop = 80;
       // Position from the right edge for better consistency across screen sizes
       const baseRight = 20;
@@ -108,7 +108,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
       {showWeatherCard && weatherData && (
         <div style={{
           position: 'fixed',
-          ...getCardPosition('weather', activeCards.indexOf('weather')),
+          ...getCardPosition(activeCards.indexOf('weather')),
           zIndex: 1000,
           maxWidth: '350px',
           transition: 'all 0.3s ease-out'
@@ -125,7 +125,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
       {showRagCards && mappedSessionData && (
         <div style={{
           position: 'fixed',
-          ...getCardPosition('session', activeCards.indexOf('session')),
+          ...getCardPosition(activeCards.indexOf('session')),
           zIndex: 999,
           maxWidth: '350px',
           transition: 'all 0.3s ease-out'
@@ -142,7 +142,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
       {showRagCards && ragData?.speaker && (
         <div style={{
           position: 'fixed',
-          ...getCardPosition('speaker', activeCards.indexOf('speaker')),
+          ...getCardPosition(activeCards.indexOf('speaker')),
           zIndex: 998,
           maxWidth: '350px',
           transition: 'all 0.3s ease-out'
@@ -171,7 +171,7 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
       {showRagCards && ragData?.topic && (
         <div style={{
           position: 'fixed',
-          ...getCardPosition('topic', activeCards.indexOf('topic')),
+          ...getCardPosition(activeCards.indexOf('topic')),
           zIndex: 997,
           maxWidth: '350px',
           transition: 'all 0.3s ease-out'
