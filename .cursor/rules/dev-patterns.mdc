@@ -2,7 +2,7 @@
 # Rosa Custom Backend - Development Patterns (Phase 1: Sticky Interface MVP)
 
 🎯 **Current Phase**: Implementing Sticky Interface MVP for Kiosk Display
-📋 **Roadmap Reference**: `Rosa_custom_backend/dev_docs/async-io-optimization-course.md`
+📋 **Complete Roadmap**: `Rosa_custom_backend/dev_docs/async-io-optimization-course.md`
 
 ## ✅ **CORE PATTERNS (NEVER CHANGE)**
 
@@ -111,24 +111,23 @@ const StickyInterface = () => {
 - ❌ **DO NOT** use WebSockets or SSE
 - ❌ **DO NOT** await async card generation in API responses
 - ❌ **DO NOT** use `require()` in frontend code
-- ❌ **DO NOT** add close buttons (voice-only kiosk interaction)
 
 ### **Kiosk UX Violations**
+- ❌ **DO NOT** add close buttons (voice-only kiosk interaction)
 - ❌ **DO NOT** create touch/click interactions
 - ❌ **DO NOT** use fonts smaller than 18px
 - ❌ **DO NOT** display multiple cards simultaneously (overlapping issue)
 - ❌ **DO NOT** use scrollable content
-- ❌ **DO NOT** implement authentication flows
 
-## 📋 **PHASE 1 IMPLEMENTATION CHECKLIST**
+## 📋 **PHASE 1 IMPLEMENTATION TASKS**
 
-### **Backend (Ready)**
+### **Backend (Ready for Phase 1)**
 - [x] Weather tool working with async generation
 - [x] RAG tool with card generation (needs styling fixes)
 - [x] Fire-and-forget pattern deployed
 - [ ] Add suggestion generation endpoint for dynamic prompts
 
-### **Frontend (Phase 1 Tasks)**
+### **Frontend (Phase 1 Goals)**
 - [ ] Create StickyInterface component with proper positioning
 - [ ] Integrate AudioWave for user speech visualization
 - [ ] Implement live captions display
@@ -136,37 +135,19 @@ const StickyInterface = () => {
 - [ ] Fix card overlapping issue (single card display)
 - [ ] Apply kiosk design tokens consistently
 
-## 📝 **Reference Components**
+## 📝 **Reference Components (Copy These Patterns)**
 
-**Working Examples:**
+**Core Patterns:**
 - `WeatherHandler.tsx` - Proven polling pattern
 - `RosaDemo.tsx` - State management pattern
+- `CardLayerManager.tsx` - Card display architecture
 - `src/components/cvi/components/audio-wave/` - AudioWave component
 
-**Reference Documentation:**
+**Documentation:**
 - `Rosa_custom_backend/dev_docs/async-io-optimization-course.md` - Complete roadmap
 - `Rosa_custom_backend/dev_docs/tavus.txt` - AudioWave API documentation
 
-**Phase Examples:**
-- `WeatherHandler.tsx` - Copy this pattern exactly for new tools
-- `CardLayerManager.tsx` - Card display architecture
-
-## 🎯 **Success Criteria (Phase 1)**
-
-### **Functional Requirements:**
-- ✅ Sticky bottom interface renders correctly
-- ✅ AudioWave shows when user speaks
-- ✅ Live captions display user/Rosa conversation
-- ✅ Dynamic suggestions update based on context
-- ✅ Cards display one at a time (no overlapping)
-
-### **Kiosk Requirements:**
-- ✅ All text ≥18px and high contrast
-- ✅ No scrollbars or touch interactions
-- ✅ Voice-only operation mode
-- ✅ Standing user experience optimized
+## ⚠️ **WARNING FOR AI AGENTS**
+**The weather tool + polling pattern is PROVEN and WORKING.** Deviating from these patterns will break the established architecture. DO NOT attempt to "improve" or "optimize" the core patterns. Copy them exactly for each new tool.
 
 **When in doubt: Follow weather tool pattern exactly, focus on Phase 1 sticky interface goals.**
-
-## ⚠️ **WARNING FOR AI AGENTS**
-Deviating from these patterns will break the established architecture. The weather tool pattern has been thoroughly tested and proven to work. DO NOT attempt to "improve" or "optimize" it. Copy it exactly for each new tool.
