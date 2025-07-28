@@ -12,7 +12,7 @@ from typing import List, Dict, Any, Optional, Callable, Generator
 from dotenv import load_dotenv
 
 # Import structured logging
-from logger import logger, LLMInstance
+from .logger import logger, LLMInstance
 
 # Load environment variables from .env file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
@@ -48,15 +48,33 @@ RAG_FUNCTION = {
                 "query": {
                     "type": "string", 
                     "description": "Search query for conference content. Can be session topics (e.g. 'quantum sensing'), speaker names (e.g. 'Dr. Sarah Chen'), themes (e.g. 'nuclear monitoring'), or general questions (e.g. 'workshop training')"
-                },
-                "search_type": {
-                    "type": "string",
-                    "enum": ["comprehensive"],
-                    "description": "Search mode - use 'comprehensive' for best results (default)",
-                    "default": "comprehensive"
                 }
             },
             "required": ["query"]
+        }
+    }
+}
+
+# Graph lookup function for direct entity queries
+GRAPH_LOOKUP_FUNCTION = {
+    "type": "function",
+    "function": {
+        "name": "graph_lookup",
+        "description": "Perform direct graph lookups when users ask about specific speakers, sessions, topics, or rooms by name. Use when the user mentions a specific person, session title, topic, or room explicitly.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "lookup_type": {
+                    "type": "string",
+                    "enum": ["sessions_by_speaker", "speakers_for_session", "sessions_on_topic", "sessions_in_room"],
+                    "description": "Type of graph lookup to perform"
+                },
+                "entity_name": {
+                    "type": "string",
+                    "description": "Exact name of the speaker, session title, topic, or room to look up"
+                }
+            },
+            "required": ["lookup_type", "entity_name"]
         }
     }
 }
@@ -182,13 +200,25 @@ Assistant: The first day of the conference is Tuesday, ninth of September Twenty
 
 - You have access to the following tools:
     - get_weather: Get current weather and conditions for a location. The default location is Vienna, Austria. 
-    - search_conference_knowledge: Search the CTBT conference database for sessions, speakers, presentations, and general information.
+    - search_conference_knowledge: Search the CTBT conference database for sessions, speakers, presentations, and general information. Use for broad queries like "sessions on nuclear monitoring" or "workshops on seismic detection".
+    - graph_lookup: Perform direct lookups when users mention specific speakers, sessions, topics, or rooms by name. Use when users ask "What is Samantha Patrick presenting?" or "Who is speaking in session O3.6?" or "What sessions cover Radionuclide Technologies?" or "What's happening in the Festsaal next?"
 
-The more information you can get from the user, the more you can populate the search_conference_knowledge function. This will drastically improve the quality of your answers.
+**Tool Selection Guide:**
+- Use `search_conference_knowledge` for: general queries, topic searches, thematic questions
+- Use `graph_lookup` for: specific speaker names, exact session titles, precise topic names, room-based queries
+- Use `get_weather` for: weather, temperature, or climate questions
+
+**Graph Lookup Types:**
+- `sessions_by_speaker`: "What is [Speaker Name] presenting?"
+- `speakers_for_session`: "Who is speaking in [Session Title]?"
+- `sessions_on_topic`: "What sessions cover [Topic Name]?"
+- `sessions_in_room`: "What's in the [Room Name] next?" or "What sessions are in [Room Name]?"
+
+The more information you can get from the user, the more you can populate these functions. This will drastically improve the quality of your answers.
 
 - After calling a tool you will be given the result of the tool call. The raw result must be used to formulate an informative, concise and relevant answer. Do not read out the raw result as such, but use it to formulate an answer.
 
-- **RAG Tool Response Guidelines:** When using search_conference_knowledge, provide BRIEF responses since detailed information cards will appear separately for the user. Your spoken response should be:
+- **RAG Tool Response Guidelines:** When using search_conference_knowledge or graph_lookup, provide BRIEF responses since detailed information cards will appear separately for the user. Your spoken response should be:
   * One to two sentences maximum
   * High-level summary only (e.g., "I found several relevant sessions on seismology")
   * No lists of specific sessions, speakers, or detailed information
@@ -265,7 +295,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
 
 
     def search_conference_knowledge(self, query: str, search_type: str = "comprehensive") -> dict:
-        """Enhanced conference search using hybrid search with perfect relevance scores"""
+        """Enhanced conference search using V4 hybrid search with graph-enriched results"""
         try:
             # Simple caching to prevent duplicate searches
             cache_key = f"{query.lower().strip()}_{search_type}"
@@ -273,15 +303,14 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 print(f"📦 Using cached results for query: {query}")
                 return self._search_cache[cache_key]
             
-            from vector_search_tool import VectorSearchTool
+            from .vector_search_tool import VectorSearchTool
             
-            search_tool = VectorSearchTool()
-            
-            # Use the enhanced search with proven hybrid algorithm
-            categorized_results = search_tool.enhanced_conference_search(
-                query=query,
-                search_mode="comprehensive"
-            )
+            # Use enhanced search with proper V4 context management
+            with VectorSearchTool() as search_tool:
+                categorized_results = search_tool.enhanced_conference_search(
+                    query=query,
+                    search_mode="comprehensive"
+                )
             
             # Format results for LLM consumption with relevance context
             formatted_results = []
@@ -290,28 +319,37 @@ Remember: Give short and consise answers and use the tools to get the most relev
             if categorized_results["sessions"]:
                 formatted_results.append("RELEVANT SESSIONS:")
                 for session in categorized_results["sessions"][:3]:  # Top 3
-                    relevance_pct = f"{session.relevance_score*100:.1f}%"
+                    relevance_pct = f"{session.relevance_score*100:.1f}%" if session.relevance_score else "N/A"
                     formatted_results.append(f"- {session.title} (Relevance: {relevance_pct})")
-                    formatted_results.append(f"  Speaker(s): {', '.join(session.metadata.get('speakers', []))}")
-                    formatted_results.append(f"  When: {session.metadata.get('date')} at {session.metadata.get('start_time')}")
-                    formatted_results.append(f"  Where: {session.metadata.get('venue')}")
-                    formatted_results.append(f"  Session ID: {session.metadata.get('session_id')}")
+                    
+                    # Use related_speakers from V4 graph data
+                    if session.related_speakers:
+                        speakers = [s['name'] for s in session.related_speakers]
+                        formatted_results.append(f"  Speaker(s): {', '.join(speakers)}")
+                    
+                    # Use metadata from V4 results
+                    formatted_results.append(f"  Session Type: {session.metadata.get('sessionType', 'N/A')}")
+                    formatted_results.append(f"  Start Time: {session.metadata.get('startTime', 'N/A')}")
                     formatted_results.append("")
             
             # Speakers (for name recognition)
             if categorized_results["speakers"]:
                 formatted_results.append("RELEVANT SPEAKERS:")
                 for speaker in categorized_results["speakers"][:3]:
-                    relevance_pct = f"{speaker.relevance_score*100:.1f}%"
+                    relevance_pct = f"{speaker.relevance_score*100:.1f}%" if speaker.relevance_score else "N/A"
                     formatted_results.append(f"- {speaker.title} (Relevance: {relevance_pct})")
+                    if speaker.content:  # Affiliation from content
+                        formatted_results.append(f"  Affiliation: {speaker.content}")
                 formatted_results.append("")
             
             # Topics (for thematic context)  
             if categorized_results["topics"]:
                 formatted_results.append("RELATED TOPICS:")
                 for topic in categorized_results["topics"][:3]:
-                    relevance_pct = f"{topic.relevance_score*100:.1f}%"
+                    relevance_pct = f"{topic.relevance_score*100:.1f}%" if topic.relevance_score else "N/A"
                     formatted_results.append(f"- {topic.title} (Relevance: {relevance_pct})")
+                    if topic.content:  # Topic code from content
+                        formatted_results.append(f"  Code: {topic.content}")
                 formatted_results.append("")
             
             # Return formatted chunks for LLM to process naturally (modern RAG)
@@ -341,6 +379,73 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 "success": False,
                 "query": query,
                 "formatted_response": "I apologize, but I'm having trouble searching the conference database right now. Please try again."
+            }
+    
+    def graph_lookup(self, lookup_type: str, entity_name: str) -> dict:
+        """
+        Perform direct graph lookups for specific entities using V4 search patterns.
+        This enables precise queries when users mention specific speakers, sessions, or topics.
+        """
+        try:
+            from .vector_search_tool import VectorSearchTool
+            
+            logger.info(f"Graph lookup: {lookup_type} for '{entity_name}'")
+            
+            with VectorSearchTool() as search_tool:
+                if lookup_type == "sessions_by_speaker":
+                    results = search_tool.find_sessions_by_speaker(entity_name)
+                elif lookup_type == "speakers_for_session":
+                    results = search_tool.find_speakers_for_session(entity_name)
+                elif lookup_type == "sessions_on_topic":
+                    results = search_tool.find_sessions_on_topic(entity_name)
+                elif lookup_type == "sessions_in_room":
+                    results = search_tool.find_sessions_in_room(entity_name)
+                else:
+                    return {
+                        "error": f"Unknown lookup type: {lookup_type}",
+                        "success": False
+                    }
+            
+            if results:
+                # Format results for LLM consumption
+                formatted_results = []
+                for result in results:
+                    formatted_results.append(f"- {result.title}")
+                    if result.related_speakers:
+                        speakers = [s['name'] for s in result.related_speakers]
+                        formatted_results.append(f"  Speakers: {', '.join(speakers)}")
+                    if result.related_topics:
+                        topics = [t['title'] for t in result.related_topics]
+                        formatted_results.append(f"  Topics: {', '.join(topics)}")
+                
+                formatted_response = f"Found {len(results)} result(s) for {entity_name}:\n" + "\n".join(formatted_results)
+                
+                return {
+                    "success": True,
+                    "lookup_type": lookup_type,
+                    "entity_name": entity_name,
+                    "results": results,
+                    "formatted_response": formatted_response,
+                    "count": len(results)
+                }
+            else:
+                return {
+                    "success": True,
+                    "lookup_type": lookup_type,
+                    "entity_name": entity_name,
+                    "results": [],
+                    "formatted_response": f"No results found for {entity_name}",
+                    "count": 0
+                }
+                
+        except Exception as e:
+            logger.error(f"Graph lookup failed: {e}")
+            return {
+                "error": f"Graph lookup failed: {str(e)}",
+                "success": False,
+                "lookup_type": lookup_type,
+                "entity_name": entity_name,
+                "formatted_response": f"I apologize, but I couldn't look up information for {entity_name} right now."
             }
     
     def map_weather_icon(self, condition_code: int) -> str:
@@ -484,7 +589,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
             initial_response = self.client.chat.completions.create(
                 model="gpt-4.1",
                 messages=messages,
-                tools=[WEATHER_FUNCTION, RAG_FUNCTION],
+                tools=[WEATHER_FUNCTION, RAG_FUNCTION, GRAPH_LOOKUP_FUNCTION],
                 tool_choice="auto",
                 temperature=0.0,
                 max_tokens=1000
@@ -619,6 +724,30 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 else:
                     print(f"❌ DEBUG: RAG search failed: {rag_data.get('error', 'Unknown error')}")
                     return rag_data.get("formatted_response", "Conference search failed")
+            
+            elif function_name == "graph_lookup":
+                lookup_type = function_args.get("lookup_type", "sessions_by_speaker")
+                entity_name = function_args.get("entity_name", "")
+                print(f"🔧 DEBUG: Starting graph lookup for '{entity_name}' with type '{lookup_type}', callback present: {rag_callback is not None}")
+                
+                lookup_data = self.graph_lookup(lookup_type, entity_name)
+                print(f"🔧 DEBUG: Graph lookup completed, success: {lookup_data.get('success')}")
+                
+                if lookup_data.get("success"):
+                    # Call callback for async card generation with BOTH args and lookup_data
+                    if rag_callback:
+                        print(f"🔧 DEBUG: About to call RAG callback for graph lookup")
+                        rag_callback(function_args, lookup_data)
+                        logger.debug(f"📱 Called RAG callback for graph lookup with lookup_data", session_id, LLMInstance.MAIN_ROSA)
+                        print(f"🔧 DEBUG: Graph lookup callback completed successfully")
+                    else:
+                        print(f"❌ DEBUG: rag_callback is None!")
+                    
+                    # Return the formatted lookup information for LLM to process
+                    return lookup_data.get("formatted_response", "No graph lookup information found")
+                else:
+                    print(f"❌ DEBUG: Graph lookup failed: {lookup_data.get('error', 'Unknown error')}")
+                    return lookup_data.get("formatted_response", "Graph lookup failed")
             
             else:
                 return f"Unknown tool: {function_name}"

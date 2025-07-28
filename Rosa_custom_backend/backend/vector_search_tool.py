@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-Vector Search Tool for CTBTO Avatar System
-Integrates Weaviate RAG capabilities into the existing agent architecture
-Supports semantic, keyword, hybrid, and filtered search types
-Optimized for sub-second latency requirements
+Vector Search Tool for the SnT2025 Conference Avatar
+-   **V4 Compliant**: Utilizes Weaviate Python Client v4.
+-   **Graph-Based**: Leverages Weaviate's graph capabilities for multi-hop queries.
+-   **Voice-Controlled Kiosk Ready**: Optimized for the generative UI pattern.
 """
 
 import weaviate
-import weaviate.classes.query as wq
-from weaviate.classes.init import Auth, Timeout, AdditionalConfig
+import weaviate.classes.config as wvc
+import weaviate.classes.query as wvc_query
+import weaviate.classes.data as wvc_data
+from weaviate.classes.init import Auth
 import os
 import asyncio
 from typing import List, Dict, Any, Optional, Union, Literal
 from dataclasses import dataclass
-from enum import Enum
 import logging
 from dotenv import load_dotenv
 
@@ -21,604 +22,438 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Type definitions for search results
-SearchType = Literal["semantic", "keyword", "hybrid", "filtered", "rag"]
-CollectionType = Literal["SnT25_GlossaryTerm", "SnT25_Session"]
+# --- V4 Compliant Type Definitions ---
+SearchType = Literal["hybrid", "semantic", "keyword"]
+Collection = Literal["SnT25_Speaker", "SnT25_Session", "SnT25_Topic", "SnT25_Room", "SnT25_GlossaryTerm"]
 
 @dataclass
 class SearchResult:
-    """Standardized search result structure"""
+    """A standardized search result structure for graph-based queries."""
     id: str
+    collection: Collection
     title: str
     content: str
-    metadata: Dict[str, Any]
-    relevance_score: float
-    collection: str
-    search_type: str
-
-@dataclass
-class SearchQuery:
-    """Structured search query for AI agents"""
-    query_text: str
-    search_type: SearchType
-    collection: CollectionType
-    filters: Optional[Dict[str, Any]] = None
-    limit: int = 5
-    include_metadata: bool = True
+    relevance_score: Optional[float] = None
+    metadata: Dict[str, Any] = None
+    # For graph results
+    related_speakers: Optional[List[Dict]] = None
+    related_sessions: Optional[List[Dict]] = None
+    related_topics: Optional[List[Dict]] = None
+    related_room: Optional[Dict] = None
 
 class VectorSearchTool:
     """
-    Vector search tool optimized for CTBTO Avatar System
-    Integrates with existing agent architecture using RunContextWrapper pattern
+    A Weaviate v4-compliant search tool optimized for the SnT2025 conference knowledge graph.
+    Simplified for voice-controlled kiosk with generative UI pattern.
     """
-    
     def __init__(self):
-        """Initialize with environment validation"""
-        self.weaviate_url = os.getenv("WEAVIATE_URL")
-        self.weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        
-        if not all([self.weaviate_url, self.weaviate_api_key, self.openai_api_key]):
-            raise ValueError("Missing required environment variables for Weaviate connection")
-        
-        self.client = None
-        self._connection_validated = False
-    
-    def _get_client(self) -> weaviate.WeaviateClient:
-        """Get or create Weaviate client with connection validation"""
-        if not self._connection_validated:
-            # Configure timeouts and connection settings to handle gRPC issues
-            timeout_config = Timeout(
-                init=10,      # 10 seconds for initialization
-                query=20,     # 20 seconds for queries  
-                insert=30     # 30 seconds for insertions
-            )
-            
-            additional_config = AdditionalConfig(
-                timeout=timeout_config
-            )
-            
-            # Use context manager pattern for connection validation with skip_init_checks
-            try:
-                with weaviate.connect_to_weaviate_cloud(
-                    cluster_url=self.weaviate_url,
-                    auth_credentials=Auth.api_key(self.weaviate_api_key),
-                    headers={"X-OpenAI-Api-Key": self.openai_api_key},
-                    additional_config=additional_config,
-                    skip_init_checks=True  # Skip gRPC health check to avoid timeout issues
-                ) as client:
-                    # Instead of is_live() check which uses gRPC, try a simple schema query
-                    try:
-                        client.collections.list_all()  # Simple REST API call to verify connection
-                        self._connection_validated = True
-                        logger.info("Weaviate connection validated successfully (bypassed gRPC health check)")
-                    except Exception as e:
-                        logger.warning(f"Connection test failed but proceeding: {e}")
-                        self._connection_validated = True  # Proceed anyway since skip_init_checks was used
-            except Exception as e:
-                logger.error(f"Failed to validate Weaviate connection: {e}")
-                # For development, we'll proceed with connection anyway
-                logger.warning("Proceeding with Weaviate connection despite validation failure")
-                self._connection_validated = True
-        
-        # Return client for actual operations with same configuration
-        timeout_config = Timeout(init=10, query=20, insert=30)
-        additional_config = AdditionalConfig(timeout=timeout_config)
-        
-        return weaviate.connect_to_weaviate_cloud(
-            cluster_url=self.weaviate_url,
-            auth_credentials=Auth.api_key(self.weaviate_api_key),
-            headers={"X-OpenAI-Api-Key": self.openai_api_key},
-            additional_config=additional_config,
-            skip_init_checks=True  # Skip health checks for faster connection
-        )
-    
-    def _build_filters(self, filter_spec: Dict[str, Any]) -> Optional[wq.Filter]:
-        """Convert filter specification to Weaviate filters"""
-        if not filter_spec:
-            return None
-        
-        filters = []
-        for field, value in filter_spec.items():
-            if isinstance(value, list):
-                # Handle array fields like related_topics, authors
-                filters.append(wq.Filter.by_property(field).contains_any(value))
-            elif isinstance(value, bool):
-                filters.append(wq.Filter.by_property(field).equal(value))
-            elif isinstance(value, dict):
-                # Handle range queries
-                if "gte" in value:
-                    filters.append(wq.Filter.by_property(field).greater_or_equal(value["gte"]))
-                if "lte" in value:
-                    filters.append(wq.Filter.by_property(field).less_or_equal(value["lte"]))
-                if "gt" in value:
-                    filters.append(wq.Filter.by_property(field).greater_than(value["gt"]))
-                if "lt" in value:
-                    filters.append(wq.Filter.by_property(field).less_than(value["lt"]))
-            else:
-                filters.append(wq.Filter.by_property(field).equal(value))
-        
-        # Combine filters with AND logic
-        if len(filters) == 1:
-            return filters[0]
-        elif len(filters) > 1:
-            combined = filters[0]
-            for f in filters[1:]:
-                combined = combined & f
-            return combined
-        return None
-    
-    def _format_result(self, obj: Any, search_type: str, collection: str) -> SearchResult:
-        """Format Weaviate result into standardized SearchResult"""
-        properties = obj.properties
-        
-        # Extract core fields based on collection type
-        if collection == "SnT25_GlossaryTerm":
-            title = properties.get("term", "")
-            content = properties.get("definition", "")
-        elif collection == "SnT25_Session":
-            title = properties.get("title", "")
-            content = properties.get("abstract", properties.get("sessionType", ""))
-        else:
-            # Fallback for any unknown collection types
-            title = properties.get("title", "")
-            content = properties.get("content", "")
-        
-        # Extract relevance score
-        relevance_score = 0.0
-        if hasattr(obj, 'metadata') and obj.metadata:
-            if hasattr(obj.metadata, 'distance') and obj.metadata.distance is not None:
-                # Better conversion: cosine distance ranges 0-2, convert to 0-1 scale
-                # distance 0 = perfect match (1.0), distance 2 = opposite (0.0)
-                relevance_score = max(0.0, (2.0 - obj.metadata.distance) / 2.0)
-            elif hasattr(obj.metadata, 'score') and obj.metadata.score is not None:
-                relevance_score = obj.metadata.score
-        
-        # Create metadata dict
-        metadata = {
-            "uuid": str(obj.uuid),
-            "collection": collection,
-            "search_type": search_type,
-            **{k: v for k, v in properties.items() if k not in ["title", "content", "contextualized_content", "semantic_context"]}
-        }
-        
-        return SearchResult(
-            id=str(obj.uuid),
-            title=title,
-            content=content,
-            metadata=metadata,
-            relevance_score=relevance_score,
-            collection=collection,
-            search_type=search_type
-        )
-    
-    def semantic_search(self, query: str, collection: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
-        """
-        Semantic search using vector similarity
-        Best for: Conceptual queries, meaning-based search
-        """
-        with self._get_client() as client:
-            coll = client.collections.get(collection)
-            
-            # Build filters
-            where_filter = self._build_filters(filters) if filters else None
-            
-            # Execute semantic search (only pass where if not None)
-            if where_filter is not None:
-                response = coll.query.near_text(
-                    query=query,
-                    limit=limit,
-                    where=where_filter,
-                    return_metadata=wq.MetadataQuery(distance=True)
-                )
-            else:
-                response = coll.query.near_text(
-                    query=query,
-                    limit=limit,
-                    return_metadata=wq.MetadataQuery(distance=True)
-                )
-            
-            return [self._format_result(obj, "semantic", collection) for obj in response.objects]
-    
-    def keyword_search(self, query: str, collection: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
-        """
-        Keyword search using BM25
-        Best for: Exact term matching, fast retrieval
-        """
-        with self._get_client() as client:
-            coll = client.collections.get(collection)
-            
-            # Build filters
-            where_filter = self._build_filters(filters) if filters else None
-            
-            # Execute keyword search (only pass where if not None)
-            if where_filter is not None:
-                response = coll.query.bm25(
-                    query=query,
-                    limit=limit,
-                    where=where_filter,
-                    return_metadata=wq.MetadataQuery(score=True)
-                )
-            else:
-                response = coll.query.bm25(
-                    query=query,
-                    limit=limit,
-                    return_metadata=wq.MetadataQuery(score=True)
-                )
-            
-            return [self._format_result(obj, "keyword", collection) for obj in response.objects]
-    
-    def hybrid_search(self, query: str, collection: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None, alpha: float = 0.5) -> List[SearchResult]:
-        """
-        Hybrid search combining semantic and keyword search
-        Best for: Balanced results, general-purpose search
-        alpha: 0.0 = pure keyword, 1.0 = pure semantic, 0.5 = balanced
-        """
-        with self._get_client() as client:
-            coll = client.collections.get(collection)
-            
-            # Build filters
-            where_filter = self._build_filters(filters) if filters else None
-            
-            # Execute hybrid search (only pass where if not None)
-            if where_filter is not None:
-                response = coll.query.hybrid(
-                    query=query,
-                    limit=limit,
-                    where=where_filter,
-                    alpha=alpha,
-                    return_metadata=wq.MetadataQuery(score=True)
-                )
-            else:
-                response = coll.query.hybrid(
-                    query=query,
-                    limit=limit,
-                    alpha=alpha,
-                    return_metadata=wq.MetadataQuery(score=True)
-                )
-            
-            return [self._format_result(obj, "hybrid", collection) for obj in response.objects]
-    
-    def filtered_search(self, filters: Dict[str, Any], collection: str, limit: int = 10) -> List[SearchResult]:
-        """
-        Filtered search without query text
-        Best for: Structured queries, specific constraints
-        """
-        with self._get_client() as client:
-            coll = client.collections.get(collection)
-            
-            # Build filters
-            where_filter = self._build_filters(filters)
-            if not where_filter:
-                raise ValueError("Filters are required for filtered search")
-            
-            # Execute filtered search
-            response = coll.query.fetch_objects(
-                where=where_filter,
-                limit=limit
-            )
-            
-            return [self._format_result(obj, "filtered", collection) for obj in response.objects]
-    
-    def rag_search(self, query: str, collection: str, limit: int = 5, filters: Optional[Dict[str, Any]] = None, 
-                   prompt_template: Optional[str] = None) -> Dict[str, Any]:
-        """
-        RAG (Retrieval-Augmented Generation) search
-        Returns search results only - generation handled by main ROSA agent
-        """
-        with self._get_client() as client:
-            coll = client.collections.get(collection)
-            
-            # Build filters
-            where_filter = self._build_filters(filters) if filters else None
-            
-            # Execute pure vector search (NO LLM generation to avoid double calls)
-            if where_filter is not None:
-                response = coll.query.near_text(
-                    query=query,
-                    limit=limit,
-                    where=where_filter,
-                    return_metadata=wq.MetadataQuery(distance=True)
-                )
-            else:
-                response = coll.query.near_text(
-                    query=query,
-                    limit=limit,
-                    return_metadata=wq.MetadataQuery(distance=True)
-                )
-            
-            # Format results
-            search_results = [self._format_result(obj, "rag", collection) for obj in response.objects]
-            
-            return {
-                "search_results": search_results,
-                "query": query,
-                "collection": collection,
-                "success": True
-            }
-    
-    def multi_collection_search(self, query: str, collections: List[str], search_type: str = "hybrid", 
-                               limit_per_collection: int = 3, filters: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
-        """
-        Search across multiple collections and merge results
-        Useful for comprehensive queries across different data types
-        """
-        all_results = []
-        
-        for collection in collections:
-            try:
-                if search_type == "semantic":
-                    results = self.semantic_search(query, collection, limit_per_collection, filters)
-                elif search_type == "keyword":
-                    results = self.keyword_search(query, collection, limit_per_collection, filters)
-                elif search_type == "hybrid":
-                    results = self.hybrid_search(query, collection, limit_per_collection, filters)
-                else:
-                    logger.warning(f"Unknown search type: {search_type}, using hybrid")
-                    results = self.hybrid_search(query, collection, limit_per_collection, filters)
-                
-                all_results.extend(results)
-                
-            except Exception as e:
-                logger.error(f"Search failed for collection {collection}: {e}")
-                continue
-        
-        # Sort by relevance score
-        all_results.sort(key=lambda x: x.relevance_score, reverse=True)
-        return all_results
-    
-    def search(self, search_query: SearchQuery) -> Union[List[SearchResult], Dict[str, Any]]:
-        """
-        Unified search interface for AI agents
-        Accepts structured SearchQuery objects
-        """
+        """Initializes the Weaviate client using v4 patterns."""
+        weaviate_url = os.getenv("WEAVIATE_URL")
+        weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
+
+        if not all([weaviate_url, weaviate_api_key, openai_api_key]):
+            raise ValueError("Missing required Weaviate environment variables.")
+
         try:
-            if search_query.search_type == "semantic":
-                return self.semantic_search(
-                    search_query.query_text, 
-                    search_query.collection, 
-                    search_query.limit, 
-                    search_query.filters
-                )
-            elif search_query.search_type == "keyword":
-                return self.keyword_search(
-                    search_query.query_text,
-                    search_query.collection,
-                    search_query.limit,
-                    search_query.filters
-                )
-            elif search_query.search_type == "hybrid":
-                return self.hybrid_search(
-                    search_query.query_text,
-                    search_query.collection,
-                    search_query.limit,
-                    search_query.filters
-                )
-            elif search_query.search_type == "filtered":
-                if not search_query.filters:
-                    raise ValueError("Filters are required for filtered search")
-                return self.filtered_search(
-                    search_query.filters,
-                    search_query.collection,
-                    search_query.limit
-                )
-            elif search_query.search_type == "rag":
-                return self.rag_search(
-                    search_query.query_text,
-                    search_query.collection,
-                    search_query.limit,
-                    search_query.filters
-                )
-            else:
-                raise ValueError(f"Unknown search type: {search_query.search_type}")
-                
+            self.client = weaviate.connect_to_weaviate_cloud(
+                cluster_url=weaviate_url,
+                auth_credentials=Auth.api_key(weaviate_api_key),
+                headers={"X-OpenAI-Api-Key": openai_api_key}
+            )
+            self.client.is_ready()
+            logger.info("Weaviate connection successful using v4 client.")
         except Exception as e:
-            logger.error(f"Search failed: {e}")
+            logger.error(f"Failed to connect to Weaviate: {e}")
             raise
 
-    def enhanced_conference_search(self, query: str, filters: Optional[Dict[str, Any]] = None, 
-                                  search_mode: str = "comprehensive") -> Dict[str, List[SearchResult]]:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.client:
+            self.client.close()
+            logger.info("Weaviate client connection closed.")
+
+    # --- Core Search Function (V4 Compliant) ---
+
+    def hybrid_search(self, collection: Collection, query: str, limit: int = 5, alpha: float = 0.6, 
+                     include_references: bool = True) -> List[SearchResult]:
         """
-        Enhanced search optimized for conference data with rich metadata
+        Performs hybrid search (semantic + keyword) using Weaviate v4 syntax.
+        This is the primary search method for the voice-controlled kiosk.
+        """
+        try:
+            coll = self.client.collections.get(collection)
+            
+            # Build return_references for graph data
+            return_refs = []
+            if include_references:
+                if collection == "SnT25_Session":
+                    return_refs = [
+                        wvc_query.QueryReference(link_on="hasSpeakers", return_properties=["name", "affiliation"]),
+                        wvc_query.QueryReference(link_on="hasTopic", return_properties=["title", "topicCode"]),
+                        wvc_query.QueryReference(link_on="inRoom", return_properties=["name", "level"])
+                    ]
+            
+            response = coll.query.hybrid(
+                query=query,
+                limit=limit,
+                alpha=alpha,  # 0.6 = slightly favor semantic over keyword
+                return_metadata=wvc_query.MetadataQuery(score=True),
+                return_references=return_refs if return_refs else None
+            )
+            return [self._format_result(obj, collection) for obj in response.objects]
+        except Exception as e:
+            logger.error(f"Hybrid search failed on {collection}: {e}")
+            return []
+
+    # --- Graph-Based Search Functions (Multi-Hop Queries) ---
+
+    def find_sessions_by_speaker(self, speaker_name: str, limit: int = 3) -> List[SearchResult]:
+        """Finds sessions a specific speaker is part of using by_ref filter."""
+        try:
+            sessions = self.client.collections.get("SnT25_Session")
+            response = sessions.query.fetch_objects(
+                limit=limit,
+                filters=wvc_query.Filter.by_ref_count(
+                    link_on="hasSpeakers"
+                ).greater_than(0) & wvc_query.Filter.by_ref(
+                    link_on="hasSpeakers"
+                ).by_property("name").equal(speaker_name),
+                return_properties=["title", "sessionType", "startTime"],
+                return_references=[
+                    wvc_query.QueryReference(
+                        link_on="hasSpeakers",
+                        return_properties=["name", "affiliation"]
+                    ),
+                    wvc_query.QueryReference(
+                        link_on="hasTopic", 
+                        return_properties=["title", "topicCode"]
+                    )
+                ]
+            )
+            return [self._format_result(obj, "SnT25_Session") for obj in response.objects]
+        except Exception as e:
+            logger.error(f"Graph search for sessions by '{speaker_name}' failed: {e}")
+            return []
+
+    def find_speakers_for_session(self, session_title: str, limit: int = 5) -> List[SearchResult]:
+        """Finds speakers for a specific session by querying the session first."""
+        try:
+            sessions = self.client.collections.get("SnT25_Session")
+            response = sessions.query.fetch_objects(
+                limit=1,
+                filters=wvc_query.Filter.by_property("title").equal(session_title),
+                return_references=[
+                    wvc_query.QueryReference(
+                        link_on="hasSpeakers",
+                        return_properties=["name", "affiliation", "bio"]
+                    )
+                ]
+            )
+            
+            # Extract speakers from the session's references
+            speakers = []
+            for session_obj in response.objects:
+                if hasattr(session_obj, 'references') and session_obj.references:
+                    speaker_refs = session_obj.references.get("hasSpeakers")
+                    if speaker_refs and hasattr(speaker_refs, 'objects'):
+                        for speaker_ref in speaker_refs.objects:
+                            speakers.append(SearchResult(
+                                id=str(speaker_ref.uuid),
+                                collection="SnT25_Speaker",
+                                title=speaker_ref.properties.get("name", "Unknown"),
+                                content=speaker_ref.properties.get("bio", ""),
+                                metadata={
+                                    "uuid": str(speaker_ref.uuid),
+                                    "weaviate_collection": "SnT25_Speaker",
+                                    **speaker_ref.properties
+                                }
+                            ))
+            
+            return speakers[:limit]
+        except Exception as e:
+            logger.error(f"Graph search for speakers in '{session_title}' failed: {e}")
+            return []
+            
+    def find_sessions_on_topic(self, topic_name: str, limit: int = 3) -> List[SearchResult]:
+        """Finds sessions related to a specific topic using by_ref filter."""
+        try:
+            sessions = self.client.collections.get("SnT25_Session")
+            response = sessions.query.fetch_objects(
+                limit=limit,
+                filters=wvc_query.Filter.by_ref_count(
+                    link_on="hasTopic"
+                ).greater_than(0) & wvc_query.Filter.by_ref(
+                    link_on="hasTopic"
+                ).by_property("title").equal(topic_name),
+                return_properties=["title", "sessionType", "startTime"],
+                return_references=[
+                    wvc_query.QueryReference(
+                        link_on="hasTopic",
+                        return_properties=["title", "topicCode"]
+                    ),
+                    wvc_query.QueryReference(
+                        link_on="hasSpeakers",
+                        return_properties=["name"]
+                    )
+                ]
+            )
+            return [self._format_result(obj, "SnT25_Session") for obj in response.objects]
+        except Exception as e:
+            logger.error(f"Graph search for sessions on topic '{topic_name}' failed: {e}")
+            return []
+
+    def find_sessions_in_room(self, room_name: str, limit: int = 10) -> List[SearchResult]:
+        """Finds sessions happening in a specific room using by_ref filter."""
+        try:
+            sessions = self.client.collections.get("SnT25_Session")
+            response = sessions.query.fetch_objects(
+                limit=limit,
+                filters=wvc_query.Filter.by_ref_count(
+                    link_on="inRoom"
+                ).greater_than(0) & wvc_query.Filter.by_ref(
+                    link_on="inRoom"
+                ).by_property("name").equal(room_name),
+                return_properties=["title", "sessionType", "startTime", "endTime"],
+                return_references=[
+                    wvc_query.QueryReference(
+                        link_on="inRoom",
+                        return_properties=["name", "level", "capacity"]
+                    ),
+                    wvc_query.QueryReference(
+                        link_on="hasSpeakers",
+                        return_properties=["name", "affiliation"]
+                    ),
+                    wvc_query.QueryReference(
+                        link_on="hasTopic",
+                        return_properties=["title", "topicCode"]
+                    )
+                ]
+            )
+            return [self._format_result(obj, "SnT25_Session") for obj in response.objects]
+        except Exception as e:
+            logger.error(f"Graph search for sessions in room '{room_name}' failed: {e}")
+            return []
+
+    # --- Enhanced Conference Search (Proven Generative UI Pattern) ---
+    
+    def enhanced_conference_search(self, query: str, search_mode: str = "comprehensive") -> Dict[str, List[SearchResult]]:
+        """
+        Enhanced search optimized for conference data with rich metadata.
+        This is the main method used by Agent1.py for the generative UI pattern.
         Returns categorized results: sessions, speakers, topics
         """
-        # Build comprehensive filters based on conference metadata
-        base_filters = filters or {}
-        
-        results = {
-            "sessions": [],
-            "speakers": [],
-            "topics": []
+        try:
+            logger.info(f"Enhanced conference search: '{query}' (mode: {search_mode})")
+            
+            results = {
+                "sessions": [],
+                "speakers": [],
+                "topics": []
+            }
+            
+            if search_mode == "comprehensive":
+                # Primary hybrid search on sessions (most common use case)
+                session_results = self.hybrid_search(
+                    collection="SnT25_Session",
+                    query=query,
+                    limit=6,
+                    alpha=0.6,  # Balanced hybrid
+                    include_references=True
+                )
+                
+                # Extract categorized data from the rich session results
+                session_ids = set()
+                speaker_names = set()
+                topic_titles = set()
+                
+                for result in session_results:
+                    # Add session if unique
+                    session_id = result.metadata.get("uuid")
+                    if session_id and session_id not in session_ids:
+                        results["sessions"].append(result)
+                        session_ids.add(session_id)
+                    
+                    # Extract speakers from cross-references
+                    if result.related_speakers:
+                        for speaker in result.related_speakers:
+                            speaker_name = speaker.get("name")
+                            if speaker_name and speaker_name not in speaker_names:
+                                # Create speaker result from cross-reference data
+                                speaker_result = SearchResult(
+                                    id=f"speaker-{hash(speaker_name)}",
+                                    collection="SnT25_Speaker",
+                                    title=speaker_name,
+                                    content=speaker.get("affiliation", ""),
+                                    relevance_score=result.relevance_score * 0.8 if result.relevance_score else 0.8,
+                                    metadata={
+                                        "name": speaker_name,
+                                        "affiliation": speaker.get("affiliation"),
+                                        "type": "speaker_from_session"
+                                    }
+                                )
+                                results["speakers"].append(speaker_result)
+                                speaker_names.add(speaker_name)
+                    
+                    # Extract topics from cross-references
+                    if result.related_topics:
+                        for topic in result.related_topics:
+                            topic_title = topic.get("title")
+                            if topic_title and topic_title not in topic_titles:
+                                topic_result = SearchResult(
+                                    id=f"topic-{hash(topic_title)}",
+                                    collection="SnT25_Topic",
+                                    title=topic_title,
+                                    content=topic.get("topicCode", ""),
+                                    relevance_score=result.relevance_score * 0.7 if result.relevance_score else 0.7,
+                                    metadata={
+                                        "title": topic_title,
+                                        "topicCode": topic.get("topicCode"),
+                                        "type": "topic_from_session"
+                                    }
+                                )
+                                results["topics"].append(topic_result)
+                                topic_titles.add(topic_title)
+            
+            # Sort by relevance and limit results
+            for category in results:
+                results[category].sort(key=lambda x: x.relevance_score or 0, reverse=True)
+                results[category] = results[category][:5]  # Limit for UI performance
+            
+            logger.info(f"Enhanced search results: {len(results['sessions'])} sessions, {len(results['speakers'])} speakers, {len(results['topics'])} topics")
+            return results
+            
+        except Exception as e:
+            logger.error(f"Enhanced conference search failed: {e}")
+            return {"sessions": [], "speakers": [], "topics": []}
+
+    # --- Helper & Formatting ---
+
+    def _format_result(self, obj: wvc_data.DataObject, collection: Collection) -> SearchResult:
+        """Formats a Weaviate v4 DataObject into our standardized SearchResult."""
+        props = obj.properties
+        metadata = {
+            "uuid": str(obj.uuid),
+            "weaviate_collection": collection,
+            **props
         }
         
-        if search_mode == "comprehensive":
-            # Multi-field hybrid search (combines semantic + keyword for best relevance scores)
-            # Reduced limits for faster response times
-            session_results = self.hybrid_search(
-                query=query,
-                collection="SnT25_Session", 
-                limit=6,  # Reduced from 10 to 6
-                filters=base_filters
-            )
+        # Extract linked data from references (V4 correct approach)
+        related_speakers = self._extract_linked_data(obj, "hasSpeakers")
+        related_sessions = self._extract_linked_data(obj, "speaksIn")  # Won't exist but keeping for future
+        related_topics = self._extract_linked_data(obj, "hasTopic")
+        related_room = self._extract_linked_data(obj, "inRoom", single=True)
+
+        return SearchResult(
+            id=str(obj.uuid),
+            collection=collection,
+            title=props.get("name") or props.get("title") or "N/A",
+            content=props.get("bio") or props.get("abstract") or props.get("description") or "",
+            relevance_score=obj.metadata.score if obj.metadata and obj.metadata.score else None,
+            metadata=metadata,
+            related_speakers=related_speakers,
+            related_sessions=related_sessions,
+            related_topics=related_topics,
+            related_room=related_room
+        )
+
+    def _extract_linked_data(self, obj: wvc_data.DataObject, ref_name: str, single: bool = False) -> Optional[Union[List[Dict], Dict]]:
+        """Safely extracts properties from Weaviate v4 cross-references."""
+        if not hasattr(obj, 'references') or not obj.references:
+            return None
             
-            # Also search chunks for topic-based content
-            chunk_results = self.hybrid_search(
-                query=query,
-                collection="SnT25_GlossaryTerm",
-                limit=3,  # Reduced from 5 to 3
-                filters=base_filters
-            )
-            
-            # Categorize and deduplicate results
-            session_ids = set()
-            speaker_names = set()
-            topic_themes = set()
-            
-            for result in session_results:
-                # Extract session info
-                if result.metadata.get("session_id") and result.metadata["session_id"] not in session_ids:
-                    results["sessions"].append(result)
-                    session_ids.add(result.metadata["session_id"])
-                
-                # Extract speaker info
-                speakers = result.metadata.get("speakers", [])
-                if isinstance(speakers, str):
-                    speakers = [speakers]
-                for speaker in speakers:
-                    if speaker and speaker not in speaker_names:
-                        # Create speaker result
-                        speaker_result = SearchResult(
-                            id=f"speaker-{hash(speaker)}",
-                            title=speaker,
-                            content=f"Speaker: {speaker}",
-                            collection="Speaker",
-                            search_type="semantic",
-                            relevance_score=result.relevance_score * 0.8,
-                            metadata={"speaker_name": speaker, "type": "speaker"}
-                        )
-                        results["speakers"].append(speaker_result)
-                        speaker_names.add(speaker)
-                
-                # Extract topic info
-                theme = result.metadata.get("theme", "")
-                if theme and theme not in topic_themes:
-                    topic_result = SearchResult(
-                        id=f"topic-{hash(theme)}",
-                        title=theme,
-                        content=f"Topic: {theme}",
-                        collection="Topic", 
-                        search_type="semantic",
-                        relevance_score=result.relevance_score * 0.7,
-                        metadata={"theme": theme, "type": "topic"}
-                    )
-                    results["topics"].append(topic_result)
-                    topic_themes.add(theme)
+        references = obj.references.get(ref_name)
+        if not references or not hasattr(references, 'objects'):
+            return None
         
-        # Sort by relevance
-        for category in results:
-            results[category].sort(key=lambda x: x.relevance_score, reverse=True)
-            # Limit results per category
-            results[category] = results[category][:5]
+        if single:
+            if references.objects:
+                return references.objects[0].properties
+            return None
+
+        return [ref.properties for ref in references.objects]
+
+# --- Main Tool Function for Agent Integration ---
+
+def vector_search_tool(
+    query: str,
+    search_type: SearchType = "hybrid",
+    collection: Collection = "SnT25_Session",
+    limit: int = 5,
+    graph_query_type: Optional[Literal["sessions_by_speaker", "speakers_for_session", "sessions_on_topic", "sessions_in_room"]] = None,
+    graph_query_input: Optional[str] = None
+) -> List[SearchResult]:
+    """
+    Unified vector search tool for the SnT2025 multi-agent system.
+    Handles both standard search and complex graph-based queries.
+    """
+    logger.info(
+        f"Executing search: type='{search_type}', collection='{collection}', "
+        f"graph_query='{graph_query_type}', input='{graph_query_input}', query='{query}'"
+    )
+
+    with VectorSearchTool() as tool:
+        if graph_query_type and graph_query_input:
+            if graph_query_type == "sessions_by_speaker":
+                return tool.find_sessions_by_speaker(graph_query_input, limit)
+            elif graph_query_type == "speakers_for_session":
+                return tool.find_speakers_for_session(graph_query_input, limit)
+            elif graph_query_type == "sessions_on_topic":
+                return tool.find_sessions_on_topic(graph_query_input, limit)
+            elif graph_query_type == "sessions_in_room":
+                return tool.find_sessions_in_room(graph_query_input, limit)
         
-        return results
+        # Default to hybrid search
+        return tool.hybrid_search(collection, query, limit)
 
+# --- Example Usage ---
 
-
-
-# Tool function for integration with existing agent architecture
-def vector_search_tool(ctx, query: str, search_type: str = "hybrid", collection: str = "SnT25_GlossaryTerm", 
-                      limit: int = 5, filters: Optional[Dict[str, Any]] = None) -> List[SearchResult]:
-    """
-    Vector search tool function for CTBTO Avatar System
-    Implements double-wrap protection pattern for context handling
-    
-    Args:
-        ctx: RunContextWrapper[SimpleContext] - Agent execution context
-        query: Search query text
-        search_type: Type of search ("semantic", "keyword", "hybrid", "filtered", "rag")
-        collection: Target collection ("SnT25_GlossaryTerm", "SnT25_Session")
-        limit: Maximum number of results
-        filters: Optional filters for search
-    
-    Returns:
-        List of SearchResult objects
-    """
-    # Implement double-wrap protection pattern
-    context = ctx.context
-    if hasattr(context, 'context'):
-        context = context.context
-    
-    # Safe access to context properties
-    session_id = context.session_id
-    language = context.language
-    
-    # Log search for session tracking
-    logger.info(f"Vector search - Session: {session_id}, Query: {query}, Type: {search_type}, Collection: {collection}")
-    
-    # Initialize search tool
-    search_tool = VectorSearchTool()
-    
-    # Create search query
-    search_query = SearchQuery(
-        query_text=query,
-        search_type=search_type,
-        collection=collection,
-        filters=filters,
-        limit=limit
-    )
-    
-    # Execute search
-    results = search_tool.search(search_query)
-    
-    # Store results in session state for potential follow-up queries
-    context.session_state[f"last_search_{session_id}"] = {
-        "query": query,
-        "search_type": search_type,
-        "collection": collection,
-        "results_count": len(results) if isinstance(results, list) else 1,
-        "timestamp": "current_time"  # You can replace with actual timestamp
-    }
-    
-    return results
-
-
-# Example usage functions for testing
-def example_conference_searches():
-    """Example searches for CTBTO conference data"""
-    search_tool = VectorSearchTool()
-    
-    # Example 1: Semantic search for research topics
-    print("=== Semantic Search: Machine Learning ===")
-    results = search_tool.semantic_search(
-        "machine learning seismic detection",
-        "SnT25_GlossaryTerm",
-        limit=3
-    )
-    for result in results:
-        print(f"Title: {result.title}")
-        print(f"Relevance: {result.relevance_score:.3f}")
-        print(f"Content: {result.content[:200]}...")
-        print()
-    
-    # Example 2: Hybrid search for sessions
-    print("=== Hybrid Search: Morning Workshops ===")
-    results = search_tool.hybrid_search(
-        "workshop training hands-on",
-        "SnT25_Session",
-        limit=3,
-        filters={"time_of_day": "morning", "is_interactive": True}
-    )
-    for result in results:
-        print(f"Title: {result.title}")
-        print(f"Relevance: {result.relevance_score:.3f}")
-        print()
-    
-    # Example 3: Filtered search by venue
-    print("=== Filtered Search: Festsaal Sessions ===")
-    results = search_tool.filtered_search(
-        {"venue": "Festsaal"},
-        "SnT25_Session",
-        limit=3
-    )
-    for result in results:
-        print(f"Title: {result.title}")
-        print(f"Venue: {result.metadata.get('venue', 'N/A')}")
-        print()
-    
-    # Example 4: RAG search
-    print("=== RAG Search: Nuclear Detection ===")
-    rag_result = search_tool.rag_search(
-        "How does nuclear detection work?",
-        "SnT25_GlossaryTerm",
-        limit=3
-    )
-    print(f"Generated Response: {rag_result['generated_response']}")
-    print(f"Based on {len(rag_result['search_results'])} sources")
+def run_graph_examples():
+    """Demonstrates the enhanced search capabilities."""
+    with VectorSearchTool() as tool:
+        print("\n--- Enhanced Conference Search Test ---")
+        results = tool.enhanced_conference_search("nuclear monitoring verification")
+        
+        print(f"Sessions found: {len(results['sessions'])}")
+        for session in results['sessions'][:2]:
+            print(f"  • {session.title} (score: {session.relevance_score:.3f})")
+            if session.related_speakers:
+                speakers = [s['name'] for s in session.related_speakers]
+                print(f"    Speakers: {', '.join(speakers)}")
+        
+        print(f"\nSpeakers found: {len(results['speakers'])}")
+        for speaker in results['speakers'][:2]:
+            print(f"  • {speaker.title}")
+        
+        print(f"\nTopics found: {len(results['topics'])}")
+        for topic in results['topics'][:2]:
+            print(f"  • {topic.title}")
+        
+        print("\n--- Room-Based Search Test ---")
+        room_sessions = tool.find_sessions_in_room("Festsaal")
+        print(f"Sessions in Festsaal: {len(room_sessions)}")
+        for session in room_sessions[:3]:
+            print(f"  • {session.title}")
+            print(f"    Type: {session.metadata.get('sessionType', 'Unknown')}")
+            print(f"    Time: {session.metadata.get('startTime', 'Unknown')}")
+            if session.related_speakers:
+                speakers = [s['name'] for s in session.related_speakers]
+                print(f"    Speakers: {', '.join(speakers)}")
+        
+        print("\n--- Graph Lookup Test ---")
+        speaker_sessions = tool.find_sessions_by_speaker("Samantha Patrick")
+        print(f"Sessions by Samantha Patrick: {len(speaker_sessions)}")
+        for session in speaker_sessions:
+            print(f"  • {session.title}")
+            if session.related_topics:
+                topics = [t['title'] for t in session.related_topics]
+                print(f"    Topics: {', '.join(topics)}")
 
 
 if __name__ == "__main__":
-    # Run example searches
-    example_conference_searches() 
+    run_graph_examples() 
