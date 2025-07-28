@@ -1,7 +1,12 @@
-# Rosa Custom Backend - Critical Setup & Troubleshooting Guide
 
-## 🎯 **ALWAYS Run From Correct Directory**
-**CRITICAL**: Rosa Custom Backend must ALWAYS be run from the `Rosa_custom_backend/` directory, NOT from `tavus-examples/`
+
+# Rosa Custom Backend - Setup & Phase 1 Development Guide
+
+🎯 **Current Phase**: Sticky Interface MVP for Kiosk Display
+📋 **Complete Roadmap**: `Rosa_custom_backend/dev_docs/async-io-optimization-course.md`
+
+## 🎯 **CRITICAL: Always Run From Correct Directory**
+**ESSENTIAL**: Rosa Custom Backend MUST be run from `Rosa_custom_backend/` directory
 
 ```bash
 # ✅ CORRECT
@@ -13,130 +18,187 @@ cd tavus-examples/
 bun start
 ```
 
-## 📦 **Required Dependencies Checklist**
-When setting up on a new computer, ALWAYS verify these dependencies are installed:
+## 📦 **Dependencies for Phase 1 Development**
 
-### Python Dependencies (Critical)
+### **Python Backend (Essential)**
 ```bash
-# Navigate to Rosa_custom_backend directory first
 cd Rosa_custom_backend/
-
-# Activate virtual environment
 source venv/bin/activate
-
-# Install ALL required packages from requirements.txt
 pip install -r backend/requirements.txt
 
-# CRITICAL: Verify weaviate-client is installed
+# CRITICAL for RAG functionality:
 pip list | grep weaviate-client
-# Should show: weaviate-client    4.16.4 (or latest)
 ```
 
-### Most Common Missing Dependency
-**`weaviate-client`** - This package is ESSENTIAL for RAG functionality:
-- **Symptom**: RAG queries fail with "No module named 'weaviate'"
-- **Fix**: `pip install weaviate-client`
-- **Verification**: `python -c "import weaviate; print('✅ Weaviate OK')"`
-
-## 🔧 **Environment Variables**
-Ensure `.env` file exists in `Rosa_custom_backend/` with:
-```env
-TAVUS_API_KEY=your_key_here
-OPENAI_API_KEY=your_key_here
-WEATHER_API_KEY=your_key_here
-ROSA_API_KEY=rosa-backend-key-2025
-WEAVIATE_API_KEY=your_weaviate_key
-WEAVIATE_URL=your_weaviate_cluster_url
-```
-
-## 🚨 **Common Startup Issues & Solutions**
-
-### Issue 1: "Script not found 'start'"
-- **Cause**: Running from wrong directory
-- **Solution**: Always run from `Rosa_custom_backend/` directory
-
-### Issue 2: "No module named 'weaviate'"
-- **Cause**: Missing weaviate-client package
-- **Solution**: `pip install weaviate-client`
-- **Verification**: Test import in backend directory
-
-### Issue 3: Backend fails to start
-- **Cause**: Path issues in startup script
-- **Check**: Virtual environment must be in `Rosa_custom_backend/venv/`
-- **Check**: Backend script must be at `Rosa_custom_backend/backend/rosa_pattern1_api.py`
-
-## 🏗️ **Correct Directory Structure**
-```
-Rosa_custom_backend/           ← RUN FROM HERE
-├── .env                      ← Environment variables
-├── venv/                     ← Virtual environment
-├── package.json              ← Frontend dependencies
-├── start-rosa-with-ngrok.sh  ← Main startup script
-├── backend/
-│   ├── requirements.txt      ← Python dependencies
-│   ├── rosa_pattern1_api.py  ← Backend server
-│   ├── Agent1.py            ← Main agent
-│   └── vector_search_tool.py ← Weaviate integration
-└── src/                     ← React frontend
-```
-
-## 🧪 **Quick Setup Verification**
-Run these commands to verify setup on a new computer:
-
+### **Frontend Dependencies (Phase 1 Focus)**
 ```bash
-# 1. Navigate to correct directory
-cd Rosa_custom_backend/
-
-# 2. Check virtual environment
-ls venv/bin/activate
-
-# 3. Activate and verify Python packages
-source venv/bin/activate
-pip list | grep -E "(weaviate|openai|fastapi)"
-
-# 4. Test Weaviate import
-python -c "import sys; sys.path.append('backend'); import weaviate; print('✅ All imports OK')"
-
-# 5. Check environment variables
-python -c "
-import os
-from dotenv import load_dotenv
-load_dotenv('.env')
-required = ['TAVUS_API_KEY', 'OPENAI_API_KEY', 'WEAVIATE_API_KEY', 'WEAVIATE_URL']
-missing = [k for k in required if not os.getenv(k)]
-print('✅ Environment OK' if not missing else f'❌ Missing: {missing}')
-"
-
-# 6. Start application
-bun start
+# Daily.co React hooks for AudioWave component
+npm list @daily-co/daily-react
+# Should be installed - used for:
+# - useLocalSessionId() 
+# - useAudioLevelObserver()
+# - useActiveSpeakerId()
 ```
 
-## 🔍 **Debugging RAG Issues**
-If RAG queries fail, check these in order:
+### **AudioWave Component Dependencies**
+The AudioWave component requires these Daily React hooks:
+- `useLocalSessionId` - Get local participant ID
+- `useAudioLevelObserver` - Monitor audio levels
+- `useActiveSpeakerId` - Detect active speaker
 
-1. **Weaviate client installed**: `pip list | grep weaviate`
-2. **Environment variables set**: Check `.env` file
-3. **Backend logs**: Look for debug messages starting with `🔧 DEBUG:`
-4. **Expected success flow**:
-   ```
-   🔧 DEBUG: Starting RAG search for 'query', callback present: True
-   🔧 DEBUG: RAG search completed, success: True
-   🔧 DEBUG: About to call RAG callback
-   🔍 RAG function called with args: {...}
-   💾 Stored RAG data for session {...}
-   ```
+**Reference**: `Rosa_custom_backend/src/components/cvi/components/audio-wave/`
 
-## ⚠️ **Critical Reminders**
-- **ALWAYS** run from `Rosa_custom_backend/` directory
-- **ALWAYS** activate virtual environment before installing packages
-- **ALWAYS** verify `weaviate-client` is installed when setting up on new computer
-- **NEVER** run startup commands from `tavus-examples/` parent directory
-- **USE** `python3` explicitly on macOS to avoid Python 2.x fallback
+## 🔧 **Environment Variables (.env)**
+**✅ ALREADY CONFIGURED**: All API keys are set up in `Rosa_custom_backend/.env`
 
-## 🎯 **Success Indicators**
-When everything is working correctly, you should see:
-- ✅ Backend starts without path errors
-- ✅ RAG queries return data (not silent failures)
-- ✅ Debug logs show successful callback execution
+```env
+# ✅ TAVUS API CONFIGURATION (Both backend & frontend)
+TAVUS_API_KEY=6df0d7cd515942e5bd3b580899315904
+VITE_TAVUS_API_KEY=6df0d7cd515942e5bd3b580899315904
+
+# ✅ BACKEND API KEYS (All configured)
+OPENAI_API_KEY=sk-proj-Rgx5EH3h0O619LKjzKyq5lw6MrHCIVah...
+WEATHER_API_KEY=3bd6a30282d54d239d2205749241308
+ROSA_API_KEY=rosa-backend-key-2025
+
+# ✅ RAG FUNCTIONALITY (Weaviate configured)
+WEAVIATE_API_KEY=TlVlTCsrL0FkakJMRVltV19iU2svdUVROU5D...
+WEAVIATE_URL=dsitkhgrg6znqnwgjgpw.c0.europe-west3.gcp.weaviate.cloud
+```
+
+**No additional setup required** - environment is ready for Phase 1 development.
+
+## 🚨 **Common Phase 1 Setup Issues**
+
+### **Issue 1: AudioWave Component Not Found**
+- **Symptom**: Import error for AudioWave component
+- **Solution**: Check `Rosa_custom_backend/src/components/cvi/components/audio-wave/index.tsx` exists
+- **Verify**: Component exports `AudioWave` with proper Daily hooks
+
+### **Issue 2: Daily Hooks Not Working**
+- **Symptom**: `useLocalSessionId()` returns undefined
+- **Cause**: CVIProvider not wrapping app or Daily connection not established
+- **Solution**: Ensure conversation is in 'joined-meeting' state
+
+### **Issue 3: Kiosk CSS Not Applied**
+- **Symptom**: Text too small, wrong positioning
+- **Solution**: Apply kiosk design tokens (18px min font, 15vh sticky height)
+
+## 🏗️ **Phase 1 Development Structure**
+```
+Rosa_custom_backend/           ← ALWAYS RUN FROM HERE
+├── .env                      ← Environment variables
+├── src/components/
+│   ├── StickyInterface.tsx   ← TO CREATE (Phase 1)
+│   ├── ConversationStrip.tsx ← TO CREATE (Phase 1)
+│   ├── SuggestionCarousel.tsx← TO CREATE (Phase 1)
+│   ├── cvi/components/
+│   │   └── audio-wave/       ← EXISTS (use this)
+│   │       ├── index.tsx     ← AudioWave component
+│   │       └── audio-wave.module.css
+│   ├── WeatherHandler.tsx    ← REFERENCE PATTERN
+│   └── RosaDemo.tsx         ← MAIN STATE CONTAINER
+└── backend/
+    ├── rosa_pattern1_api.py  ← Backend patterns
+    └── requirements.txt      ← Python dependencies
+```
+
+## 🧪 **Phase 1 Development Verification**
+```bash
+# 1. Navigate and start
+cd Rosa_custom_backend/
+bun start
+
+# 2. Test AudioWave component exists
+ls src/components/cvi/components/audio-wave/index.tsx
+
+# 3. Verify Daily hooks available
+grep -r "useLocalSessionId\|useAudioLevelObserver" src/
+
+# 4. Check backend RAG endpoint
+curl http://localhost:8000/latest-rag/test-session
+
+# 5. Test conversation state
+# Open browser, join conversation, speak - should see AudioWave animation
+```
+
+## 🎨 **Kiosk Development Guidelines**
+
+### **Design Requirements (STRICT)**
+```css
+/* Minimum requirements for kiosk display */
+.kiosk-component {
+  font-size: 18px;        /* MINIMUM for standing users */
+  font-weight: 600;       /* Bold for visibility */
+  line-height: 1.4;       /* Readable spacing */
+  color: #1a1a1a;         /* High contrast */
+}
+
+/* Sticky interface positioning */
+.sticky-interface {
+  position: fixed;
+  bottom: 0;
+  height: 15vh;           /* 15% of viewport */
+  width: 100%;
+  z-index: 1000;
+}
+```
+
+### **Voice-Only Interaction Rules**
+- ❌ **NO** touch/click handlers
+- ❌ **NO** close buttons or dismiss actions
+- ❌ **NO** scrollable content
+- ✅ **YES** to visual feedback only
+- ✅ **YES** to audio-driven state changes
+
+## 📋 **Phase 1 Ready Checklist**
+
+### **Backend Status**
+- [x] Weather tool with async generation working
+- [x] RAG tool generating cards (styling needs fix)
+- [x] Fire-and-forget pattern deployed
+- [x] Session management working
+- [ ] Suggestion generation endpoint (to add)
+
+### **Frontend Status** 
+- [x] AudioWave component exists and works
+- [x] Daily hooks integration ready
+- [x] Polling patterns established
+- [x] Card system infrastructure ready
+- [ ] Sticky interface components (Phase 1 goals)
+
+### **Development Environment**
+- [ ] Can start application from Rosa_custom_backend/
+- [ ] Backend starts without path errors
+- [ ] Frontend builds without Daily hook errors
+- [ ] AudioWave component renders in conversation
+- [ ] Kiosk design tokens defined and ready
+
+## 🔍 **Phase 1 Debug Flow**
+When sticky interface components don't work:
+
+1. **Check conversation state**: Must be 'joined-meeting'
+2. **Verify AudioWave**: Should animate when speaking
+3. **Check polling**: Look for 2-second interval requests
+4. **Validate backend**: RAG/weather endpoints responding
+5. **Inspect positioning**: Sticky interface at bottom 15vh
+
+## 📝 **Key Reference Files**
+- `WeatherHandler.tsx` - Proven polling pattern to copy
+- `audio-wave/index.tsx` - AudioWave integration example
+- `RosaDemo.tsx` - Main state management patterns
+- `async-io-optimization-course.md` - Complete Phase 1 plan
+
+## ⚠️ **Phase 1 Critical Reminders**
+- **FOCUS**: Sticky interface MVP only
+- **NO**: Complex features, authentication, or touch interactions
+- **YES**: AudioWave, live captions, suggestion carousel
+- **KIOSK**: Large fonts, voice-only, standing user experience
+
+**Success = Sticky interface working with AudioWave + live captions + suggestions**
+
+- ✅ Frontend displays RAG cards with session information
+- ✅ No "No module named 'weaviate'" errors
+
 - ✅ Frontend displays RAG cards with session information
 - ✅ No "No module named 'weaviate'" errors

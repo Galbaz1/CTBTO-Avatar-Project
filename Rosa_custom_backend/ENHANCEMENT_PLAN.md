@@ -1,7 +1,7 @@
 # Rosa Enhancement Plan: Weather API + Generative UI
 
 ## Overview
-Enhance Rosa (custom LLM) with weather API functionality and generative UI components, inspired by the streaming_components example while maintaining compatibility with Tavus CVI and Daily.co integration.
+Enhance Rosa (custom LLM) with weather API functionality and generative UI components while maintaining compatibility with Tavus CVI and Daily.co integration.
 
 ## Current Architecture Analysis
 
@@ -90,7 +90,7 @@ def generate_with_components():
 ### Phase 2: Frontend Generative UI Integration
 
 #### 2.1 Weather Component Creation
-- Copy `WeatherCard.tsx` pattern from streaming_components
+- Implement `WeatherCard.tsx` component pattern
 - Adapt styling to match Rosa's design system
 - Add progressive loading states for real-time updates
 
@@ -108,7 +108,7 @@ const parseProgressiveJSON = (content: string): {
   isJsonDetected: boolean;
   isComplete: boolean;
 } => {
-  // Implementation similar to streaming_components
+  // Implementation using proven Rosa patterns
 }
 ```
 
@@ -263,4 +263,4 @@ useDailyEvent('app-message', (event) => {
 5. Integrate with Tavus conversation flow
 6. Comprehensive testing and optimization
 
-This plan maintains Rosa's existing CTBTO expertise while adding weather capabilities and generative UI, following proven patterns from the streaming_components example while respecting the Tavus/Daily.co architecture constraints. 
+This plan maintains Rosa's existing CTBTO expertise while adding weather capabilities and generative UI, following proven Rosa patterns while respecting the Tavus/Daily.co architecture constraints. 

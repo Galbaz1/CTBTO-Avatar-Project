@@ -127,14 +127,14 @@ echo "TAVUS_API_KEY=your_tavus_key_here" >> backend/.env
 npm run start  # Starts both backend and frontend with ngrok
 ```
 
-### Option 2: Simple Quickstart
+### Option 2: Explore Rosa Components
 
-For a minimal example:
+To understand the implementation patterns:
 
 ```bash
-cd refrence_only/examples/cvi-quickstart-react
-npm install
-npm run dev
+# Navigate to Rosa Custom Backend
+cd Rosa_custom_backend
+# Study the proven patterns in WeatherHandler.tsx and RosaDemo.tsx
 ```
 
 ## 📁 Project Structure
@@ -151,12 +151,6 @@ CTBTO-Avatar-Project/
 │   │   └── App.tsx              # Main application
 │   ├── dev_docs/                 # 📚 Development documentation
 │   └── package.json              # Frontend dependencies
-│
-├── refrence_only/examples/        # 📖 Reference implementations
-│   ├── cvi-quickstart-react/     # Basic CVI integration
-│   ├── cvi-frontend-backend-tools/ # Tool integration example
-│   ├── cvi-hover-over-website/   # Website overlay example
-│   └── [other examples]/         # Additional use cases
 │
 └── package.json                  # Root dependencies
 ```
@@ -229,12 +223,11 @@ Every tool follows the same proven pattern:
 
 ### Using Reference Examples
 
-Each example is self-contained:
+The Rosa Custom Backend is self-contained and ready for Phase 1 development:
 
 ```bash
-cd refrence_only/examples/[example-name]
-npm install
-npm run dev
+cd Rosa_custom_backend
+bun start
 ```
 
 ## 🧠 Core Concepts
@@ -394,9 +387,9 @@ npm run start
 
 ### Getting Help
 
-1. **Documentation**: Check `dev_docs/` folder in Rosa Custom Backend
-2. **Examples**: Browse `refrence_only/examples/` for patterns
-3. **API Reference**: Complete Tavus documentation in `tavus.txt`
+1. **Documentation**: Check `Rosa_custom_backend/dev_docs/` folder
+2. **Patterns**: Study `WeatherHandler.tsx` and `RosaDemo.tsx` implementations
+3. **API Reference**: Complete Tavus documentation in `Rosa_custom_backend/dev_docs/tavus.txt`
 
 ### Contributing
 
