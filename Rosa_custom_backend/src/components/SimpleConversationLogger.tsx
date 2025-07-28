@@ -24,11 +24,11 @@ export const SimpleConversationLogger: React.FC<SimpleConversationLoggerProps> =
   // Log important connection status changes only
   useEffect(() => {
     if (meetingState === 'joined-meeting') {
-      simpleLog.status('Connected to ROSA', 'info');
+      console.info('✅ Connected to ROSA');
     } else if (meetingState === 'left-meeting') {
-      simpleLog.status('Disconnected from ROSA', 'info');
+      console.info('❌ Disconnected from ROSA');
     } else if (meetingState === 'error') {
-      simpleLog.status('Connection error', 'error');
+      console.error('🚨 Connection error');
     }
   }, [meetingState]);
 

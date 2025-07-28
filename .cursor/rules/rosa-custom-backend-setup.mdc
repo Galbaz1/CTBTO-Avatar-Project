@@ -1,0 +1,142 @@
+# Rosa Custom Backend - Critical Setup & Troubleshooting Guide
+
+## 🎯 **ALWAYS Run From Correct Directory**
+**CRITICAL**: Rosa Custom Backend must ALWAYS be run from the `Rosa_custom_backend/` directory, NOT from `tavus-examples/`
+
+```bash
+# ✅ CORRECT
+cd Rosa_custom_backend/
+bun start
+
+# ❌ WRONG - Will fail with "Script not found 'start'"
+cd tavus-examples/
+bun start
+```
+
+## 📦 **Required Dependencies Checklist**
+When setting up on a new computer, ALWAYS verify these dependencies are installed:
+
+### Python Dependencies (Critical)
+```bash
+# Navigate to Rosa_custom_backend directory first
+cd Rosa_custom_backend/
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Install ALL required packages from requirements.txt
+pip install -r backend/requirements.txt
+
+# CRITICAL: Verify weaviate-client is installed
+pip list | grep weaviate-client
+# Should show: weaviate-client    4.16.4 (or latest)
+```
+
+### Most Common Missing Dependency
+**`weaviate-client`** - This package is ESSENTIAL for RAG functionality:
+- **Symptom**: RAG queries fail with "No module named 'weaviate'"
+- **Fix**: `pip install weaviate-client`
+- **Verification**: `python -c "import weaviate; print('✅ Weaviate OK')"`
+
+## 🔧 **Environment Variables**
+Ensure `.env` file exists in `Rosa_custom_backend/` with:
+```env
+TAVUS_API_KEY=your_key_here
+OPENAI_API_KEY=your_key_here
+WEATHER_API_KEY=your_key_here
+ROSA_API_KEY=rosa-backend-key-2025
+WEAVIATE_API_KEY=your_weaviate_key
+WEAVIATE_URL=your_weaviate_cluster_url
+```
+
+## 🚨 **Common Startup Issues & Solutions**
+
+### Issue 1: "Script not found 'start'"
+- **Cause**: Running from wrong directory
+- **Solution**: Always run from `Rosa_custom_backend/` directory
+
+### Issue 2: "No module named 'weaviate'"
+- **Cause**: Missing weaviate-client package
+- **Solution**: `pip install weaviate-client`
+- **Verification**: Test import in backend directory
+
+### Issue 3: Backend fails to start
+- **Cause**: Path issues in startup script
+- **Check**: Virtual environment must be in `Rosa_custom_backend/venv/`
+- **Check**: Backend script must be at `Rosa_custom_backend/backend/rosa_pattern1_api.py`
+
+## 🏗️ **Correct Directory Structure**
+```
+Rosa_custom_backend/           ← RUN FROM HERE
+├── .env                      ← Environment variables
+├── venv/                     ← Virtual environment
+├── package.json              ← Frontend dependencies
+├── start-rosa-with-ngrok.sh  ← Main startup script
+├── backend/
+│   ├── requirements.txt      ← Python dependencies
+│   ├── rosa_pattern1_api.py  ← Backend server
+│   ├── Agent1.py            ← Main agent
+│   └── vector_search_tool.py ← Weaviate integration
+└── src/                     ← React frontend
+```
+
+## 🧪 **Quick Setup Verification**
+Run these commands to verify setup on a new computer:
+
+```bash
+# 1. Navigate to correct directory
+cd Rosa_custom_backend/
+
+# 2. Check virtual environment
+ls venv/bin/activate
+
+# 3. Activate and verify Python packages
+source venv/bin/activate
+pip list | grep -E "(weaviate|openai|fastapi)"
+
+# 4. Test Weaviate import
+python -c "import sys; sys.path.append('backend'); import weaviate; print('✅ All imports OK')"
+
+# 5. Check environment variables
+python -c "
+import os
+from dotenv import load_dotenv
+load_dotenv('.env')
+required = ['TAVUS_API_KEY', 'OPENAI_API_KEY', 'WEAVIATE_API_KEY', 'WEAVIATE_URL']
+missing = [k for k in required if not os.getenv(k)]
+print('✅ Environment OK' if not missing else f'❌ Missing: {missing}')
+"
+
+# 6. Start application
+bun start
+```
+
+## 🔍 **Debugging RAG Issues**
+If RAG queries fail, check these in order:
+
+1. **Weaviate client installed**: `pip list | grep weaviate`
+2. **Environment variables set**: Check `.env` file
+3. **Backend logs**: Look for debug messages starting with `🔧 DEBUG:`
+4. **Expected success flow**:
+   ```
+   🔧 DEBUG: Starting RAG search for 'query', callback present: True
+   🔧 DEBUG: RAG search completed, success: True
+   🔧 DEBUG: About to call RAG callback
+   🔍 RAG function called with args: {...}
+   💾 Stored RAG data for session {...}
+   ```
+
+## ⚠️ **Critical Reminders**
+- **ALWAYS** run from `Rosa_custom_backend/` directory
+- **ALWAYS** activate virtual environment before installing packages
+- **ALWAYS** verify `weaviate-client` is installed when setting up on new computer
+- **NEVER** run startup commands from `tavus-examples/` parent directory
+- **USE** `python3` explicitly on macOS to avoid Python 2.x fallback
+
+## 🎯 **Success Indicators**
+When everything is working correctly, you should see:
+- ✅ Backend starts without path errors
+- ✅ RAG queries return data (not silent failures)
+- ✅ Debug logs show successful callback execution
+- ✅ Frontend displays RAG cards with session information
+- ✅ No "No module named 'weaviate'" errors

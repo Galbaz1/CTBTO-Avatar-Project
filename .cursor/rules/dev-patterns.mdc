@@ -1,4 +1,208 @@
+---
+alwaysApply: true
+---
+
 # AI Agent Development Patterns: Rosa Custom Backend
+🎯 **Primary Objective**
+Maintain and extend the Rosa Custom backend using proven architectural patterns. Follow established patterns exactly to ensure system stability and consistency.
+
+## ✅ **WHAT TO DO (Required Patterns)**
+
+### 1. **Tool Implementation Pattern**
+Every new tool MUST follow this **exact sequence**:
+
+**Backend (Python/FastAPI):**
+1. Define OpenAI function in `tools` list (rosa_pattern1_api.py)
+2. Implement function handler in `generate()` method with session capture
+3. Store tool data using `rosa_backend.session_[tool]_data[session_id]`
+4. Create GET endpoint: `/latest-{toolname}/{session_id}`
+5. Use async card generation with `asyncio.create_task()` for non-blocking
+
+**Frontend (React/TypeScript):**
+1. Create `{ToolName}Handler.tsx` component with proper polling
+2. Add floating card components using existing card architecture
+3. Implement proper state management in main component (RosaDemo.tsx)
+4. Use ES6 imports (NEVER `require()` in browser)
+
+### 2. **Floating Card Architecture (CRITICAL)**
+```typescript
+// Correct pattern for floating cards:
+const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+const [showWeatherCard, setShowWeatherCard] = useState(false);
+
+// Handler pattern:
+const handleWeatherUpdate = useCallback((weather: WeatherData) => {
+  setWeatherData(weather);
+  setShowWeatherCard(true); // ✅ Show floating card
+}, [conversationId]);
+
+// Render floating cards OUTSIDE main content:
+<WeatherCard 
+  weatherData={weatherData}
+  isVisible={showWeatherCard}
+  onClose={() => setShowWeatherCard(false)}
+/>
+```
+
+### 3. **Polling Pattern (MANDATORY)**
+```typescript
+// Every handler MUST use this exact polling pattern:
+useEffect(() => {
+  if (!daily || meetingState !== 'joined-meeting' || !conversationId) {
+    return;
+  }
+
+  const poll = async () => {
+    try {
+      const response = await fetch(`http://localhost:8000/latest-${toolname}/${conversationId}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data && JSON.stringify(data) !== JSON.stringify(lastData)) {
+          onUpdate(data);
+        }
+      }
+    } catch (error) {
+      console.error(`Error polling ${toolname}:`, error);
+    }
+  };
+
+  const interval = setInterval(poll, 2000);
+  return () => clearInterval(interval);
+}, [daily, meetingState, conversationId, onUpdate]);
+```
+
+### 4. **Import Patterns (CRITICAL)**
+```typescript
+// ✅ ALWAYS use ES6 imports in frontend:
+import { timingTracker } from '../utils/timingTracker';
+import { WeatherCard } from './WeatherCard';
+
+// ❌ NEVER use require() in browser:
+const { timingTracker } = require('../utils/timingTracker'); // BREAKS
+```
+
+### 5. **Async Card Generation Pattern**
+```python
+# Backend: Fire-and-forget pattern for cards
+def handle_rag_function(args, rag_data, captured_session_id=session_id):
+    # Store data immediately for frontend
+    rosa_backend.store_rag_data_for_session(captured_session_id, rag_data)
+    
+    # Fire async card generation (don't await!)
+    asyncio.create_task(generate_cards_async(
+        user_message=user_message,
+        rag_data=rag_data,
+        session_id=captured_session_id,
+        backend=rosa_backend
+    ))
+```
+
+### 6. **Session Management Pattern**
+```python
+# ALWAYS use this backend session pattern:
+class RosaBackend:
+    def __init__(self):
+        self.sessions = {}
+        self.session_weather_data = {}  # Per-tool data storage
+        self.session_rag_data = {}
+        
+    def store_rag_data_for_session(self, session_id: str, rag_data: dict):
+        if session_id not in self.session_rag_data:
+            self.session_rag_data[session_id] = {}
+        self.session_rag_data[session_id].update(rag_data)
+```
+
+## ❌ **WHAT NOT TO DO (Strict Prohibitions)**
+
+### 1. **Architecture Violations - FORBIDDEN**
+- ❌ **DO NOT** modify the polling interval (keep 2 seconds)
+- ❌ **DO NOT** use WebSockets or Server-Sent Events
+- ❌ **DO NOT** use `require()` statements in frontend code
+- ❌ **DO NOT** await async card generation in response flow
+- ❌ **DO NOT** change the session management structure
+- ❌ **DO NOT** create new architectural patterns without approval
+
+### 2. **Card Rendering Anti-Patterns**
+- ❌ **DO NOT** render cards as main page content
+- ❌ **DO NOT** create separate card components for each tool
+- ❌ **DO NOT** use content switching for card display
+- ❌ **DO NOT** implement modal dialogs for tool results
+- ❌ **DO NOT** block main content with cards
+
+### 3. **Performance Anti-Patterns**
+- ❌ **DO NOT** use BackgroundTasks for during-request operations
+- ❌ **DO NOT** await card generation in tool handlers
+- ❌ **DO NOT** implement real-time subscriptions
+- ❌ **DO NOT** add caching layers without clear need
+- ❌ **DO NOT** create complex state management
+
+### 4. **Code Quality Violations**
+- ❌ **DO NOT** mix Node.js patterns with browser code
+- ❌ **DO NOT** implement dependency injection patterns
+- ❌ **DO NOT** create abstract base classes for tools
+- ❌ **DO NOT** add authentication to tool endpoints
+- ❌ **DO NOT** implement tool registries or plugin systems
+
+## 📋 **Implementation Checklist**
+
+### Backend Implementation:
+- [ ] Add function to `tools` list in `rosa_pattern1_api.py`
+- [ ] Implement handler in `generate()` method with session capture
+- [ ] Store data using `session_[tool]_data[session_id]` pattern
+- [ ] Add GET endpoint `/latest-{toolname}/{session_id}`
+- [ ] Use `asyncio.create_task()` for card generation
+- [ ] Test endpoint: `curl http://localhost:8000/latest-{toolname}/test-session`
+
+### Frontend Implementation:
+- [ ] Create `{ToolName}Handler.tsx` with proper polling pattern
+- [ ] Add floating card state to main component
+- [ ] Implement card update handlers with `useCallback`
+- [ ] Add floating card rendering with proper positioning
+- [ ] Use ES6 imports for all dependencies
+- [ ] Test card appearance and interaction
+
+## 🎯 **Critical Success Patterns**
+
+### **Response Time Targets:**
+- Weather Tool: 1-3 seconds
+- RAG Tool: 2-4 seconds  
+- Card Generation: 10-15 seconds (async)
+
+### **Card Display Flow:**
+1. User query triggers tool function
+2. Tool stores data immediately (< 2 seconds)
+3. Frontend polls and displays cards
+4. Async card generation runs in background (10-15 seconds)
+5. Enhanced cards appear without blocking
+
+### **Error Handling:**
+- Silent failures with console logs only
+- No user-facing error dialogs
+- Graceful degradation for missing data
+- Session isolation maintained
+
+## 📝 **Reference Implementation**
+
+**Always refer to these as canonical patterns:**
+- `WeatherHandler.tsx` - Correct polling implementation
+- `WeatherCard.tsx` - Floating card architecture  
+- `RosaDemo.tsx` - Main component state management
+- `rosa_pattern1_api.py` - Backend tool integration
+
+## ⚠️ **WARNING FOR AI AGENTS**
+
+**The weather tool + floating card pattern is PROVEN and WORKING.** 
+
+- When implementing new tools, copy the weather pattern exactly
+- Only modify tool-specific data handling, never the architecture
+- Test each tool in isolation before integration
+- Never "improve" or "optimize" established patterns
+- Deviating from these patterns will break the system
+
+**When in doubt: Copy weather pattern exactly, change only tool-specific logic.**
+Keep tool implementations simple and focused on their specific purpose
+⚠️ WARNING
+Deviating from these patterns will break the established architecture. The weather tool pattern has been thoroughly tested and proven to work. DO NOT attempt to "improve" or "optimize" it. Copy it exactly for each new tool.# AI Agent Development Patterns: Rosa Custom Backend
 🎯 **Primary Objective**
 Maintain and extend the Rosa Custom backend using proven architectural patterns. Follow established patterns exactly to ensure system stability and consistency.
 

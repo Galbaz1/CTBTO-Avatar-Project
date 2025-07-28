@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SessionCardData } from '../../../types';
+import type { SessionCardData } from '../../../types';
 
 interface SessionHandlerProps {
   meetingState: string;

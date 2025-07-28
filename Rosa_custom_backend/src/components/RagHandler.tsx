@@ -57,7 +57,8 @@ export const RagHandler: React.FC<RagHandlerProps> = ({
           });
         }
       } catch (error) {
-        loggers.connection.error(`RAG polling error: ${error.message}`);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        loggers.connection.error(`RAG polling error: ${errorMessage}`);
       }
     };
 

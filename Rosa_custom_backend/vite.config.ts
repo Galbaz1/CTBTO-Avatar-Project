@@ -1,11 +1,10 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
-  // Load env file relative to <root>
-  const env = loadEnv(mode, process.cwd(), '')
-  
+// Vite Configuration for Rosa Custom Backend
+// API Key Handling: We use VITE_TAVUS_API_KEY directly from .env
+// No manual mapping needed - Vite automatically exposes VITE_ prefixed variables
+export default defineConfig(() => {
   return {
     plugins: [react()],
     resolve: {
@@ -15,8 +14,6 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       global: 'globalThis',
-      // Make TAVUS_API_KEY available as VITE_TAVUS_API_KEY for compatibility
-      'import.meta.env.VITE_TAVUS_API_KEY': JSON.stringify(env.TAVUS_API_KEY),
     },
   }
 })

@@ -48,7 +48,7 @@ export const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({
   schedule,
   viewMode = 'day',
   compact = false,
-  showToday = true,
+  showToday: _showToday = true,
   onSessionClick,
   onSpeakerClick,
   onVenueClick,

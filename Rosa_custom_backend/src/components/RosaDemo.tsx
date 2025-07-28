@@ -158,48 +158,6 @@ export const RosaDemo: React.FC = () => {
     }
   }, [conversationId]);
 
-  // Monitor conversation for RAG trigger keywords
-  const handleConversationMessage = useCallback((message: string, isFromUser: boolean) => {
-    if (!isFromUser) return; // Only monitor user messages
-    
-    const ragKeywords = [
-      'sessions', 'speakers', 'conference', 'workshop', 'presentation',
-      'schedule', 'when', 'where', 'who', 'what sessions', 'tell me about',
-      'find', 'show me', 'interested in', 'looking for', 'quantum', 'nuclear',
-      'seismology', 'monitoring', 'verification', 'ctbto', 'detection'
-    ];
-    
-    const messageWords = message.toLowerCase();
-    const hasRagKeywords = ragKeywords.some(keyword => messageWords.includes(keyword));
-    
-    if (hasRagKeywords) {
-      console.log('🔍 Detected potential RAG query, showing loading...');
-      setIsSearching(true);
-      setSearchingFor(getSearchContext(message));
-      
-      // Auto-clear after 20 seconds if no results
-      setTimeout(() => {
-        setIsSearching(false);
-        setSearchingFor('');
-      }, 20000);
-    }
-  }, []);
-  
-  // Extract search context from user message
-  const getSearchContext = (message: string): string => {
-    const messageWords = message.toLowerCase();
-    
-    if (messageWords.includes('session')) return 'relevant sessions';
-    if (messageWords.includes('speaker')) return 'speakers';
-    if (messageWords.includes('schedule')) return 'schedule information';
-    if (messageWords.includes('workshop')) return 'workshops';
-    if (messageWords.includes('quantum')) return 'quantum technology sessions';
-    if (messageWords.includes('nuclear')) return 'nuclear verification content';
-    if (messageWords.includes('seismology')) return 'seismology sessions';
-    
-    return 'conference information';
-  };
-
   const handleBackToWelcome = useCallback(() => {
     setCurrentContent('welcome');
     setWeatherData(null);
@@ -843,7 +801,6 @@ export const RosaDemo: React.FC = () => {
             <Conversation
               conversationUrl={conversationUrl}
               onLeave={handleEndConversation}
-              onMessage={handleConversationMessage}
             />
           </div>
 

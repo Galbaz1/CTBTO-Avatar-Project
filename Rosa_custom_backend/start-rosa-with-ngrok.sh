@@ -53,19 +53,23 @@ sleep 2
 
 # Step 3: Start Rosa backend
 echo -e "\n${BLUE}📋 Step 3: Starting Rosa Pattern 1 Backend...${NC}"
-cd backend || exit 1
 
 # Check if virtual environment exists
 if [ ! -d "venv" ]; then
-    echo -e "${RED}❌ Virtual environment not found at backend/venv${NC}"
+    echo -e "${RED}❌ Virtual environment not found at venv${NC}"
+    exit 1
+fi
+
+# Check if backend script exists
+if [ ! -f "backend/rosa_pattern1_api.py" ]; then
+    echo -e "${RED}❌ Backend script not found at backend/rosa_pattern1_api.py${NC}"
     exit 1
 fi
 
 # Start Rosa backend in background
 source venv/bin/activate
-./venv/bin/python3 rosa_pattern1_api.py &
+./venv/bin/python3 backend/rosa_pattern1_api.py &
 ROSA_PID=$!
-cd ..
 
 # Wait for backend to start
 echo "⏳ Waiting for Rosa backend to start..."

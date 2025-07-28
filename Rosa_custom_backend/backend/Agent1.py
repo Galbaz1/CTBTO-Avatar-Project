@@ -599,17 +599,25 @@ Remember: Give short and consise answers and use the tools to get the most relev
             elif function_name == "search_conference_knowledge":
                 query = function_args.get("query", "")
                 search_type = function_args.get("search_type", "comprehensive")
+                print(f"🔧 DEBUG: Starting RAG search for '{query}', callback present: {rag_callback is not None}")
+                
                 rag_data = self.search_conference_knowledge(query, search_type)
+                print(f"🔧 DEBUG: RAG search completed, success: {rag_data.get('success')}")
                 
                 if rag_data.get("success"):
                     # Call callback for async card generation with BOTH args and rag_data
                     if rag_callback:
+                        print(f"🔧 DEBUG: About to call RAG callback for '{query}'")
                         rag_callback(function_args, rag_data)
                         logger.debug(f"📱 Called RAG callback for {query} with rag_data", session_id, LLMInstance.MAIN_ROSA)
+                        print(f"🔧 DEBUG: RAG callback completed successfully")
+                    else:
+                        print(f"❌ DEBUG: rag_callback is None!")
                     
                     # Return the formatted conference information for LLM to process
                     return rag_data.get("formatted_response", "No conference information found")
                 else:
+                    print(f"❌ DEBUG: RAG search failed: {rag_data.get('error', 'Unknown error')}")
                     return rag_data.get("formatted_response", "Conference search failed")
             
             else:

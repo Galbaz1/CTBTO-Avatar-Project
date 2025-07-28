@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { WeatherCard } from './WeatherCard';
-import { EnhancedSessionCard } from './cards/enhanced/SessionCard';
-import { SpeakerCard } from './SpeakerCard';
+import { EnhancedSessionCard, SpeakerCard, TopicCard } from './cards/enhanced';
 
 interface WeatherData {
   location: string;
@@ -90,10 +89,12 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
   if (showWeatherCard && weatherData) activeCards.push('weather');
   if (showRagCards && mappedSessionData) activeCards.push('session');
   if (showRagCards && ragData?.speaker) activeCards.push('speaker');
+  if (showRagCards && ragData?.topic) activeCards.push('topic');
   
   console.log('🔧 Card rendering state:', {
     showRagCards,
     hasMappedSessionData: !!mappedSessionData,
+    hasTopicData: !!ragData?.topic,
     activeCards: activeCards.length,
     cardTypes: activeCards
   });
@@ -104,6 +105,8 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
     const baseRight = 20;
     const cardWidth = 350;
     const cardSpacing = 20;
+    
+    console.log('🔧 Getting position for card:', { cardType, index, baseTop, baseRight });
     
     // Intelligent cascading layout
     switch (activeCards.length) {
@@ -130,6 +133,16 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
         };
     }
   };
+
+  // Debug logging for session card rendering
+  if (showRagCards && mappedSessionData) {
+    const sessionPosition = getCardPosition('session', activeCards.indexOf('session'));
+    console.log('🔧 RENDERING SESSION CARD:', { 
+      position: sessionPosition,
+      mappedSessionData: !!mappedSessionData,
+      sessionTitle: mappedSessionData?.title
+    });
+  }
 
   return (
     <>
@@ -189,6 +202,38 @@ export const CardLayerManager: React.FC<CardLayerManagerProps> = ({
             }}>
               <SpeakerCard
                 speaker={ragData.speaker.card_data || ragData.speaker}
+                onClose={onCloseRag}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Topic Card - Thematic conference content */}
+      {showRagCards && ragData?.topic && (
+        <div style={{
+          position: 'fixed',
+          ...getCardPosition('topic', activeCards.indexOf('topic')),
+          zIndex: 997,
+          maxWidth: '350px',
+          transition: 'all 0.3s ease-out'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '16px',
+            padding: '2px',
+            boxShadow: '0 10px 25px -5px rgba(102, 126, 234, 0.3)'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '14px',
+              overflow: 'hidden'
+            }}>
+              <TopicCard
+                topic={ragData.topic.card_data || ragData.topic}
+                compact={true}
+                maxSessions={3}
+                showSessions={true}
                 onClose={onCloseRag}
               />
             </div>

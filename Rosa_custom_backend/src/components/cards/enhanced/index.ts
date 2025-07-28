@@ -17,11 +17,11 @@ export {
   type ScheduleCardData
 } from './TimetableProcessor';
 
-// Complete card suite exports
+// Complete card suite exports - using proper type imports
 export type {
   TimetableEntry as Session,
   SpeakerCardData as Speaker,
   VenueCardData as Venue,
   TopicCardData as Topic,
   ScheduleCardData as Schedule
-}; 
+} from './TimetableProcessor'; 

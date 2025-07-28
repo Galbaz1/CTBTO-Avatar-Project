@@ -6,12 +6,7 @@ import {
   VenueCard,
   ScheduleCard,
   TimetableProcessor,
-  type TimetableData,
-  type SessionCardData,
-  type SpeakerCardData,
-  type VenueCardData,
-  type TopicCardData,
-  type ScheduleCardData
+  type TimetableData
 } from './index';
 
 // Import the actual timetable data
@@ -141,7 +136,7 @@ export const TimetableDemo: React.FC<TimetableDemoProps> = ({ timetableData }) =
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">📅 Conference Sessions</h2>
       <div className="grid grid-cols-1 gap-6">
-        {sessions.map((session, index) => (
+        {sessions.map((session) => (
           <EnhancedSessionCard
             key={session.session_id}
             session={session}
@@ -158,7 +153,7 @@ export const TimetableDemo: React.FC<TimetableDemoProps> = ({ timetableData }) =
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">👤 Conference Speakers</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {speakers.map((speaker, index) => (
+        {speakers.map((speaker) => (
           <SpeakerCard
             key={speaker.name}
             speaker={speaker}
@@ -177,7 +172,7 @@ export const TimetableDemo: React.FC<TimetableDemoProps> = ({ timetableData }) =
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">📍 Conference Venues</h2>
       <div className="grid grid-cols-1 gap-6">
-        {venues.map((venue, index) => (
+        {venues.map((venue) => (
           <VenueCard
             key={venue.name}
             venue={venue}
@@ -197,7 +192,7 @@ export const TimetableDemo: React.FC<TimetableDemoProps> = ({ timetableData }) =
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">🏷️ Conference Topics</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {topics.map((topic, index) => (
+        {topics.map((topic) => (
           <TopicCard
             key={topic.theme}
             topic={topic}
