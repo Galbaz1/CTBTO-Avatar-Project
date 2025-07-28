@@ -1,0 +1,61 @@
+---
+alwaysApply: true
+---
+
+# Rules for RAG and Weaviate Development
+
+This document outlines the core principles for developing the advanced RAG system for the SnT2025 conference. All development must adhere to the detailed architectural patterns defined in the `design-patterns/` directory.
+
+## 1. Adhere to the Multi-Agent Architecture
+
+-   **DO** structure the RAG system using the **multi-agent architecture**. This includes distinct roles for a Coordinator, and various specialist agents (Retrieval, Validation, Synthesis, Memory).
+-   **DO** implement parallel lookups using `asyncio` for concurrent data fetching, as detailed in our research.
+-   **Reference**: For the complete workflow and agent responsibilities, see `design-patterns/multi-agent-rag-architecture.md`.
+
+## 2. Leverage Weaviate as a Knowledge Graph
+
+-   **DO** utilize Weaviate's cross-referencing capabilities to perform deep, multi-hop queries for validation and complex reasoning.
+-   **DON'T** treat Weaviate as a simple vector store. Exploit its graph features to uncover the rich relationships between Speakers, Sessions, and Topics.
+-   **Reference**: For examples of graph-based reasoning, see `design-patterns/multi-agent-rag-architecture.md`.
+
+## 3. Use Advanced Weaviate Search Features
+
+-   **DO** implement multi-modal searches (e.g., `nearImage`, `nearText` with CLIP models) where applicable.
+-   **DO** use generative search (`with_generate`) to create dynamic, summarized content based on retrieved context.
+-   **Reference**: For technical details and code examples, see `design-patterns/weaviate-advanced-features.md`.
+
+## 4. Data Schema and Ingestion
+
+-   **DO** use the new multi-class schema (`SnT25_Speaker`, `SnT25_Session`, etc.) for all new SnT2025 data.
+-   **DON'T** use the old `ConferenceChunk` and `ConferenceSession` collections for this project.
+-   **DO** ensure any new data ingestion scripts correctly create objects and their corresponding cross-references in the new collections.
+
+By following these rules, we will build a RAG system that is intelligent, scalable, and capable of the complex reasoning we have planned. # Rules for RAG and Weaviate Development
+
+This document outlines the core principles for developing the advanced RAG system for the SnT2025 conference. All development must adhere to the detailed architectural patterns defined in the `design-patterns/` directory.
+
+## 1. Adhere to the Multi-Agent Architecture
+
+-   **DO** structure the RAG system using the **multi-agent architecture**. This includes distinct roles for a Coordinator, and various specialist agents (Retrieval, Validation, Synthesis, Memory).
+-   **DO** implement parallel lookups using `asyncio` for concurrent data fetching, as detailed in our research.
+-   **Reference**: For the complete workflow and agent responsibilities, see `design-patterns/multi-agent-rag-architecture.md`.
+
+## 2. Leverage Weaviate as a Knowledge Graph
+
+-   **DO** utilize Weaviate's cross-referencing capabilities to perform deep, multi-hop queries for validation and complex reasoning.
+-   **DON'T** treat Weaviate as a simple vector store. Exploit its graph features to uncover the rich relationships between Speakers, Sessions, and Topics.
+-   **Reference**: For examples of graph-based reasoning, see `design-patterns/multi-agent-rag-architecture.md`.
+
+## 3. Use Advanced Weaviate Search Features
+
+-   **DO** implement multi-modal searches (e.g., `nearImage`, `nearText` with CLIP models) where applicable.
+-   **DO** use generative search (`with_generate`) to create dynamic, summarized content based on retrieved context.
+-   **Reference**: For technical details and code examples, see `design-patterns/weaviate-advanced-features.md`.
+
+## 4. Data Schema and Ingestion
+
+-   **DO** use the new multi-class schema (`SnT25_Speaker`, `SnT25_Session`, etc.) for all new SnT2025 data.
+-   **DON'T** use the old `ConferenceChunk` and `ConferenceSession` collections for this project.
+-   **DO** ensure any new data ingestion scripts correctly create objects and their corresponding cross-references in the new collections.
+
+By following these rules, we will build a RAG system that is intelligent, scalable, and capable of the complex reasoning we have planned. 

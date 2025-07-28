@@ -1,0 +1,22 @@
+[
+  {
+    "\ufeffCategory": "Social Issues",
+    "Red Zone Topic": "Religion",
+    "Description": "Avoid discussions on religion or religious conflict."
+  },
+  {
+    "\ufeffCategory": "Social Issues",
+    "Red Zone Topic": "LGBTQ+",
+    "Description": "Do not engage in discussions on gender identity or orientation."
+  },
+  {
+    "\ufeffCategory": "Social Issues",
+    "Red Zone Topic": "Political Ideology",
+    "Description": "Avoid references to political ideologies or extremism."
+  },
+  {
+    "\ufeffCategory": "Social Issues",
+    "Red Zone Topic": "Immigration",
+    "Description": "Do not discuss immigration or refugee policy."
+  }
+]

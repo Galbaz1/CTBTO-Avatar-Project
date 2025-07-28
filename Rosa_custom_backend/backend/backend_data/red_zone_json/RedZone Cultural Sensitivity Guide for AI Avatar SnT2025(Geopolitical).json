@@ -1,0 +1,17 @@
+[
+  {
+    "\ufeffCategory": "Geopolitical",
+    "Red Zone Topic": "Nuclear Weapons",
+    "Description": "No questions on which countries have or are developing nuclear weapons."
+  },
+  {
+    "\ufeffCategory": "Geopolitical",
+    "Red Zone Topic": "Military Conflicts",
+    "Description": "Avoid discussion of ongoing inter-state or intra-state conflicts."
+  },
+  {
+    "\ufeffCategory": "Geopolitical",
+    "Red Zone Topic": "Security Alliances",
+    "Description": "No references to sanctions, embargoes, or military alliances."
+  }
+]

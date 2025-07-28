@@ -1,0 +1,74 @@
+{
+  "title": "SnT2025 Room Descriptions",
+  "content": {
+    "default_answer": "If this does not answer your question, please find a SnT2025 Staff member that you will recognize by their different coloured Badge or find the Point of Contact or Registration Desk on the ground floor.",
+    
+    "venue_overview": "SnT2025 will take place for the 5th time in Hofburg Palace Vienna. As the former residence of the Habsburg dynasty, the Hofburg provides a unique atmosphere steeped in history, culture, and architectural elegance.",
+    
+    "entrance_and_foyer": {
+      "description": "You have entered through the conference entrance into the Foyer. After crossing the security and passing by the registration desk on the left, you will find the cloakroom Point of Contact for Questions you might have on the right.",
+      "navigation": "You will find guiding signs and the program of the conference throughout the area. All presentation spaces have a color coding that will help you identify the right room for each part of the program."
+    },
+    
+    "ground_floor": {
+      "exhibitor_space": {
+        "location": "On the ground floor to the left after registration",
+        "features": [
+          "OSI exhibition",
+          "CTBTO procurement booths", 
+          "Exhibitor booths run by partner institutions and companies",
+          "Virtual reality corner",
+          "SnT Escape the room adventure",
+          "Prinz Eugen Saal (left side)",
+          "Forum (right side)"
+        ]
+      },
+      
+      "accessibility": "The barrier free elevator to the upper level you will find at the end of the exhibition space in Gardehalle I to the right.",
+      
+      "additional_facilities": {
+        "toilets": "Located to the right on the base of the Feststiege - the stairs towards the upper level of the conference area",
+        "special_rooms": "To the left you will find the nursing room as well as the prayer room"
+      }
+    },
+    
+    "upper_level": {
+      "stair_top_area": {
+        "description": "On the top of the stairs you will find another exhibitor space",
+        "booths": [
+          "CTBTO Public Information",
+          "CTBTO Human resources", 
+          "YPN booth",
+          "NDCs4All Information booth (includes a post station where you can write messages from the SnT2025)"
+        ]
+      },
+      
+      "main_conference_area": {
+        "left_side": {
+          "festsaal": {
+            "description": "The main presentation room",
+            "events": [
+              "Scientific program",
+              "High level plenary on September 9",
+              "Closing plenary on September 12"
+            ]
+          },
+          "wintergarten": "Used for presentations",
+          "zeremoniensaal": "Contains the e-poster area"
+        },
+        
+        "right_side": {
+          "facilities": [
+            "Lounge and catering area",
+            "Information stations", 
+            "Work areas"
+          ]
+        }
+      },
+      
+      "accessibility": "The barrier free elevator you will again find at the end of the hallway called Seitenhalle to the right."
+    },
+    
+    "navigation_notes": "Again all rooms have a corresponding color coding with the program. Each room is clearly marked with the corresponding color coding, consistent with the program schedule."
+  }
+}

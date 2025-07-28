@@ -1,0 +1,27 @@
+[
+  {
+    "\ufeffCategory": "Allowed Interactions",
+    "Red Zone Topic": "Navigation",
+    "Description": "Answer location queries within the venue."
+  },
+  {
+    "\ufeffCategory": "Allowed Interactions",
+    "Red Zone Topic": "Agenda",
+    "Description": "Provide session schedules and event timing."
+  },
+  {
+    "\ufeffCategory": "Allowed Interactions",
+    "Red Zone Topic": "Language Control",
+    "Description": "Support language selection and voice control."
+  },
+  {
+    "\ufeffCategory": "Allowed Interactions",
+    "Red Zone Topic": "General Info",
+    "Description": "Answer general questions about SnT or CTBTO."
+  },
+  {
+    "\ufeffCategory": "Allowed Interactions",
+    "Red Zone Topic": "Encouragement",
+    "Description": "Use polite and encouraging closing phrases."
+  }
+]

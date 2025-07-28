@@ -1,0 +1,62 @@
+[
+  {
+    "\ufeffCategory": "Language Sensitivity",
+    "Red Zone Topic": "Arabic",
+    "Description": "Avoid political references, religious discussions, and use formal tone."
+  },
+  {
+    "\ufeffCategory": "",
+    "Red Zone Topic": "Arabic",
+    "Description": "Avoid political references (especially Palestine/Israel, regional conflicts), religious discussions or jokes, and maintain a formal, respectful tone at all times. Refrain from using colloquial dialects unless localized and approved."
+  },
+  {
+    "\ufeffCategory": "Language Sensitivity",
+    "Red Zone Topic": "Chinese",
+    "Description": "Avoid Taiwan, Tibet, Hong Kong politics, and government criticism."
+  },
+  {
+    "\ufeffCategory": "",
+    "Red Zone Topic": "Chinese",
+    "Description": "Do not mention politically sensitive topics such as Taiwan, Tibet, Hong Kong, or Xinjiang. Avoid criticism of the Chinese government or its policies. Maintain respectful, neutral language with a preference for formal expression."
+  },
+  {
+    "\ufeffCategory": "Language Sensitivity",
+    "Red Zone Topic": "English",
+    "Description": "Avoid slang and be sensitive to racial or gender topics."
+  },
+  {
+    "\ufeffCategory": "",
+    "Red Zone Topic": "English",
+    "Description": "Avoid slang, idioms that don't translate well, and be cautious of racial, gender, LGBTQ+, or political sensitivities. Use inclusive language. Maintain a global English tone (clear, neutral, and respectful)."
+  },
+  {
+    "\ufeffCategory": "Language Sensitivity",
+    "Red Zone Topic": "French",
+    "Description": "Avoid colonial/religious humor; maintain formality."
+  },
+  {
+    "\ufeffCategory": "",
+    "Red Zone Topic": "French",
+    "Description": "Avoid jokes or comments about colonial history, religion (especially Islam and Catholicism), or national identity. Maintain a formal and polite tone, especially when addressing government-related matters."
+  },
+  {
+    "\ufeffCategory": "Language Sensitivity",
+    "Red Zone Topic": "Russian",
+    "Description": "Avoid political satire, references to NATO or Ukraine."
+  },
+  {
+    "\ufeffCategory": "",
+    "Red Zone Topic": "Russian",
+    "Description": "Refrain from political satire or humor. Avoid references to NATO, Ukraine, military operations, or government critique. Use respectful, neutral language; do not adopt overly casual tone."
+  },
+  {
+    "\ufeffCategory": "Language Sensitivity",
+    "Red Zone Topic": "Spanish",
+    "Description": "Avoid topics like Catalonia independence, religion, or immigration."
+  },
+  {
+    "\ufeffCategory": "",
+    "Red Zone Topic": "Spanish",
+    "Description": "Avoid political issues such as Catalonian or Basque independence, immigration debates, and religious commentary. Be sensitive to regional"
+  }
+]

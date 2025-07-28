@@ -1,0 +1,166 @@
+[
+  {
+    "day": "Mon 08/09",
+    "events": [
+      {
+        "time": "13:00 - 13:30",
+        "title": "Opening",
+        "location": "Online",
+        "type": "Opening"
+      },
+      {
+        "time": "13:30 - 14:30",
+        "title": "Keynote on Myanmar earthquake",
+        "location": "Online Room 1",
+        "type": "Keynote"
+      },
+      {
+        "time": "13:30 - 14:30",
+        "title": "E-poster",
+        "location": "Online Room 2",
+        "type": "E-poster"
+      },
+      {
+        "time": "14:30 - 15:30",
+        "title": "E-poster",
+        "location": "Online Room 2",
+        "type": "E-poster"
+      },
+      {
+        "time": "15:30 - 16:00",
+        "title": "Coffee break",
+        "location": null,
+        "type": "Coffee break"
+      },
+      {
+        "time": "16:00 - 18:00",
+        "title": "E-poster",
+        "location": "Online Room 2",
+        "type": "E-poster"
+      }
+    ]
+  },
+  {
+    "day": "Tue 09/09",
+    "events": [
+      {
+        "time": "09:00 - 10:00",
+        "title": "Registration",
+        "location": "Hofburg Palace",
+        "type": "Registration"
+      },
+      {
+        "time": "10:00 - 12:30",
+        "title": "High-Level Plenary: High-Level Plenary (HLP)",
+        "location": "Festsaal, Hofburg Palace",
+        "type": "Plenary"
+      },
+      {
+        "time": "12:30 - 13:30",
+        "title": "Lunch break",
+        "location": "Hofburg Palace & Online",
+        "type": "Lunch break"
+      },
+      {
+        "time": "13:30 - 14:50",
+        "title": "O3.1 Seismic, Hydroacoustic and Infrasound Technologies and Applications (O3.1)",
+        "speakers": ["Mr Anooshiravan Ansari", "Mr Benoit Doury"],
+        "location": "Prinz Eugen Saal",
+        "type": "Oral"
+      },
+      {
+        "time": "13:30 - 13:45",
+        "title": "Monitoring whale populations from acoustic data over large temporal and spatial scales (O5.1-803)",
+        "speakers": ["Ms Danielle Harris"],
+        "location": "Forum",
+        "type": "Oral"
+      },
+      {
+        "time": "13:30 - 15:00",
+        "title": "Panel \"Today's minds tomorrow's innovators\" (Pa10)",
+        "location": "Festsaal",
+        "type": "Panel"
+      },
+      {
+        "time": "13:45 - 14:00",
+        "title": "Verification and Modelling of Tsunami Arrival Time and Wave Height Along Thailand's Andaman Sea Coast Using an Enhanced TOAST (O5.1-327)",
+        "speakers": ["Ms Chutimon Promsuk"],
+        "location": "Forum",
+        "type": "Oral"
+      },
+      {
+        "time": "14:00 - 14:15",
+        "title": "The effect of climate change and diminishing sea-ice on the microbarom with implications for IMS infrasound station noise (O5.1-186)",
+        "speakers": ["Loring Schaible"],
+        "location": "Forum",
+        "type": "Oral"
+      },
+      {
+        "time": "14:15 - 14:30",
+        "title": "The Volcanic Information System: Long-Range Infrasound Monitoring of Volcanic Eruptions (O5.1-448)",
+        "speakers": ["Mr Rodrigo De Negri"],
+        "location": "Forum",
+        "type": "Oral"
+      },
+      {
+        "time": "14:30 - 14:45",
+        "title": "Wandering albatrosses ride infrasonic waves over large geographic scales (O5.1-095)",
+        "speakers": ["Ms Samantha Patrick"],
+        "location": "Forum",
+        "type": "Oral"
+      },
+      {
+        "time": "14:45 - 15:30",
+        "title": "Coffee break",
+        "location": "Hofburg Palace & Online",
+        "type": "Coffee break"
+      },
+      {
+        "time": "15:30 - 16:00",
+        "title": "Keynote on the Impact of Long-Term Shifts in Environmental Conditions on Society (Ke04)",
+        "location": "Festsaal",
+        "type": "Keynote"
+      },
+      {
+        "time": "15:30 - 17:05",
+        "title": "O3.2 Radionuclide Technologies and Applications (O3.2)",
+        "speakers": ["Anders Ringbom", "Nikolaus Helmut Hermanspahn"],
+        "location": "Forum",
+        "type": "Oral"
+      },
+      {
+        "time": "15:30 - 17:05",
+        "title": "O3.5 Analysis of Seismic, Hydroacoustic and Infrasound Monitoring Data (O3.5)",
+        "speakers": ["Mr Christos Saragiotis", "Mr Ronan Le Bras"],
+        "location": "Prinz Eugen Saal",
+        "type": "Oral"
+      },
+      {
+        "time": "16:00 - 17:00",
+        "title": "Panel on the Impact of Extreme Conditions on the CTBTO Monitoring System (Pa04)",
+        "location": "Festsaal",
+        "type": "Panel"
+      },
+      {
+        "time": "17:00 - 18:00",
+        "title": "EU session (EU)",
+        "location": "Festsaal",
+        "type": "Session"
+      },
+      {
+        "time": "17:15 - 18:00",
+        "title": "O3.6 Analysis of Radionuclide Monitoring Data (O3.6)",
+        "speakers": ["Mr Ian Hoffman", "Ms Sylvia Generoso"],
+        "location": "Forum",
+        "type": "Oral"
+      },
+      {
+        "time": "17:15 - 18:20",
+        "title": "O4.4 International Monitoring System Sustainment into the future (O4.4)",
+        "speakers": ["Ms Anne Lycke", "Ms Michelle Grobbelaar"],
+        "location": "Prinz Eugen Saal",
+        "type": "Oral"
+      }
+    ]
+  }
+] 

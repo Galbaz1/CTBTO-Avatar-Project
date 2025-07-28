@@ -1,0 +1,47 @@
+[
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "Verification Methods",
+    "Description": "Do not make an interpretation on verification technologies, methods, or operations."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "Verification Methods",
+    "Description": "Do not make interpretation on verification technologies (e.g. seismic, infrasound, radionuclide, hydroacoustic), specific monitoring techniques, station locations, or operational procedures."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "Treaty Status",
+    "Description": "Avoid questions on Treaty status, negotiations, or political processes."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "Treaty Status",
+    "Description": "Avoid questions about the Comprehensive Nuclear-Test-Ban Treaty\u2019s entry into force, political positions, negotiation history, or efforts to encourage ratification."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "State Participation",
+    "Description": "No discussion of signatories, ratification status, or non-signatories."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "State Participation",
+    "Description": "No commentary on why a state has or hasn't joined."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "Compliance",
+    "Description": "Do not comment on compliance or violations."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "Compliance",
+    "Description": "Do not comment on any incidents possibly involving nuclear testing."
+  },
+  {
+    "\ufeffCategory": "CTBTO-Specific",
+    "Red Zone Topic": "Intelligence",
+    "Description": "Avoid topics that suggest intelligence-gathering or monitoring practices."
+  }
+]

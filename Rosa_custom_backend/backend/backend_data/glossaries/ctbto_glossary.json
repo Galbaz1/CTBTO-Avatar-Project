@@ -1,0 +1,962 @@
+[
+  {
+    "term": "Acoustic waves",
+    "definition": "Mechanical waves that propagate through a medium by means of particle oscillation, commonly associated with sound. In the context of monitoring, this can refer to infrasound waves used to detect atmospheric events."
+  },
+  {
+    "term": "Active seismic surveys",
+    "definition": "A method of geophysical exploration that involves generating seismic waves (e.g., using explosions or vibrators) and then measuring the reflected or refracted waves to image subsurface structures."
+  },
+  {
+    "term": "Advisory Group",
+    "definition": "A body typically composed of experts or representatives that provides  advice, recommendations, and guidance on specific issues to a larger organization or decision-making body."
+  },
+  {
+    "term": "ATG",
+    "definition": "An acronym, likely standing for \"Alpha Testers Group\" based on the preceding entry, or another context-specific abbreviation."
+  },
+  {
+    "term": "Amendment Conference",
+    "definition": "A formal meeting convened to consider and potentially adopt changes or amendments to an existing international treaty or convention. For the CTBT, it refers to a conference to consider amendments to the Treaty."
+  },
+  {
+    "term": "Annex 2 States",
+    "definition": "In the context of the Comprehensive Nuclear-Test-Ban Treaty (CTBT), these are the 44 states identified in Annex 2 of the Treaty whose ratification is required for the Treaty to enter into force."
+  },
+  {
+    "term": "Array stations",
+    "definition": "Networks of multiple interconnected sensors (e.g., seismometers, infrasound sensors) deployed over an area to improve detection capabilities, reduce noise, and determine the direction of incoming signals."
+  },
+  {
+    "term": "Article XIV Conference",
+    "definition": "Refers to the Conference on Facilitating the Entry into Force of the Comprehensive Nuclear-Test-Ban Treaty (CTBT), as mandated by Article XIV of the Treaty."
+  },
+  {
+    "term": "Assessed Contributions",
+    "definition": "Financial contributions that member states are legally obligated to pay to PTS based on an agreed-upon scale, typically related to their economic capacity."
+  },
+  {
+    "term": "atmospheric backtracking calculations",
+    "definition": "Computational methods used to trace the path of airborne substances (like radionuclides) backward in time to determine their potential source region based on meteorological data."
+  },
+  {
+    "term": "atmospheric transport modelling",
+    "definition": "The use of computer models to simulate the movement, dispersion, and deposition of pollutants or other substances in the atmosphere."
+  },
+  {
+    "term": "ATM",
+    "definition": "An acronym, likely standing for \"Atmospheric Transport Modelling\" based on the preceding entry, or another context-specific abbreviation."
+  },
+  {
+    "term": "Automatic Radionuclide Report",
+    "definition": "An automated system or report that processes and disseminates data related to the detection of radionuclides, often in the context of nuclear monitoring."
+  },
+  {
+    "term": "Auxiliary Seismic",
+    "definition": "Refers to seismic stations or networks that supplement primary seismic monitoring efforts, often providing additional data for event location and characterization."
+  },
+  {
+    "term": "AS",
+    "definition": "An acronym, likely standing for \"Auxiliary Seismic\" or \"Auxiliary Seismological Stations\" based on the preceding and subsequent entries, or another context-specific abbreviation."
+  },
+  {
+    "term": "Auxiliary Seismological Stations",
+    "definition": "Stations in the IMS network that provide supplementary seismic data; unlike primary stations, they do not transmit data continuously in real time."
+  },
+  {
+    "term": "azimuths",
+    "definition": "Horizontal angles measured clockwise from a reference direction (usually North) to a specific point or direction, used in navigation, surveying, and determining the direction of seismic or other signals."
+  },
+  {
+    "term": "beryllium-7",
+    "definition": "A radioactive isotope of beryllium, often found in the atmosphere as a naturally occurring cosmogenic radionuclide, but also detectable in some nuclear events."
+  },
+  {
+    "term": "Body waves",
+    "definition": "Seismic waves that travel through the interior of the Earth (P-waves and S-waves), as opposed to surface waves that travel along the Earth's surface."
+  },
+  {
+    "term": "broadband global area networks",
+    "definition": "Wide-reaching, high-capacity communication networks that support a broad range of frequencies and data types across a global geographical area."
+  },
+  {
+    "term": "BGANs",
+    "definition": "An acronym, likely standing for \"Broadband Global Area Networks\" based on the preceding entry."
+  },
+  {
+    "term": "Build-up Exercise",
+    "definition": "A type of exercise or drill designed to test and validate the operational readiness, procedures, and capabilities of a system, organization, or network, often in preparation for full-scale operations."
+  },
+  {
+    "term": "BUE",
+    "definition": "An acronym, likely standing for \"Build-up Exercise\" based on the preceding entry."
+  },
+  {
+    "term": "capacity building",
+    "definition": "The process of developing and strengthening the skills, institutions, and resources of individuals, organizations, or societies to enable them to perform functions, solve problems, and achieve objectives."
+  },
+  {
+    "term": "Central Logistics Support",
+    "definition": "A centralized function or department responsible for coordinating and managing the logistical needs, such as transportation, supplies, and infrastructure, for an organization's operations."
+  },
+  {
+    "term": "CLS",
+    "definition": "An acronym, likely standing for \"Central Logistics Support\" based on the preceding entry, or another context-specific abbreviation."
+  },
+  {
+    "term": "challenge inspection",
+    "definition": "A specific type of on-site inspection under arms control treaties, where one State Party can request an inspection of another State Party's territory if it has concerns about non-compliance, even without a detected event."
+  },
+  {
+    "term": "Civil and Scientific Applications",
+    "definition": "The peaceful uses of technologies and data developed for arms control verification, such as seismic data for earthquake monitoring, radionuclide data for environmental studies, or infrasound for tsunami warning."
+  },
+  {
+    "term": "Comprehensive Nuclear-Test-Ban Treaty",
+    "definition": "An international treaty that prohibits nuclear weapon test explosions and any other nuclear explosions, anywhere on Earth."
+  },
+  {
+    "term": "CTBT",
+    "definition": "Acronym for Comprehensive Nuclear-Test-Ban Treaty."
+  },
+  {
+    "term": "Comprehensive Nuclear-Test-Ban Treaty Organization",
+    "definition": "The international organization responsible for implementing the Comprehensive Nuclear-Test-Ban Treaty, including operating the International Monitoring System and conducting on-site inspections."
+  },
+  {
+    "term": "CTBTO",
+    "definition": "Acronym for Comprehensive Nuclear-Test-Ban Treaty Organization."
+  },
+  {
+    "term": "Conference of State Parties to the Treaty",
+    "definition": "A formal meeting where all States that have ratified a particular treaty gather to review its implementation, discuss issues, and make decisions."
+  },
+  {
+    "term": "Conference of the States Parties",
+    "definition": "Another term for \"Conference of State Parties to the Treaty.\""
+  },
+  {
+    "term": "Conference of the Treaty’s Ratifying States",
+    "definition": "Another term for \"Conference of State Parties to the Treaty.\""
+  },
+  {
+    "term": "Conference on Facilitating Entry into Force of the CTBT",
+    "definition": "A specific conference, also known as the Article XIV Conference, mandated by the CTBT, aimed at encouraging states to ratify the Treaty to bring it into force."
+  },
+  {
+    "term": "Confidence-building Measures",
+    "definition": "Actions taken by states to reduce mistrust and misperception and to build confidence in international relations, often through transparency and communication in arms control."
+  },
+  {
+    "term": "consultation and clarification process",
+    "definition": "A diplomatic mechanism within a treaty framework where states can seek explanations or clarification from another state regarding compliance concerns, aiming to resolve issues peacefully."
+  },
+  {
+    "term": "CTBT Science and Technology conference",
+    "definition": "A recurring international conference organized by the CTBTO that brings together scientists, academics, and experts to discuss advancements in verification technologies and their civil and scientific applications."
+  },
+  {
+    "term": "CTBT Young Professionals Network",
+    "definition": "A program or group within the CTBTO aimed at engaging and developing young talent in fields relevant to the Treaty's work, fostering future expertise."
+  },
+  {
+    "term": "YPN",
+    "definition": "Acronym for CTBT Young Professionals Network."
+  },
+  {
+    "term": "CTBTO Technology Support and Training Centre",
+    "definition": "A facility or program within the CTBTO that provides technical support for monitoring technologies and training for personnel involved in the International Monitoring System and verification activities."
+  },
+  {
+    "term": "CTBTO Youth Group",
+    "definition": "A group associated with the CTBTO, typically comprised of young individuals, engaged in promoting the Treaty's goals and raising awareness about nuclear disarmament and non-proliferation."
+  },
+  {
+    "term": "CYG",
+    "definition": "Acronym for CTBTO Youth Group."
+  },
+  {
+    "term": "Data fusion",
+    "definition": "The process of combining data from multiple diverse sources (e.g., seismic, infrasound, hydroacoustic, radionuclide) to achieve a more accurate and comprehensive understanding of an event or phenomenon."
+  },
+  {
+    "term": "DPRK",
+    "definition": "Acronym for Democratic People's Republic of Korea."
+  },
+  {
+    "term": "Depositary of the Treaty",
+    "definition": "The entity (usually a state or an international organization) designated in a treaty as the official custodian of the treaty text and related instruments, responsible for receiving ratifications, accessions, and other communications. For the CTBT, it is the Secretary-General of the United Nations."
+  },
+  {
+    "term": "Directed exercises",
+    "definition": "Training exercises that are specifically designed and structured to achieve particular learning objectives or to test specific operational procedures and capabilities."
+  },
+  {
+    "term": "Electrical conductivity measurements",
+    "definition": "Techniques used to measure the ability of a material or substance to conduct an electric current, which can be relevant in certain geophysical or environmental monitoring contexts."
+  },
+  {
+    "term": "electromagnetic pulse monitoring",
+    "definition": "The detection and measurement of a sudden burst of electromagnetic radiation, which can be a byproduct of a nuclear explosion or certain conventional weapons."
+  },
+  {
+    "term": "electromagnetic waves",
+    "definition": "Waves that are created as a result of vibrations between an electric field and a magnetic field, propagating through space or through a medium (e.g., radio waves, microwaves, light, X-rays)."
+  },
+  {
+    "term": "Entry into Force",
+    "definition": "Entry into Force (EiF) is the moment when the CTBT, having met specific conditions outlined in Article XIV of the Treaty, becomes legally binding and fully operational under international law."
+  },
+  {
+    "term": "EIF",
+    "definition": "Acronym for Entry into Force."
+  },
+  {
+    "term": "Equipment Maintenance and Storage facility",
+    "definition": "A facility dedicated to the upkeep, repair, and secure housing of specialized equipment, ensuring its readiness and longevity for operational use."
+  },
+  {
+    "term": "ESMF",
+    "definition": "Acronym for Equipment Maintenance and Storage Facility."
+  },
+  {
+    "term": "Event categorization of noble gas",
+    "definition": "The process of classifying atmospheric detections of noble gases (like xenon isotopes) based on their isotopic ratios and concentrations to determine if their origin is natural, civilian, or indicative of a nuclear explosion."
+  },
+  {
+    "term": "Event Screening",
+    "definition": "The initial process of reviewing and filtering detected events (e.g., seismic, infrasound) to distinguish between natural phenomena and events of potential interest for verification purposes."
+  },
+  {
+    "term": "Expert Technical Analysis",
+    "definition": "Detailed and specialized examination performed by technical experts on data, samples, or information to interpret findings, assess their significance, and provide conclusions."
+  },
+  {
+    "term": "Experts Communication System",
+    "definition": "A web-based application offering electronic means for meeting schedules, document exchange, discussions and multimedia."
+  },
+  {
+    "term": "ECS",
+    "definition": "Acronym for Experts Communication System."
+  },
+  {
+    "term": "facility agreements",
+    "definition": "Legal agreements between an international organization (like the CTBTO) and a State Party, specifying the arrangements for establishing and operating monitoring facilities on that state's territory."
+  },
+  {
+    "term": "Field Exercise",
+    "definition": "A practical training activity conducted outdoors or in a simulated real-world environment to test procedures, equipment, and personnel capabilities."
+  },
+  {
+    "term": "final verification measure",
+    "definition": "The ultimate step or method used to confirm or refute compliance with a treaty, typically following other monitoring and inspection activities. For the CTBT, it is the On-Site Inspection."
+  },
+  {
+    "term": "first motion of the P-wave",
+    "definition": "The initial direction of ground motion (up or down, push or pull) recorded by a seismometer as the primary (P) seismic wave arrives, which helps determine the type of seismic source (e.g., explosion or earthquake)."
+  },
+  {
+    "term": "fission products",
+    "definition": "Radioactive isotopes formed as a result of nuclear fission (the splitting of atomic nuclei), which are key indicators of a nuclear explosion (e.g., Xenon-133, Barium-140)."
+  },
+  {
+    "term": "focal mechanism",
+    "definition": "A representation of the forces that caused an earthquake or seismic event, typically depicted as a \"beachball\" diagram, indicating the orientation of faulting. Explosions have different focal mechanisms than earthquakes."
+  },
+  {
+    "term": "frequency band",
+    "definition": "A specific range of frequencies within a larger spectrum, used for transmitting or receiving signals (e.g., a seismic frequency band for detecting certain types of events)."
+  },
+  {
+    "term": "Friends of the CTBT",
+    "definition": "A group of countries that actively support and advocate for the entry into force and universalization of the Comprehensive Nuclear-Test-Ban"
+  },
+  {
+    "term": "gamma ray spectrum",
+    "definition": "The range of gamma radiation energies emitted by radioactive substances, used to identify and characterize radionuclides."
+  },
+  {
+    "term": "gamma spectroscopy",
+    "definition": "A technique for measuring and analyzing the gamma-ray spectrum of a radioactive source."
+  },
+  {
+    "term": "Geospatial Information Management for OSI",
+    "definition": "The system used to collect, manage, and analyze geographic data during On-Site Inspections (OSI)."
+  },
+  {
+    "term": "GIMO",
+    "definition": "Acronym for Geospatial Information Management for OSI."
+  },
+  {
+    "term": "Global Communications Infrastructure",
+    "definition": "A secure global network that transmits data from International Monitoring System stations to the International Data Centre."
+  },
+  {
+    "term": "GCI",
+    "definition": "Acronym for Global Communications Infrastructure."
+  },
+  {
+    "term": "global wind fields",
+    "definition": "Atmospheric data on wind patterns worldwide, used in modeling radionuclide dispersion."
+  },
+  {
+    "term": "Ground penetrating radar",
+    "definition": "A geophysical method using radar pulses to image the subsurface, useful in OSI activities."
+  },
+  {
+    "term": "H-phase",
+    "definition": "Hydroacoustic phase observed in seismic recordings, indicating water-based wave propagation."
+  },
+  {
+    "term": "hydroacoustic",
+    "definition": "Related to the use of underwater sound waves to detect and locate events such as nuclear explosions."
+  },
+  {
+    "term": "HA",
+    "definition": "Acronym for hydroacoustic."
+  },
+  {
+    "term": "hydroacoustic monitoring",
+    "definition": "The use of underwater sound sensors to detect nuclear explosions in oceans and large water bodies."
+  },
+  {
+    "term": "hydroacoustic stations",
+    "definition": "Stations in the IMS network that use hydrophones to detect underwater acoustic signals."
+  },
+  {
+    "term": "hydrophone",
+    "definition": "An underwater microphone used to detect acoustic signals, especially in hydroacoustic monitoring."
+  },
+  {
+    "term": "IMS facility agreements",
+    "definition": "Legal agreements between the CTBTO and host countries governing the establishment and operation of IMS stations."
+  },
+  {
+    "term": "indications of bubble-pulse signals and bubble-pulse delay",
+    "definition": "Signs in hydroacoustic data indicating an underwater explosion, characterized by a delayed bubble-pulse signal."
+  },
+  {
+    "term": "Infasound array",
+    "definition": "A set of sensors arranged to detect low-frequency sound waves in the atmosphere for infrasound monitoring."
+  },
+  {
+    "term": "infrasound",
+    "definition": "Low-frequency sound waves below human hearing, used to detect atmospheric nuclear explosions."
+  },
+  {
+    "term": "IS",
+    "definition": "Acronym for infrasound."
+  },
+  {
+    "term": "infrasound monitoring",
+    "definition": "The process of detecting nuclear explosions by analyzing low-frequency atmospheric sound waves."
+  },
+  {
+    "term": "infrasound stations",
+    "definition": "Stations equipped to monitor infrasound signals as part of the IMS."
+  },
+  {
+    "term": "Inspected State Party",
+    "definition": "The country that is subject to an On-Site Inspection under the CTBT verification regime."
+  },
+  {
+    "term": "ISP",
+    "definition": "Acronym for Inspected State Party."
+  },
+  {
+    "term": "inspection assistant",
+    "definition": "A specialized tool or role aiding inspectors during an OSI in data collection, logistics, or analysis."
+  },
+  {
+    "term": "inspection team functionality",
+    "definition": "The operational capacity and coordination of an inspection team during an OSI."
+  },
+  {
+    "term": "instruments of ratification",
+    "definition": "Official documents by which a country formally agrees to be bound by the CTBT."
+  },
+  {
+    "term": "Integrated Field Exercise",
+    "definition": "A full-scale simulated OSI conducted to test and evaluate CTBT verification capabilities."
+  },
+  {
+    "term": "IFE",
+    "definition": "Acronym for Integrated Field Exercise."
+  },
+  {
+    "term": "Internal Audit and Oversight Section",
+    "definition": "The CTBTO section responsible for internal audits, risk management, and compliance."
+  },
+  {
+    "term": "International Data Centre",
+    "definition": "The CTBTO center that receives, processes, analyzes, and distributes data from the IMS."
+  },
+  {
+    "term": "IDC",
+    "definition": "Acronym for International Data Centre."
+  },
+  {
+    "term": "International Day Against Nuclear Testing",
+    "definition": "A UN-observed day (29 August) promoting awareness and action against nuclear testing."
+  },
+  {
+    "term": "IDANT",
+    "definition": "Acronym for International Day Against Nuclear Testing."
+  },
+  {
+    "term": "International Monitoring System",
+    "definition": "A global network of stations that monitor for evidence of nuclear explosions using four technologies: seismic, hydroacoustic, infrasound, and radionuclide."
+  },
+  {
+    "term": "IMS",
+    "definition": "Acronym for International Monitoring System."
+  },
+  {
+    "term": "Joint Ministerial Statements",
+    "definition": "Statements made jointly by multiple ministers to affirm commitment to the CTBT."
+  },
+  {
+    "term": "Knowledge and Training Portal",
+    "definition": "An online platform by CTBTO for training and sharing knowledge on verification and related topics."
+  },
+  {
+    "term": "KTP",
+    "definition": "Acronym for Knowledge and Training Portal."
+  },
+  {
+    "term": "Late Event Bulletin",
+    "definition": "A report issued by the IDC for events detected after the regular processing cycle."
+  },
+  {
+    "term": "LEB",
+    "definition": "Acronym for Late Event Bulletin."
+  },
+  {
+    "term": "Legal and External Relations Division",
+    "definition": "The CTBTO division handling legal affairs and external partnerships with States and organizations."
+  },
+  {
+    "term": "linear training programme",
+    "definition": "A structured, progressive training approach for CTBTO or State personnel in verification-related competencies."
+  },
+  {
+    "term": "Magnetometers",
+    "definition": "Instruments that measure magnetic fields, sometimes used in OSI to detect metallic objects underground."
+  },
+  {
+    "term": "Member States",
+    "definition": "Countries that have signed or ratified the CTBT and participate in its implementation."
+  },
+  {
+    "term": "microbarometers",
+    "definition": "Highly sensitive pressure sensors used in infrasound monitoring to detect small atmospheric pressure changes."
+  },
+  {
+    "term": "Ministerial Meetings",
+    "definition": "High-level meetings of government ministers to discuss CTBT progress and political support."
+  },
+  {
+    "term": "mixed event",
+    "definition": "An event recorded by the IMS that shows characteristics of both natural and anthropogenic sources."
+  },
+  {
+    "term": "monitoring facilities",
+    "definition": "Structures and systems that host IMS technologies to detect nuclear explosions."
+  },
+  {
+    "term": "monitoring stations",
+    "definition": "IMS components that collect seismic, hydroacoustic, infrasound, or radionuclide data."
+  },
+  {
+    "term": "multi-spectral imaging",
+    "definition": "A remote sensing technique capturing data in multiple wavelengths, used in OSI to detect ground disturbances."
+  },
+  {
+    "term": "National Authority",
+    "definition": "The designated governmental body responsible for implementing CTBT obligations domestically."
+  },
+  {
+    "term": "national data centre",
+    "definition": "A State Party’s center for receiving, analyzing, and forwarding IMS data and IDC products."
+  },
+  {
+    "term": "NDC",
+    "definition": "Acronym for national data centre."
+  },
+  {
+    "term": "NDC in a box",
+    "definition": "A packaged software and hardware solution for setting up a national data centre with minimal local resources."
+  },
+  {
+    "term": "noble gas xenon 133",
+    "definition": "A radioactive isotope of xenon produced by nuclear fission, used as an indicator of nuclear explosions."
+  },
+  {
+    "term": "non-signatory States",
+    "definition": "Countries that have not signed the CTBT."
+  },
+  {
+    "term": "N-phase",
+    "definition": "Nuclear phase observed in seismic data, indicating a nuclear origin of the event."
+  },
+  {
+    "term": "nuclear capable status",
+    "definition": "The classification of a country or system as having the capability to develop or use nuclear weapons."
+  },
+  {
+    "term": "nuclear fission",
+    "definition": "A nuclear reaction where an atomic nucleus splits, releasing energy, used in nuclear weapons and reactors."
+  },
+  {
+    "term": "ocean-bottom anchors",
+    "definition": "Anchoring devices used to fix hydrophones to the sea floor for hydroacoustic monitoring."
+  },
+  {
+    "term": "On-Site Inspection",
+    "definition": "A key verification measure of the CTBT, involving the in-person investigation of a suspected nuclear test site."
+  },
+  {
+    "term": "OSI",
+    "definition": "Acronym for On-Site Inspection."
+  },
+  {
+    "term": "operational deployment",
+    "definition": "The act of implementing or activating systems, teams, or resources for verification purposes."
+  },
+  {
+    "term": "operational manuals",
+    "definition": "Guides that define standard procedures and protocols for CTBT monitoring and inspections."
+  },
+  {
+    "term": "Operations Centre",
+    "definition": "A CTBTO facility responsible for coordinating daily operations and response to verification needs."
+  },
+  {
+    "term": "Operations Support Centre",
+    "definition": "Provides logistical, technical, and administrative support for OSI activities."
+  },
+  {
+    "term": "OSC",
+    "definition": "Acronym for Operations Support Centre."
+  },
+  {
+    "term": "OSI Operational Manual",
+    "definition": "The detailed guide outlining the procedures, methods, and technologies used in On-Site Inspections."
+  },
+  {
+    "term": "OSI Strategic Plan",
+    "definition": "A long-term framework guiding the implementation and priorities of On-Site Inspections under the CTBT."
+  },
+  {
+    "term": "Overflights",
+    "definition": "Authorized aerial reconnaissance flights over the inspected area during an OSI to collect visual or other data."
+  },
+  {
+    "term": "particle accelerators",
+    "definition": "Machines that use electromagnetic fields to propel charged particles to high speeds, used in radionuclide detection and analysis."
+  },
+  {
+    "term": "Passive seismic surveys",
+    "definition": "Seismic monitoring methods that record natural or induced seismic waves without generating additional signals."
+  },
+  {
+    "term": "plenary body",
+    "definition": "The full assembly of State Signatories of the CTBT, responsible for decision-making and oversight."
+  },
+  {
+    "term": "Preliminary findings document",
+    "definition": "An initial report summarizing the key observations and conclusions from an OSI."
+  },
+  {
+    "term": "Preparatory Commission",
+    "definition": "The organization established to prepare for the implementation of the CTBT, including establishing verification capabilities."
+  },
+  {
+    "term": "Preparatory Commission for the Comprehensive Nuclear-Test-Ban Treaty Organization",
+    "definition": "Full name of the entity responsible for preparing the CTBTO and its verification regime."
+  },
+  {
+    "term": "primary or compressional waves",
+    "definition": "Seismic waves (P-waves) that travel fastest through the Earth, compressing and expanding material in the direction of travel."
+  },
+  {
+    "term": "Primary seismic",
+    "definition": "Refers to P-waves, the first seismic waves detected after an event."
+  },
+  {
+    "term": "PS",
+    "definition": "Acronym for Primary Seismic."
+  },
+  {
+    "term": "Primary Seismological Stations",
+    "definition": "IMS stations equipped to detect and record primary (P) seismic waves."
+  },
+  {
+    "term": "Primordial radionuclides",
+    "definition": "Radioactive isotopes naturally present since Earth's formation, unrelated to nuclear explosions."
+  },
+  {
+    "term": "progress inspection report",
+    "definition": "A document detailing the status and activities during an ongoing OSI."
+  },
+  {
+    "term": "progressive commissioning",
+    "definition": "The phased activation and testing of IMS stations and systems over time."
+  },
+  {
+    "term": "Provisional Technical Secretariat",
+    "definition": "The executive body responsible for CTBTO operations and verification activities before the Treaty enters into force."
+  },
+  {
+    "term": "PTS",
+    "definition": "Acronym for Provisional Technical Secretariat."
+  },
+  {
+    "term": "P-waves",
+    "definition": "Primary or compressional seismic waves traveling fastest through the Earth."
+  },
+  {
+    "term": "radioactive decay",
+    "definition": "The spontaneous transformation of an unstable atomic nucleus into a different nucleus, emitting radiation."
+  },
+  {
+    "term": "radionuclide",
+    "definition": "A radioactive isotope detectable through specific monitoring methods, including particulate and noble gas emissions."
+  },
+  {
+    "term": "RN",
+    "definition": "Specialized labs analyzing samples for radionuclide content to verify nuclear test activity."
+  },
+  {
+    "term": "radionuclide monitoring",
+    "definition": "Solid or liquid particles in the atmosphere containing radioactive isotopes."
+  },
+  {
+    "term": "Radionuclide particulate",
+    "definition": "IMS stations equipped to detect radionuclides from nuclear explosions."
+  },
+  {
+    "term": "radionuclide stations",
+    "definition": "Radioactive isotopes of xenon gas produced by nuclear fission, important indicators in radionuclide monitoring."
+  },
+  {
+    "term": "radioxenon",
+    "definition": "Radioactive isotopes of xenon gas, especially Xe-133, that serve as key indicators of nuclear fission events."
+  },
+  {
+    "term": "ratio of the magnitude of surface waves to body waves",
+    "definition": "The comparative strength of different seismic wave types generated by an event."
+  },
+  {
+    "term": "relative excitation of seismic phases",
+    "definition": "The relative amplitude or energy of various seismic waves generated during an event, used to infer the source mechanism."
+  },
+  {
+    "term": "Resonance seismometry",
+    "definition": "An IDC publication providing detailed analysis of detected events after initial review."
+  },
+  {
+    "term": "Reviewed Event Bulletin",
+    "definition": "Acronym for Reviewed Event Bulletin."
+  },
+  {
+    "term": "REB",
+    "definition": "An IDC report summarizing radionuclide data after detailed analysis."
+  },
+  {
+    "term": "Reviewed Radionuclide Report",
+    "definition": "Acronym for Reviewed Radionuclide Report."
+  },
+  {
+    "term": "Richter scale",
+    "definition": "A logarithmic scale quantifying the magnitude of earthquakes or seismic events."
+  },
+  {
+    "term": "Scale of Assessments",
+    "definition": "The method used by the United Nations to determine financial contributions by Member States."
+  },
+  {
+    "term": "Science and Technology Conference",
+    "definition": "A conference held to discuss scientific and technological advances relevant to the CTBT."
+  },
+  {
+    "term": "SnT",
+    "definition": "Acronym for Science and Technology Conference."
+  },
+  {
+    "term": "Scientific Advisory Board",
+    "definition": "A committee providing scientific advice to the CTBTO."
+  },
+  {
+    "term": "secondary or shear waves",
+    "definition": "Seismic waves (S-waves) that move the ground perpendicular to the direction of propagation."
+  },
+  {
+    "term": "secure web portal",
+    "definition": "A secure online platform for data sharing and communication."
+  },
+  {
+    "term": "SWP",
+    "definition": "Acronym for secure web portal."
+  },
+  {
+    "term": "seismic arrays",
+    "definition": "Groups of seismic sensors arranged to improve detection and location capabilities."
+  },
+  {
+    "term": "seismic events",
+    "definition": "Vibrations of the Earth caused by natural or man-made sources."
+  },
+  {
+    "term": "seismic noise",
+    "definition": "Background seismic vibrations that may obscure signals."
+  },
+  {
+    "term": "Seismic stations",
+    "definition": "IMS stations that detect seismic signals."
+  },
+  {
+    "term": "seismic waves",
+    "definition": "Elastic waves that propagate through the Earth following an event."
+  },
+  {
+    "term": "Seismological monitoring",
+    "definition": "The process of monitoring seismic activity using IMS stations."
+  },
+  {
+    "term": "seismometers",
+    "definition": "Sensitive instruments measuring ground motion from seismic waves."
+  },
+  {
+    "term": "signal frequency content",
+    "definition": "The distribution of different frequencies present in a seismic signal."
+  },
+  {
+    "term": "signal-to noise-ratio",
+    "definition": "The ratio of signal strength to background noise."
+  },
+  {
+    "term": "SNR",
+    "definition": "Acronym for signal-to-noise ratio."
+  },
+  {
+    "term": "Signatory States",
+    "definition": "Countries that have signed the CTBT."
+  },
+  {
+    "term": "Site survey",
+    "definition": "A pre-installation survey to assess the suitability of a location for an IMS station, covering geological, technical, and logistical factors."
+  },
+  {
+    "term": "Sound Fixing and Ranging Channel",
+    "definition": "An underwater sound channel that traps acoustic energy for long-distance propagation."
+  },
+  {
+    "term": "SOFAR",
+    "definition": "Acronym for Sound Fixing and Ranging Channel."
+  },
+  {
+    "term": "source region attribution",
+    "definition": "The determination of the origin location of a seismic or acoustic event."
+  },
+  {
+    "term": "spectral ratios of phases",
+    "definition": "The ratios of different seismic wave phases used to identify explosion characteristics."
+  },
+  {
+    "term": "spectral scalloping",
+    "definition": "Artifacts in spectral data due to instrument or processing effects."
+  },
+  {
+    "term": "split event",
+    "definition": "An event consisting of two closely timed seismic signals."
+  },
+  {
+    "term": "SELs",
+    "definition": "Acronym for Standard Events Lists. Preliminary event lists created at different levels of automatic screening in the IDC’s waveform processing pipeline."
+  },
+  {
+    "term": "SEL1",
+    "definition": "The initial automatic detection list generated by IDC’s automatic processing of IMS data. It includes events detected by multiple seismic stations that meet a minimum threshold for event characterization. Provides rapid notification of possible seismic events, including potential nuclear tests or earthquakes. It is preliminary and not reviewed by analysts yet within 20 minutes after event occurrence."
+  },
+  {
+    "term": "SEL2",
+    "definition": "A refined list produced after preliminary analyst review and automatic processing with more data. It filters out some false detections and improves event location and identification.\tProvides more reliable and accurate event information to States Parties for initial assessment. Within 1–2 hours after event occurrence."
+  },
+  {
+    "term": "SEL3",
+    "definition": "The final reviewed and analyst-verified event list issued after thorough analysis and quality control. This list includes the best possible event parameters and classification.\tServes as the authoritative seismic event bulletin for States Parties and the Conference on Disarmament. It is used for treaty verification and decision-making. Typically within 12 hours after event occurrence."
+  },
+  {
+    "term": "Standard Screened Event Bulletin",
+    "definition": "Detailed bulletins reporting on screened seismic events."
+  },
+  {
+    "term": "SSEB",
+    "definition": "Acronym for Standard Screened Event Bulletin."
+  },
+  {
+    "term": "Standard Screened Radionuclide Event Bulletin",
+    "definition": "Detailed bulletins reporting on screened radionuclide events."
+  },
+  {
+    "term": "SSREB",
+    "definition": "Acronym for Standard Screened Radionuclide Event Bulletin."
+  },
+  {
+    "term": "State Party",
+    "definition": "A State Party is a country that has both signed and ratified the CTBT, thereby making it legally bound by the Treaty’s obligations."
+  },
+  {
+    "term": "State-of-health",
+    "definition": "Operational status indicators of IMS stations."
+  },
+  {
+    "term": "States Parties",
+    "definition": "Countries that have signed and ratified the CTBT."
+  },
+  {
+    "term": "States Signatories",
+    "definition": "Countries that have signed the CTBT."
+  },
+  {
+    "term": "surface waves",
+    "definition": "Seismic waves traveling along the Earth’s surface."
+  },
+  {
+    "term": "surrogate inspectors",
+    "definition": "Inspectors appointed as substitutes during OSI operations."
+  },
+  {
+    "term": "S-waves",
+    "definition": "Secondary or shear seismic waves."
+  },
+  {
+    "term": "Tabletop exercises",
+    "definition": "Training exercises simulating OSI scenarios."
+  },
+  {
+    "term": "tamper-detection devices",
+    "definition": "Devices designed to detect tampering with inspection equipment."
+  },
+  {
+    "term": "technical assistance",
+    "definition": "Assistance provided to States for CTBT implementation."
+  },
+  {
+    "term": "Technical Secretariat",
+    "definition": "The executive body managing CTBTO activities."
+  },
+  {
+    "term": "Technology Support and Training Centre",
+    "definition": "Centre providing technical support and training related to CTBT verification."
+  },
+  {
+    "term": "TeST Centre",
+    "definition": "Acronym for Technology Support and Training Centre."
+  },
+  {
+    "term": "The final verification measure",
+    "definition": "The final measure to verify compliance under the CTBT, usually an OSI."
+  },
+  {
+    "term": "three-component stations",
+    "definition": "IMS stations equipped with three-component seismic sensors."
+  },
+  {
+    "term": "T-phase",
+    "definition": "A type of seismic wave generated by underwater events, traveling through the ocean."
+  },
+  {
+    "term": "Tsunami Warning Agreements",
+    "definition": "Agreements between States to share tsunami warning information."
+  },
+  {
+    "term": "Tsunami Warning Centres",
+    "definition": "Centres that provide tsunami warnings based on seismic and ocean data."
+  },
+  {
+    "term": "tsunami-generating earthquakes",
+    "definition": "Earthquakes that generate tsunamis."
+  },
+  {
+    "term": "ultra-low-frequency sound waves",
+    "definition": "Very low frequency sound waves below human hearing."
+  },
+  {
+    "term": "universalization",
+    "definition": "Universalization of the CTBT is the political and diplomatic process aimed at ensuring that all countries, especially the remaining Annex 2 States, sign and ratify the Treaty so that it can enter into force and gain universal legal authority and legitimacy."
+  },
+  {
+    "term": "Verification regime",
+    "definition": "The set of measures and systems used to verify compliance with the CTBT."
+  },
+  {
+    "term": "Very Small Aperture Terminal",
+    "definition": "A satellite communication terminal used for data transmission."
+  },
+  {
+    "term": "VSAT",
+    "definition": "Acronym for Very Small Aperture Terminal."
+  },
+  {
+    "term": "Vienna International Centre",
+    "definition": "The UN complex in Vienna housing CTBTO and other agencies."
+  },
+  {
+    "term": "VIC",
+    "definition": "Acronym for Vienna International Centre."
+  },
+  {
+    "term": "Virtual Data Exploitaton Centre",
+    "definition": "A centre focused on the exploitation of verification data virtually."
+  },
+  {
+    "term": "vDEC",
+    "definition": "Acronym for Virtual Data Exploitation Centre."
+  },
+  {
+    "term": "virtual private networks",
+    "definition": "Private networks that enable secure communication over the internet."
+  },
+  {
+    "term": "VPNs",
+    "definition": "Acronym for virtual private networks."
+  },
+  {
+    "term": "Waveform",
+    "definition": "A graphical or digital representation of seismic, hydroacoustic, or infrasound signals captured by sensors."
+  },
+  {
+    "term": "waveform data",
+    "definition": "Data capturing waveforms of seismic or acoustic events."
+  },
+  {
+    "term": "waveform technologies",
+    "definition": "Technologies used to acquire and analyze waveform data."
+  },
+  {
+    "term": "wide-band energy",
+    "definition": "The total energy contained within a wide frequency band of a signal."
+  },
+  {
+    "term": "Working Group A",
+    "definition": "Working Group A (WGA) of the CTBTO handles administrative, financial, and legal matters to support the organization’s governance and readiness for Treaty implementation."
+  },
+  {
+    "term": "WGA",
+    "definition": "Acronym for Working Group A."
+  },
+  {
+    "term": "Working Group B",
+    "definition": "Working Group B (WGB) of the CTBTO focuses on the scientific, technical, and operational aspects of the verification regime, including monitoring technologies, data analysis, and on-site inspections."
+  },
+  {
+    "term": "WGB",
+    "definition": "Acronym for Working Group B."
+  },
+  {
+    "term": "xenon isotopes",
+    "definition": "Radioactive isotopes of xenon used as indicators in radionuclide monitoring."
+  }
+]
