@@ -1,6 +1,7 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
-// Speaker interface based on timetable.json aggregation
+// Enhanced Speaker interface based on comprehensive RAG backend data structure
 interface SpeakerSession {
   session_id: string;
   title: string;
@@ -12,17 +13,31 @@ interface SpeakerSession {
   theme: string;
   track: string;
   is_keynote?: boolean;
+  description?: string;
+  audience_level?: string;
+  duration?: number;
 }
 
 interface SpeakerData {
   name: string;
   sessions: SpeakerSession[];
-  totalSessions: number;
-  tracks: string[];
-  themes: string[];
+  totalSessions?: number;
+  tracks?: string[];
+  themes?: string[];
   bio?: string;
   organization?: string;
   expertise?: string[];
+  image?: string;
+  title?: string;
+  country?: string;
+  affiliation?: string;
+  research_areas?: string[];
+  publications?: number;
+  years_experience?: number;
+  specializations?: string[];
+  languages?: string[];
+  honors?: string[];
+  current_role?: string;
 }
 
 interface SpeakerCardProps {
@@ -46,221 +61,481 @@ export const SpeakerCard: React.FC<SpeakerCardProps> = React.memo(({
   className = '',
   style
 }) => {
-  const getSpeakerIcon = (name: string) => {
-    // Extract title/role for appropriate icon
-    if (name.includes('Prof.') || name.includes('Professor')) return '👨‍🏫';
-    if (name.includes('Dr.')) return '👨‍⚕️';
-    if (name.includes('Ambassador')) return '🏛️';
-    if (name.includes('CEO') || name.includes('CTO')) return '👔';
-    if (name.includes('Col.')) return '🎖️';
-    return '👤';
+  // Smart fallback for speaker name - never show "Not available"
+  const displayName = speaker?.name || speaker?.title || 'Conference Speaker';
+  
+  // Generate speaker initials for avatar fallback
+  const getInitials = (name: string) => {
+    if (!name) return 'CS'; // Conference Speaker
+    return name
+      .split(' ')
+      .filter(part => part.length > 0)
+      .map(part => part.charAt(0))
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
 
-  const getSessionTypeIcon = (type: string) => {
-    switch (type) {
-      case 'Keynote': return '🎤';
-      case 'Panel Discussion': return '👥';
-      case 'Technical Session': return '🔬';
-      case 'Workshop': return '🛠️';
-      case 'Lightning Talks': return '⚡';
-      default: return '📋';
+  // Enhanced time formatting with fallbacks
+  const formatTime = (time: string) => {
+    if (!time) return '';
+    try {
+      return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+    } catch {
+      return time; // Return original if parsing fails
     }
   };
 
-  const getTrackColor = (track: string) => {
-    const colors = {
-      'Technology': 'bg-cyan-100 text-cyan-800',
-      'Innovation': 'bg-orange-100 text-orange-800',
-      'Training': 'bg-indigo-100 text-indigo-800',
-      'Policy': 'bg-red-100 text-red-800',
-      'Social': 'bg-pink-100 text-pink-800',
-      'General': 'bg-gray-100 text-gray-800'
-    };
-    return colors[track as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const formatTime = (time: string) => {
-    return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-  };
-
+  // Enhanced date formatting with fallbacks
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
+    if (!dateStr) return '';
+    try {
+      return new Date(dateStr).toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return dateStr; // Return original if parsing fails
+    }
   };
 
-  const isKeynote = speaker.sessions.some(session => session.session_type === 'Keynote');
-  const uniqueTracks = [...new Set(speaker.sessions.map(s => s.track))];
-  const uniqueThemes = [...new Set(speaker.sessions.map(s => s.theme))];
+  // Enhanced session type icons with more coverage
+  const getSessionIcon = (type: string) => {
+    const icons = {
+      'Keynote': '🎤',
+      'Panel Discussion': '👥',
+      'Technical Session': '🔬',
+      'Workshop': '🛠️',
+      'Training': '📚',
+      'Lightning Talks': '⚡',
+      'Presentation': '📊',
+      'Tutorial': '🎓',
+      'Demo': '💻',
+      'Poster': '📋',
+      'Break': '☕',
+      'Networking': '🤝',
+      'default': '📋'
+    };
+    return icons[type as keyof typeof icons] || icons.default;
+  };
+
+  // Professional track color system with more coverage
+  const getTrackStyle = (track: string) => {
+    const styles = {
+      'Technology': 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100',
+      'Innovation': 'bg-orange-50 text-orange-700 border border-orange-200 hover:bg-orange-100',
+      'Training': 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100',
+      'Policy': 'bg-red-50 text-red-700 border border-red-200 hover:bg-red-100',
+      'Social': 'bg-pink-50 text-pink-700 border border-pink-200 hover:bg-pink-100',
+      'General': 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100',
+      'Modeling': 'bg-green-50 text-green-700 border border-green-200 hover:bg-green-100',
+      'Assessment': 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100',
+      'Cooperation': 'bg-cyan-50 text-cyan-700 border border-cyan-200 hover:bg-cyan-100',
+      'Ethics': 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100',
+      'Academic': 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100'
+    };
+    return styles[track as keyof typeof styles] || styles.General;
+  };
+
+  // Enhanced audience level styling
+  const getAudienceLevelStyle = (level: string) => {
+    const styles = {
+      'all_attendees': 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+      'technical_experts': 'bg-violet-50 text-violet-700 border border-violet-200',
+      'researchers': 'bg-teal-50 text-teal-700 border border-teal-200',
+      'beginners': 'bg-sky-50 text-sky-700 border border-sky-200',
+      'intermediate': 'bg-amber-50 text-amber-700 border border-amber-200',
+      'advanced': 'bg-red-50 text-red-700 border border-red-200'
+    };
+    return styles[level as keyof typeof styles] || styles.all_attendees;
+  };
+
+  // Smart session filtering and sorting
+  const processedSessions = React.useMemo(() => {
+    if (!speaker?.sessions) return [];
+    
+    return [...speaker.sessions]
+      .filter(session => session?.title && session?.session_id) // Only valid sessions
+      .sort((a, b) => {
+        // Sort keynotes first, then by date/time
+        if (a.session_type === 'Keynote' && b.session_type !== 'Keynote') return -1;
+        if (b.session_type === 'Keynote' && a.session_type !== 'Keynote') return 1;
+        
+        // Then by date and time
+        const dateA = new Date(`${a.date}T${a.start_time || '00:00'}`);
+        const dateB = new Date(`${b.date}T${b.start_time || '00:00'}`);
+        return dateA.getTime() - dateB.getTime();
+      });
+  }, [speaker?.sessions]);
+
+  // Intelligent data extraction with fallbacks
+  const isKeynote = processedSessions.some(session => 
+    session.session_type === 'Keynote' || session.is_keynote
+  );
+
+  // Smart unique extraction with deduplication
+  const uniqueThemes = React.useMemo(() => {
+    const themes = new Set<string>();
+    
+    // From sessions
+    processedSessions.forEach(session => {
+      if (session.theme && session.theme.trim()) themes.add(session.theme.trim());
+    });
+    
+    // From speaker expertise/themes
+    if (speaker?.themes) {
+      speaker.themes.forEach(theme => {
+        if (theme && theme.trim()) themes.add(theme.trim());
+      });
+    }
+    
+    // From expertise areas
+    if (speaker?.expertise) {
+      speaker.expertise.forEach(exp => {
+        if (exp && exp.trim()) themes.add(exp.trim());
+      });
+    }
+    
+    // From research areas
+    if (speaker?.research_areas) {
+      speaker.research_areas.forEach(area => {
+        if (area && area.trim()) themes.add(area.trim());
+      });
+    }
+    
+    return Array.from(themes).slice(0, 6); // Limit to 6 for UI
+  }, [speaker, processedSessions]);
+
+  const uniqueTracks = React.useMemo(() => {
+    const tracks = new Set<string>();
+    
+    processedSessions.forEach(session => {
+      if (session.track && session.track.trim()) tracks.add(session.track.trim());
+    });
+    
+    if (speaker?.tracks) {
+      speaker.tracks.forEach(track => {
+        if (track && track.trim()) tracks.add(track.trim());
+      });
+    }
+    
+    return Array.from(tracks);
+  }, [speaker, processedSessions]);
+
+  // Smart session count with multiple sources
+  const sessionCount = processedSessions.length || speaker?.totalSessions || 0;
+
+  // Enhanced organization display with fallbacks
+  const displayOrganization = speaker?.organization || speaker?.affiliation || speaker?.current_role || '';
+
+  // Professional bio with smart truncation
+  const displayBio = React.useMemo(() => {
+    const bio = speaker?.bio || '';
+    if (!bio) return '';
+    
+    // Smart truncation for compact mode
+    if (compact && bio.length > 150) {
+      return bio.substring(0, 147).trim() + '...';
+    }
+    
+    return bio;
+  }, [speaker?.bio, compact]);
 
   return (
-    <div 
-      className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}
-      style={style}
+    <motion.div 
+      className={`professional-speaker-card ${className}`}
+      style={{
+        ...style,
+        // Respect accessibility preference for reduced motion
+        transition: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches 
+          ? 'none' : undefined 
+      }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.4, 
+        ease: "easeOut",
+        // Disable animation if user prefers reduced motion
+        ...(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches 
+          ? { duration: 0 } : {})
+      }}
     >
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-3">
-          <span className="text-3xl">{getSpeakerIcon(speaker.name)}</span>
-          <div>
-            <h3 className={`font-bold text-gray-900 ${compact ? 'text-base' : 'text-xl'}`}>
-              {speaker.name}
-            </h3>
-            <div className="flex items-center space-x-2 mt-1">
-              {isKeynote && (
-                <span className="px-2 py-1 rounded-full text-xs font-medium bg-gold-100 text-gold-800 border border-gold-200">
-                  🎤 Keynote Speaker
-                </span>
-              )}
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {speaker.totalSessions} session{speaker.totalSessions !== 1 ? 's' : ''}
-              </span>
-            </div>
-          </div>
-        </div>
+      {/* Professional Header Section */}
+      <div className="header-section">
+        {/* Close button (optional) */}
         {onClose && (
           <button 
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="close-button"
+            aria-label="Close speaker card"
           >
             ✕
           </button>
         )}
+
+        {/* Speaker Avatar & Basic Info */}
+        <div className="speaker-intro">
+          {/* Professional Avatar */}
+          <div className="avatar-container">
+            {speaker?.image ? (
+              <img
+                src={speaker.image}
+                alt={`${displayName} profile photo`}
+                className="speaker-avatar"
+                onError={(e) => {
+                  // Fallback to avatar if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+            ) : null}
+            <div 
+              className="avatar-fallback" 
+              style={{ display: speaker?.image ? 'none' : 'flex' }}
+            >
+              <span className="avatar-initials">
+                {getInitials(displayName)}
+              </span>
+            </div>
+          </div>
+
+          {/* Speaker Identity */}
+          <div className="speaker-identity">
+            <h1 className="speaker-name">
+              {displayName}
+            </h1>
+            
+            {displayOrganization && (
+              <p className="speaker-org">
+                {displayOrganization}
+              </p>
+            )}
+
+            {/* Professional Status Badges */}
+            <div className="status-badges">
+              {isKeynote && (
+                <span className="keynote-badge">
+                  🎤 Keynote Speaker
+                </span>
+              )}
+              
+              {sessionCount > 0 && (
+                <span className="session-count-badge">
+                  {sessionCount} session{sessionCount !== 1 ? 's' : ''}
+                </span>
+              )}
+
+              {/* Country/Location badge if available */}
+              {speaker?.country && (
+                <span className="session-count-badge">
+                  🌍 {speaker.country}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Speaker Info */}
-      {!compact && (
-        <div className="mb-4">
-          {speaker.organization && (
-            <p className="text-sm text-gray-600 mb-2">
-              🏢 {speaker.organization}
+      {/* Content Sections */}
+      <div className="content-sections">
+        {/* Speaker Biography */}
+        {!compact && displayBio && (
+          <section className="bio-section">
+            <h2 className="section-title">
+              About
+            </h2>
+            <p className="bio-text">
+              {displayBio}
             </p>
-          )}
-          {speaker.bio && (
-            <p className="text-sm text-gray-700 leading-relaxed">
-              {speaker.bio}
-            </p>
-          )}
-        </div>
-      )}
+          </section>
+        )}
 
-      {/* Expertise Areas */}
-      {uniqueThemes.length > 0 && (
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">
-            🎯 Expertise Areas
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {uniqueThemes.map((theme, index) => (
-              <button
-                key={index}
-                onClick={() => onTopicClick?.(theme)}
-                className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm hover:bg-purple-100 transition-colors"
-              >
-                {theme}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* Expertise Areas - Enhanced with multiple sources */}
+        {uniqueThemes.length > 0 && (
+          <section className="expertise-section">
+            <h2 className="section-title">
+              Expertise Areas
+            </h2>
+            <div className="expertise-tags">
+              {uniqueThemes.map((theme, index) => (
+                <button
+                  key={index}
+                  onClick={() => onTopicClick?.(theme)}
+                  className="expertise-tag"
+                  title={`Explore ${theme} topics`}
+                >
+                  {theme}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Tracks */}
-      {uniqueTracks.length > 0 && (
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-900 mb-2">
-            📊 Conference Tracks
-          </h4>
-          <div className="flex flex-wrap gap-2">
-            {uniqueTracks.map((track, index) => (
-              <span
-                key={index}
-                className={`px-2 py-1 rounded-full text-xs font-medium ${getTrackColor(track)}`}
-              >
-                {track}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* Conference Tracks */}
+        {uniqueTracks.length > 0 && (
+          <section className="tracks-section">
+            <h2 className="section-title">
+              Conference Tracks
+            </h2>
+            <div className="track-badges">
+              {uniqueTracks.map((track, index) => (
+                <span
+                  key={index}
+                  className={`track-badge ${getTrackStyle(track)}`}
+                  title={`${track} track sessions`}
+                >
+                  {track}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
-      {/* Sessions */}
-      {showSessions && speaker.sessions.length > 0 && (
-        <div className="mb-4">
-          <h4 className="text-sm font-semibold text-gray-900 mb-3">
-            📅 Speaking Sessions
-          </h4>
-          <div className="space-y-3">
-            {speaker.sessions.map((session, index) => (
-              <div
-                key={index}
-                onClick={() => onSessionClick?.(session.session_id)}
-                className="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="text-lg">{getSessionTypeIcon(session.session_type)}</span>
-                      <h5 className="font-medium text-gray-900 text-sm">
-                        {session.title}
-                      </h5>
-                      {session.session_type === 'Keynote' && (
-                        <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">
-                          Keynote
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-4 text-xs text-gray-600">
-                      <span>📅 {formatDate(session.date)}</span>
-                      <span>⏰ {formatTime(session.start_time)} - {formatTime(session.end_time)}</span>
-                      <span>📍 {session.venue}</span>
+        {/* Speaking Sessions - Enhanced with better data handling */}
+        {showSessions && processedSessions.length > 0 && (
+          <section className="sessions-section">
+            <h2 className="section-title">
+              Speaking Sessions
+            </h2>
+            
+            <div className="sessions-list">
+              {processedSessions.map((session, index) => (
+                <div
+                  key={session.session_id || index}
+                  onClick={() => onSessionClick?.(session.session_id)}
+                  className="session-card"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSessionClick?.(session.session_id);
+                    }
+                  }}
+                >
+                  {/* Session Header */}
+                  <div className="session-header">
+                    <div className="session-info">
+                      <span className="session-icon" role="img" aria-label={session.session_type}>
+                        {getSessionIcon(session.session_type)}
+                      </span>
+                      <div>
+                        <h3 className="session-title">
+                          {session.title}
+                        </h3>
+                        {(session.session_type === 'Keynote' || session.is_keynote) && (
+                          <span className="keynote-label">
+                            Keynote
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="mt-2 flex items-center justify-between">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTrackColor(session.track)}`}>
-                    {session.track}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onTopicClick?.(session.theme);
-                    }}
-                    className="text-xs text-purple-600 hover:text-purple-800"
-                  >
-                    🏷️ {session.theme}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* Quick Stats */}
-      <div className="border-t pt-3">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-lg font-bold text-gray-900">{speaker.sessions.length}</p>
-            <p className="text-xs text-gray-600">Sessions</p>
+                  {/* Session Details */}
+                  <div className="session-details">
+                    {session.date && (
+                      <div className="detail-item">
+                        📅 {formatDate(session.date)}
+                      </div>
+                    )}
+                    
+                    {(session.start_time || session.end_time) && (
+                      <div className="detail-item">
+                        ⏰ {formatTime(session.start_time || '')} {session.end_time ? `- ${formatTime(session.end_time)}` : ''}
+                      </div>
+                    )}
+                    
+                    {session.venue && (
+                      <div className="detail-item">
+                        📍 {session.venue}
+                      </div>
+                    )}
+
+                    {session.duration && (
+                      <div className="detail-item">
+                        ⌱ {session.duration} min
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Session Meta */}
+                  <div className="session-meta">
+                    {session.track && (
+                      <span className={`track-badge ${getTrackStyle(session.track)}`}>
+                        {session.track}
+                      </span>
+                    )}
+                    
+                    {session.audience_level && (
+                      <span className={`track-badge ${getAudienceLevelStyle(session.audience_level)}`}>
+                        {session.audience_level.replace('_', ' ')}
+                      </span>
+                    )}
+                    
+                    {session.theme && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTopicClick?.(session.theme);
+                        }}
+                        className="theme-link"
+                        title={`Explore ${session.theme} topic`}
+                      >
+                        🏷️ {session.theme}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Enhanced Professional Stats Footer */}
+        <footer className="stats-footer">
+          <div className="stats-grid">
+            <div className="stat-item">
+              <div className="stat-number">{sessionCount}</div>
+              <div className="stat-label">Sessions</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">{uniqueThemes.length}</div>
+              <div className="stat-label">Topics</div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-number">{uniqueTracks.length}</div>
+              <div className="stat-label">Tracks</div>
+            </div>
           </div>
-          <div>
-            <p className="text-lg font-bold text-gray-900">{uniqueThemes.length}</p>
-            <p className="text-xs text-gray-600">Topics</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-gray-900">{uniqueTracks.length}</p>
-            <p className="text-xs text-gray-600">Tracks</p>
-          </div>
-        </div>
+          
+          {/* Additional stats if available */}
+          {(speaker?.years_experience || speaker?.publications) && (
+            <div className="stats-grid" style={{ marginTop: '1rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+              {speaker.years_experience && (
+                <div className="stat-item">
+                  <div className="stat-number">{speaker.years_experience}+</div>
+                  <div className="stat-label">Years Experience</div>
+                </div>
+              )}
+              {speaker.publications && (
+                <div className="stat-item">
+                  <div className="stat-number">{speaker.publications}</div>
+                  <div className="stat-label">Publications</div>
+                </div>
+              )}
+            </div>
+          )}
+        </footer>
       </div>
-    </div>
+    </motion.div>
   );
 });
 

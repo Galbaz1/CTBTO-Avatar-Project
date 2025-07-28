@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { createConversation, endConversation } from '../api';
 import { CVIProvider } from './cvi/components/cvi-provider';
 import { Conversation } from './cvi/components/conversation';
 import { ConferenceHandler } from './ConferenceHandler';
 import { WeatherHandler } from './WeatherHandler';
 import { RagHandler } from './RagHandler';
-import { CardLayerManager } from './CardLayerManager';
+// import { CardLayerManager } from './CardLayerManager'; // Unused in current implementation
 import { FullScreenCardContainer } from './FullScreenCardContainer';
-import type { CardData, WeatherData } from '../types/cards';
+import type { WeatherData } from '../types/cards';
 import { StickyInterface } from './StickyInterface';
 import { timingTracker } from '../utils/timingTracker';
 
@@ -211,18 +211,23 @@ export const RosaDemo: React.FC = () => {
         lastCardArrayHash.current = cardArrayHash;
       }
       
-      return cardArray;
+      // Do not return here; continue to allow speaker/topic cards to be pushed
     }
     
     // Speaker cards
     if (showRagCards && ragData?.speaker) {
-      const speakerCard = {
-        id: 'current-speaker-card',
-        type: 'speaker',
-        content: ragData.speaker,
-        size: 'full'
-      };
-      cardArray.push(speakerCard);
+      // Handle both wrapped and direct speaker data formats
+      const speakerData = ragData.speaker.card_data || ragData.speaker;
+      
+      if (speakerData && speakerData.name) {
+        const speakerCard = {
+          id: 'current-speaker-card',
+          type: 'speaker',
+          content: speakerData,
+          size: 'full'
+        };
+        cardArray.push(speakerCard);
+      }
     }
     
     // Topic cards

@@ -143,7 +143,8 @@ Respond in JSON format:
             if show_cards:
                 cards_to_format = decision.get("cards", [])
                 rosa_logger.card_decision(session_id, True, len(cards_to_format), confidence)
-                return self._format_cards_for_display(cards_to_format, rag_results)
+                formatted_cards = self._format_cards_for_display(cards_to_format, rag_results, session_id)
+                return formatted_cards
             
             rosa_logger.card_decision(session_id, False, 0, confidence)
             return []
@@ -300,7 +301,7 @@ Remember: You're not following rigid rules but making intelligent, context-aware
             memory["patterns"]["recent_show_rate"] = show_rate
             memory["patterns"]["confidence_trend"] = avg_confidence
     
-    def _format_cards_for_display(self, card_decisions: List[dict], rag_results: dict) -> List[CardDecision]:
+    def _format_cards_for_display(self, card_decisions: List[dict], rag_results: dict, session_id: str = "unknown") -> List[CardDecision]:
         """Format AI decisions into actual card data for frontend with relevance filtering"""
         formatted_cards = []
         
@@ -339,7 +340,7 @@ Remember: You're not following rigid rules but making intelligent, context-aware
             
             elif card_type == "speaker":
                 # Format speaker card
-                speaker_name = card.get("speaker_name", "")
+                speaker_name = card.get("name", "") or card.get("speaker_name", "")
                 if not speaker_name:
                     continue  # Skip if no speaker name
                     
@@ -351,22 +352,27 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                     relevance_score = session.get('relevance_score', 0) if isinstance(session, dict) else session.relevance_score
                     
                     if speaker_name and speaker_name in speakers and relevance_score >= RELEVANCE_THRESHOLD:
-                        speaker_sessions.append(session)
+                        # 🔧 FIX: Transform SearchResult format to frontend SpeakerSession format
+                        frontend_session = self._transform_session_for_frontend(session, session_metadata)
+                        if frontend_session:  # Only add if transformation successful
+                            speaker_sessions.append(frontend_session)
                 
                 if speaker_sessions:
-                    avg_relevance = sum(s.get('relevance_score', 0) if isinstance(s, dict) else s.relevance_score for s in speaker_sessions) / len(speaker_sessions)
+                    avg_relevance = sum(s.get('relevance_score', 0) for s in speaker_sessions) / len(speaker_sessions)
+                    
+                    # 🔧 ENHANCEMENT: Aggregate comprehensive speaker data from all sessions
+                    aggregated_speaker_data = self._aggregate_speaker_data(speaker_name, speaker_sessions)
+                    
                     rosa_logger.info(f"✅ Approved speaker card: {speaker_name} ({len(speaker_sessions)} sessions, avg_relevance={avg_relevance:.2f})", session_id, LLMInstance.UI_INTEL)
                     formatted_cards.append(CardDecision(
                         card_type="speaker",
-                        card_data={
-                            "name": speaker_name,
-                            "sessions": speaker_sessions,
-                            "bio": card.get("bio", "")
-                        },
+                        card_data=aggregated_speaker_data,
                         display_reason=card.get("display_reason", ""),
                         confidence=card.get("confidence", 0.8),
                         timing=card.get("timing", "immediate")
                     ))
+                else:
+                    rosa_logger.warning(f"❌ No high-relevance sessions found for speaker: {speaker_name}", session_id, LLMInstance.UI_INTEL)
             
             elif card_type == "topic":
                 # Format topic exploration card
@@ -381,10 +387,13 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                     relevance_score = session.get('relevance_score', 0) if isinstance(session, dict) else session.relevance_score
                     
                     if topic_theme and session_theme and topic_theme.lower() in session_theme.lower() and relevance_score >= RELEVANCE_THRESHOLD:
-                        related_sessions.append(session)
+                        # Transform for frontend consistency
+                        frontend_session = self._transform_session_for_frontend(session, session_metadata)
+                        if frontend_session:
+                            related_sessions.append(frontend_session)
                 
                 if related_sessions:
-                    avg_relevance = sum(s.get('relevance_score', 0) if isinstance(s, dict) else s.relevance_score for s in related_sessions) / len(related_sessions)
+                    avg_relevance = sum(s.get('relevance_score', 0) for s in related_sessions) / len(related_sessions)
                     rosa_logger.info(f"✅ Approved topic card: {topic_theme} ({len(related_sessions)} sessions, avg_relevance={avg_relevance:.2f})", session_id, LLMInstance.UI_INTEL)
                     formatted_cards.append(CardDecision(
                         card_type="topic",
@@ -400,6 +409,178 @@ Remember: You're not following rigid rules but making intelligent, context-aware
         
         rosa_logger.debug(f"🎴 Returning {len(formatted_cards)} formatted cards", None, LLMInstance.UI_INTEL)
         return formatted_cards
+
+    def _transform_session_for_frontend(self, session: dict, session_metadata: dict) -> dict:
+        """
+        🔧 CRITICAL FIX: Transform SearchResult session format to frontend SpeakerSession format
+        
+        Converts from:
+        {
+          "metadata": {
+            "session_id": "session-2025-09-09-2130",
+            "speakers": ["Ambassador John Smith"],
+            ...
+          }
+        }
+        
+        To:
+        {
+          "session_id": "session-2025-09-09-2130", 
+          "speakers": ["Ambassador John Smith"],
+          ...
+        }
+        """
+        try:
+            # Extract session data from metadata and flatten to top level
+            frontend_session = {
+                # Core session identification
+                "session_id": session_metadata.get("session_id", ""),
+                "title": session_metadata.get("title", "") or session.get("title", ""),
+                
+                # Timing information
+                "date": session_metadata.get("date", ""),
+                "start_time": session_metadata.get("start_time", ""),
+                "end_time": session_metadata.get("end_time", ""),
+                "duration": session_metadata.get("duration", session_metadata.get("duration_minutes", 0)),
+                
+                # Location and logistics
+                "venue": session_metadata.get("venue", ""),
+                
+                # Session classification
+                "session_type": session_metadata.get("session_type", ""),
+                "theme": session_metadata.get("theme", ""),
+                "track": session_metadata.get("track", ""),
+                "audience_level": session_metadata.get("audience_level", ""),
+                
+                # Content
+                "description": session_metadata.get("description", "") or session.get("content", ""),
+                "speakers": session_metadata.get("speakers", []),
+                
+                # Flags
+                "is_keynote": session_metadata.get("session_type", "") == "Keynote",
+                "is_interactive": session_metadata.get("is_interactive", False),
+                "is_technical": session_metadata.get("is_technical", True),
+                
+                # Metadata for debugging/tracking
+                "relevance_score": session.get("relevance_score", 0.0),
+                "search_type": session.get("search_type", ""),
+                
+                # Conference context
+                "conference": session_metadata.get("conference", ""),
+                "location": session_metadata.get("location", ""),
+                
+                # Additional enhanced fields for comprehensive display
+                "day_of_week": session_metadata.get("day_of_week", ""),
+                "time_of_day": session_metadata.get("time_of_day", ""),
+                "speaker_count": session_metadata.get("speaker_count", len(session_metadata.get("speakers", []))),
+                "practical_info": session_metadata.get("practical_info", ""),
+                "related_topics": session_metadata.get("related_topics", [])
+            }
+            
+            # Validate essential fields
+            if not frontend_session["session_id"] or not frontend_session["title"]:
+                rosa_logger.warning(f"⚠️ Session missing essential fields: {session_metadata.get('session_id', 'unknown')}")
+                return None
+                
+            rosa_logger.debug(f"✅ Transformed session: {frontend_session['session_id']} - {frontend_session['title']}")
+            return frontend_session
+            
+        except Exception as e:
+            rosa_logger.error(f"❌ Failed to transform session for frontend: {e}")
+            return None
+
+    def _aggregate_speaker_data(self, speaker_name: str, sessions: List[dict]) -> Dict[str, Any]:
+        """
+        🚀 COMPREHENSIVE SPEAKER DATA AGGREGATION
+        
+        Aggregates all available speaker data from multiple sessions to create
+        a comprehensive speaker profile that maximizes data utilization.
+        
+        Returns format that matches enhanced SpeakerCard interface.
+        """
+        # Extract unique themes, tracks, and other data from all sessions
+        themes = set()
+        tracks = set()
+        venues = set()
+        session_types = set()
+        keynote_count = 0
+        total_duration = 0
+        
+        for session in sessions:
+            if session.get('theme'):
+                themes.add(session['theme'])
+            if session.get('track'):
+                tracks.add(session['track'])
+            if session.get('venue'):
+                venues.add(session['venue'])
+            if session.get('session_type'):
+                session_types.add(session['session_type'])
+                if session['session_type'] == 'Keynote':
+                    keynote_count += 1
+            if session.get('duration'):
+                total_duration += session['duration']
+        
+        # Smart role inference from speaker name and session types
+        inferred_role = ""
+        inferred_org = ""
+        
+        if "Ambassador" in speaker_name:
+            inferred_role = "Ambassador"
+            inferred_org = "Diplomatic Mission"
+        elif "Prof." in speaker_name or "Professor" in speaker_name:
+            inferred_role = "Professor"
+            inferred_org = "Academic Institution"
+        elif "Dr." in speaker_name:
+            inferred_role = "Doctor/Researcher"
+            inferred_org = "Research Institution"
+        elif "CEO" in speaker_name:
+            inferred_role = "Chief Executive Officer"
+        elif "Director" in speaker_name:
+            inferred_role = "Director"
+        elif "Mr." in speaker_name or "Ms." in speaker_name:
+            inferred_role = "Professional"
+        
+        # Enhanced role based on session participation
+        if keynote_count > 0:
+            inferred_role = f"Keynote Speaker{' & ' + inferred_role if inferred_role else ''}"
+        
+        # Create comprehensive speaker data structure
+        comprehensive_speaker_data = {
+            # Core identity (required by SpeakerCard)
+            "name": speaker_name,
+            "sessions": sessions,  # Properly formatted session array
+            
+            # Aggregated metadata
+            "totalSessions": len(sessions),
+            "themes": list(themes),
+            "tracks": list(tracks),
+            
+            # Enhanced professional profile
+            "organization": inferred_org,
+            "current_role": inferred_role,
+            "bio": f"Speaking at {len(sessions)} session{'s' if len(sessions) != 1 else ''} covering {', '.join(list(themes)[:3])}{'...' if len(themes) > 3 else ''}.",
+            
+            # Conference participation metrics
+            "keynote_sessions": keynote_count,
+            "total_speaking_time": total_duration,
+            "venues_spoken": list(venues),
+            "session_types": list(session_types),
+            
+            # Professional estimates (for display enhancement)
+            "years_experience": 10 + keynote_count * 5,  # Rough estimate based on keynotes
+            "expertise": list(themes),  # Use themes as expertise areas
+            "research_areas": list(themes),  # Themes are research areas
+            
+            # Conference context
+            "conference_participation": {
+                "total_sessions": len(sessions),
+                "keynote_sessions": keynote_count,
+                "tracks": list(tracks),
+                "venues": list(venues)
+            }
+        }
+        
+        return comprehensive_speaker_data
 
 class ContextualIntelligenceEngine:
     """Deep contextual understanding using multiple signals"""
@@ -703,6 +884,15 @@ if __name__ == "__main__":
                     'session_id': 'QS001',
                     'speakers': ['Dr. Sarah Chen'],
                     'venue': 'Main Hall'
+                }
+            },
+            {
+                'relevance_score': 0.85,
+                'title': 'Advanced Quantum Sensing Techniques',
+                'metadata': {
+                    'session_id': 'QS002',
+                    'speakers': ['Dr. Sarah Chen'],
+                    'venue': 'Conference Room A'
                 }
             }
         ],

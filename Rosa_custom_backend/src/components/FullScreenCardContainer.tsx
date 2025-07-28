@@ -46,11 +46,11 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
   const containerStyles = useMemo(() => {
     const baseStyles = {
       position: 'fixed' as const,
-      top: '60px', // Account for the header height
+      top: '0', // Align to the top of the viewport
       left: '50%', // Start from middle of screen (right half)
       right: 0,
       width: '50vw', // Take up right half of screen
-      height: 'calc(85vh - 60px)', // Use 85% of screen minus header, leave 15vh for sticky bar
+      height: '85vh', // Use 85% of viewport height, leaving 15% for the sticky bar
       pointerEvents: 'none' as const,
       zIndex: 500,
     };
@@ -67,7 +67,7 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
 
   // Position calculator - always single card taking available container space
   const getCardPosition = useMemo(() => {
-    return (index: number) => {
+    return () => {
       // Single card layout: uses full available space within the container
       return {
         pointerEvents: 'auto' as const,
@@ -158,14 +158,8 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
         return (
           <WeatherCard
             weatherData={card.content}
-            onClose={onCloseWeather}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              borderRadius: '16px',
-              fontSize: compact ? '14px' : '16px'
-            }}
+            onClose={onCloseWeather || (() => {})}
+            isVisible={true}
           />
         );
         
@@ -180,12 +174,6 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
             showDescription={!compact}
             onSpeakerClick={(speaker) => console.log('Speaker clicked:', speaker)}
             onClose={onCloseRag}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              borderRadius: '16px'
-            }}
           />
         );
         
@@ -198,12 +186,6 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
             onSessionClick={(session) => console.log('Session clicked:', session)}
             onTopicClick={(topic) => console.log('Topic clicked:', topic)}
             onClose={onCloseRag}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              borderRadius: '16px'
-            }}
           />
         );
         
@@ -303,7 +285,7 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
             exit="exit"
             layout
             style={{
-              ...getCardPosition(index),
+              ...getCardPosition(),
               borderRadius: '20px',
               boxShadow: layoutMode === 'hero' 
                 ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' 
