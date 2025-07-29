@@ -1,0 +1,62 @@
+[
+  {
+    "legacy": "SnT25_GlossaryTerm",
+    "new": "GlossaryTerm",
+    "migrated_objects": 240,
+    "consistency_verified": true,
+    "legacy_count": 240,
+    "new_count": 240,
+    "timestamp": "2025-07-29T14:33:37.148526",
+    "migration_type": "gradual"
+  },
+  {
+    "legacy": "SnT25_RedZoneRule",
+    "new": "RedZoneRule",
+    "migrated_objects": 40,
+    "consistency_verified": true,
+    "legacy_count": 40,
+    "new_count": 40,
+    "timestamp": "2025-07-29T14:33:39.986635",
+    "migration_type": "gradual"
+  },
+  {
+    "legacy": "SnT25_Room",
+    "new": "Venue",
+    "migrated_objects": 5,
+    "consistency_verified": true,
+    "legacy_count": 5,
+    "new_count": 5,
+    "timestamp": "2025-07-29T14:33:42.462933",
+    "migration_type": "gradual"
+  },
+  {
+    "legacy": "SnT25_Session",
+    "new": "Session",
+    "migrated_objects": 24,
+    "consistency_verified": true,
+    "legacy_count": 24,
+    "new_count": 24,
+    "timestamp": "2025-07-29T14:33:44.912387",
+    "migration_type": "gradual"
+  },
+  {
+    "legacy": "SnT25_Speaker",
+    "new": "Speaker",
+    "migrated_objects": 15,
+    "consistency_verified": true,
+    "legacy_count": 15,
+    "new_count": 15,
+    "timestamp": "2025-07-29T14:33:46.952385",
+    "migration_type": "gradual"
+  },
+  {
+    "legacy": "SnT25_Topic",
+    "new": "Topic",
+    "migrated_objects": 22,
+    "consistency_verified": true,
+    "legacy_count": 22,
+    "new_count": 22,
+    "timestamp": "2025-07-29T14:33:49.506577",
+    "migration_type": "gradual"
+  }
+]

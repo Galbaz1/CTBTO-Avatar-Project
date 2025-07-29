@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { AudioWave } from './cvi/components/audio-wave';
-import { useLocalSessionId } from '@daily-co/daily-react';
+
+// === TYPES ===
+
+interface Caption {
+  speaker: 'user' | 'rosa';
+  text: string;
+  timestamp: number;
+}
 
 interface StickyInterfaceProps {
   meetingState: string;
@@ -9,11 +18,55 @@ interface StickyInterfaceProps {
   isRosaSpeaking?: boolean;
 }
 
-interface Caption {
-  speaker: 'user' | 'rosa';
-  text: string;
-  timestamp: number;
-}
+// === CUSTOM HOOK FOR SESSION ID ===
+
+const useLocalSessionId = () => {
+  // Mock implementation - replace with actual session ID logic
+  return 'mock-session-id';
+};
+
+// === ANIMATION VARIANTS ===
+
+const interfaceVariants = {
+  hidden: { y: '100%', opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 30,
+      mass: 0.8
+    }
+  },
+  exit: {
+    y: '100%',
+    opacity: 0,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0, 0.2, 1]
+    }
+  }
+};
+
+const suggestionVariants = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0.25, 0.46, 0.45, 0.94]
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.2 }
+  }
+};
+
+// === MAIN COMPONENT ===
 
 export const StickyInterface: React.FC<StickyInterfaceProps> = ({
   meetingState,
@@ -27,16 +80,16 @@ export const StickyInterface: React.FC<StickyInterfaceProps> = ({
   // Get the local participant ID for the AudioWave component
   const localSessionId = useLocalSessionId();
 
-  // Static suggestions for Phase 1 MVP
+  // Enhanced suggestions for SnT2025 Conference
   const hardCodedSuggestions = [
-    "Ask about speakers",
-    "Show me the schedule", 
-    "What about the weather?",
-    "Find sessions about AI",
-    "Tell me about venues",
-    "Search for workshops",
-    "Show networking events",
-    "What's happening now?"
+    "Show me today's keynote sessions",
+    "Find speakers in nuclear detection",
+    "What's happening in the Festsaal?",
+    "Tell me about seismic monitoring",
+    "Show sessions about AI and machine learning",
+    "Find workshops on data analysis",
+    "What networking events are available?",
+    "Show me the conference schedule"
   ];
 
   // Rotate suggestions every 8 seconds
@@ -77,263 +130,209 @@ export const StickyInterface: React.FC<StickyInterfaceProps> = ({
   }
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: 0,
-      left: '50%',
-      right: 0,
-      height: '15vh',
-      background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,250,252,0.98) 100%)',
-      backdropFilter: 'blur(20px)',
-      borderTop: '1px solid rgba(226, 232, 240, 0.8)',
-      zIndex: 2000,
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 24px',
-      boxShadow: '0 -10px 25px -5px rgba(0, 0, 0, 0.1)',
-    }}>
-      
-      {/* Left Section: User Audio & Captions */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-      }}>
-        {/* User Audio Wave */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          minWidth: '200px',
-        }}>
-          <div style={{
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            background: isUserSpeaking 
-              ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
-              : '#d1d5db',
-            transition: 'all 0.3s ease',
-            boxShadow: isUserSpeaking ? '0 0 20px rgba(16, 185, 129, 0.6)' : 'none',
-          }} />
+    <AnimatePresence>
+      <motion.div
+        variants={interfaceVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        className={cn(
+          // === CORE POSITIONING ===
+          "fixed bottom-0 right-0",
+          "w-1/2 h-[15vh]", // Right half, 15% of viewport height
+          "z-[2000]", // Above everything else
           
-          <div style={{ 
-            flex: 1, 
-            height: '40px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            transform: 'scale(2.5)', // Scale up the small AudioWave component
-            transformOrigin: 'center'
-          }}>
-            {localSessionId && <AudioWave id={localSessionId} />}
-          </div>
+          // === PROFESSIONAL STYLING ===
+          "bg-ctbto-card",
+          "border-t border-ctbto/10",
+          "shadow-premium backdrop-blur-lg",
           
-          <span style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            color: isUserSpeaking ? '#059669' : '#6b7280',
-            transition: 'color 0.3s ease',
-          }}>
-            You
-          </span>
-        </div>
-
-        {/* User Captions */}
-        <div style={{
-          flex: 1,
-          minHeight: '60px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-        }}>
-          {recentCaptions
-            .filter(caption => caption.speaker === 'user')
-            .slice(0, 2)
-            .map((caption, index) => (
-              <div
-                key={caption.timestamp}
-                style={{
-                  fontSize: index === 0 ? '16px' : '14px',
-                  color: index === 0 ? '#1f2937' : '#6b7280',
-                  opacity: index === 0 ? 1 : 0.7,
-                  fontWeight: index === 0 ? '500' : '400',
-                  transition: 'all 0.3s ease',
-                  marginBottom: '4px',
-                }}
-              >
-                {caption.text}
-              </div>
-            ))
-          }
-          {recentCaptions.filter(c => c.speaker === 'user').length === 0 && (
-            <div style={{
-              fontSize: '14px',
-              color: '#9ca3af',
-              fontStyle: 'italic',
-            }}>
-              Your voice will appear here...
+          // === LAYOUT ===
+          "flex items-center justify-between",
+          "px-8 py-4"
+        )}
+      >
+        {/* === LEFT SECTION: USER AUDIO & CAPTIONS === */}
+        <div className="flex-1 flex items-center gap-6">
+          {/* User Audio Wave */}
+          <div className="flex items-center gap-3 min-w-[200px]">
+            {/* Speaking Indicator */}
+            <div 
+              className={cn(
+                "w-3 h-3 rounded-full transition-all duration-300",
+                isUserSpeaking 
+                  ? "bg-ctbto-seafoam shadow-lg shadow-ctbto-seafoam/40 animate-pulse" 
+                  : "bg-conference-300"
+              )}
+            />
+            
+            {/* Audio Wave Visualization */}
+            <div className="flex-1 h-10 flex items-center justify-center scale-150 origin-center">
+              {localSessionId && <AudioWave id={localSessionId} />}
             </div>
-          )}
-        </div>
-      </div>
+            
+            {/* User Label */}
+            <span className={cn(
+              "text-kiosk-xs font-semibold transition-colors duration-300",
+              isUserSpeaking ? "text-ctbto-seafoam" : "text-conference-600"
+            )}>
+              You
+            </span>
+          </div>
 
-      {/* Center Section: Suggestion Carousel */}
-      <div style={{
-        flex: 0,
-        minWidth: '300px',
-        maxWidth: '400px',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '8px',
-        padding: '0 32px',
-      }}>
-        <div style={{
-          fontSize: '12px',
-          color: '#6b7280',
-          fontWeight: '600',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
-          Try asking
+          {/* User Captions */}
+          <div className="flex-1 max-w-md">
+            <AnimatePresence mode="wait">
+              {recentCaptions
+                .filter(caption => caption.speaker === 'user')
+                .slice(0, 2)
+                .map((caption, index) => (
+                  <motion.div
+                    key={caption.timestamp}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className={cn(
+                      "mb-1 transition-all duration-300",
+                      index === 0 ? "text-kiosk-sm text-conference-900 font-medium" : "text-kiosk-xs text-conference-600"
+                    )}
+                  >
+                    {caption.text}
+                  </motion.div>
+                ))
+              }
+              {recentCaptions.filter(c => c.speaker === 'user').length === 0 && (
+                <div className="text-kiosk-xs text-conference-500 italic">
+                  Your voice will appear here...
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
         
-        <div style={{
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          borderRadius: '24px',
-          padding: '12px 24px',
-          color: 'white',
-          fontSize: '16px',
-          fontWeight: '500',
-          textAlign: 'center',
-          boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
-          transition: 'all 0.5s ease',
-          cursor: 'pointer',
-          userSelect: 'none',
-        }}
-        onClick={() => {
-          // TODO: Trigger voice input with suggestion
-          console.log('🎤 Suggested phrase:', hardCodedSuggestions[currentSuggestionIndex]);
-        }}
-        >
-          "{hardCodedSuggestions[currentSuggestionIndex]}"
-        </div>
-
-        {/* Suggestion dots indicator */}
-        <div style={{
-          display: 'flex',
-          gap: '6px',
-        }}>
-          {hardCodedSuggestions.map((_, index) => (
-            <div
-              key={index}
-              style={{
-                width: '6px',
-                height: '6px',
-                borderRadius: '50%',
-                background: index === currentSuggestionIndex 
-                  ? '#667eea' 
-                  : '#d1d5db',
-                transition: 'all 0.3s ease',
-                cursor: 'pointer',
-              }}
-              onClick={() => setCurrentSuggestionIndex(index)}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Right Section: Rosa Audio & Captions */}
-      <div style={{
-        flex: 1,
-        display: 'flex',
-        alignItems: 'center',
-        gap: '16px',
-        flexDirection: 'row-reverse', // Mirror the left side
-      }}>
-        {/* Rosa Audio Wave */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          minWidth: '200px',
-          flexDirection: 'row-reverse',
-        }}>
-          <div style={{
-            width: '12px',
-            height: '12px',
-            borderRadius: '50%',
-            background: isRosaSpeaking 
-              ? 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)' 
-              : '#d1d5db',
-            transition: 'all 0.3s ease',
-            boxShadow: isRosaSpeaking ? '0 0 20px rgba(139, 92, 246, 0.6)' : 'none',
-          }} />
-          
-          <div style={{ 
-            flex: 1, 
-            height: '40px', 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            transform: 'scale(2.5)', // Scale up the small AudioWave component
-            transformOrigin: 'center'
-          }}>
-            {/* For Rosa, we'll use a special ID or the conversation ID */}
-            {_conversationId && <AudioWave id={`rosa-${_conversationId}`} />}
+        {/* === CENTER SECTION: SUGGESTION PROMPTS === */}
+        <div className="flex-shrink-0 flex flex-col items-center gap-3 px-8 max-w-sm">
+          <div className="text-kiosk-xs text-conference-600 font-semibold uppercase tracking-wide">
+            Try asking
           </div>
           
-          <span style={{
-            fontSize: '14px',
-            fontWeight: '600',
-            color: isRosaSpeaking ? '#7c3aed' : '#6b7280',
-            transition: 'color 0.3s ease',
-          }}>
-            Rosa
-          </span>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentSuggestionIndex}
+              variants={suggestionVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className={cn(
+                // === PROFESSIONAL BUTTON STYLING ===
+                "bg-ctbto-navy text-white",
+                "rounded-2xl px-6 py-3",
+                "text-kiosk-sm font-medium text-center",
+                "shadow-ctbto cursor-pointer select-none",
+                "transition-all duration-300",
+                "hover:bg-ctbto-navy/90 hover:scale-105 hover:shadow-elevated",
+                "active:scale-95"
+              )}
+              onClick={() => {
+                // TODO: Trigger voice input with suggestion
+                console.log('🎤 Suggested phrase:', hardCodedSuggestions[currentSuggestionIndex]);
+              }}
+            >
+              "{hardCodedSuggestions[currentSuggestionIndex]}"
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Suggestion Dots Indicator */}
+          <div className="flex gap-2">
+            {hardCodedSuggestions.map((_, index) => (
+              <button
+                key={index}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all duration-300",
+                  index === currentSuggestionIndex 
+                    ? "bg-ctbto-navy scale-125" 
+                    : "bg-conference-300 hover:bg-conference-400"
+                )}
+                onClick={() => setCurrentSuggestionIndex(index)}
+              />
+            ))}
+          </div>
         </div>
 
-        {/* Rosa Captions */}
-        <div style={{
-          flex: 1,
-          minHeight: '60px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          textAlign: 'right',
-        }}>
-          {recentCaptions
-            .filter(caption => caption.speaker === 'rosa')
-            .slice(0, 2)
-            .map((caption, index) => (
-              <div
-                key={caption.timestamp}
-                style={{
-                  fontSize: index === 0 ? '16px' : '14px',
-                  color: index === 0 ? '#1f2937' : '#6b7280',
-                  opacity: index === 0 ? 1 : 0.7,
-                  fontWeight: index === 0 ? '500' : '400',
-                  transition: 'all 0.3s ease',
-                  marginBottom: '4px',
-                }}
-              >
-                {caption.text}
-              </div>
-            ))
-          }
-          {recentCaptions.filter(c => c.speaker === 'rosa').length === 0 && (
-            <div style={{
-              fontSize: '14px',
-              color: '#9ca3af',
-              fontStyle: 'italic',
-            }}>
-              Rosa's responses will appear here...
+        {/* === RIGHT SECTION: ROSA AUDIO & CAPTIONS === */}
+        <div className="flex-1 flex items-center gap-6 justify-end">
+          {/* Rosa Captions */}
+          <div className="flex-1 max-w-md text-right">
+            <AnimatePresence mode="wait">
+              {recentCaptions
+                .filter(caption => caption.speaker === 'rosa')
+                .slice(0, 2)
+                .map((caption, index) => (
+                  <motion.div
+                    key={caption.timestamp}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className={cn(
+                      "mb-1 transition-all duration-300",
+                      index === 0 ? "text-kiosk-sm text-conference-900 font-medium" : "text-kiosk-xs text-conference-600"
+                    )}
+                  >
+                    {caption.text}
+                  </motion.div>
+                ))
+              }
+              {recentCaptions.filter(c => c.speaker === 'rosa').length === 0 && (
+                <div className="text-kiosk-xs text-conference-500 italic">
+                  Rosa's responses will appear here...
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Rosa Audio Wave */}
+          <div className="flex items-center gap-3 min-w-[200px] justify-end">
+            {/* Rosa Label */}
+            <span className={cn(
+              "text-kiosk-xs font-semibold transition-colors duration-300",
+              isRosaSpeaking ? "text-ctbto-navy" : "text-conference-600"
+            )}>
+              Rosa
+            </span>
+            
+            {/* Audio Wave Visualization */}
+            <div className="flex-1 h-10 flex items-center justify-center scale-150 origin-center">
+              {/* Rosa's audio wave would go here */}
+              <div className={cn(
+                "w-full h-1 rounded-full transition-all duration-300",
+                isRosaSpeaking 
+                  ? "bg-gradient-to-r from-ctbto-navy via-ctbto-seafoam to-ctbto-navy animate-pulse"
+                  : "bg-conference-200"
+              )} />
             </div>
-          )}
+            
+            {/* Speaking Indicator */}
+            <div 
+              className={cn(
+                "w-3 h-3 rounded-full transition-all duration-300",
+                isRosaSpeaking 
+                  ? "bg-ctbto-navy shadow-lg shadow-ctbto-navy/40 animate-pulse" 
+                  : "bg-conference-300"
+              )}
+            />
+          </div>
         </div>
-      </div>
-    </div>
+
+        {/* === BRANDING ELEMENT === */}
+        <div className="absolute top-2 right-4 flex items-center gap-2 opacity-60">
+          <div className="w-4 h-4 bg-ctbto-navy rounded-sm flex items-center justify-center">
+            <span className="text-white text-xs font-bold">C</span>
+          </div>
+          <span className="text-kiosk-xs text-conference-600 font-medium">
+            SnT2025
+          </span>
+        </div>
+      </motion.div>
+    </AnimatePresence>
   );
 }; 

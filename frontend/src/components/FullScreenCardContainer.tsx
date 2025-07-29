@@ -1,25 +1,112 @@
 // @ts-nocheck
 import React, { useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { CardData } from '../types/cards';
-import { WeatherCard } from './WeatherCard';
-import { SessionCardDefault } from './cards/enhanced/NewSessionCard';
-import { SpeakerCardDefault } from './cards/enhanced/SpeakerCard';
-import { TopicCardDefault } from './cards/enhanced/TopicCard';
-import { VenueCardDefault } from './cards/enhanced/VenueCard';
+import { cn } from '@/lib/utils';
+import BrandedRightCanvas, { BrandedCardContainer, useResponsiveHeader } from './BrandedRightCanvas';
+
+// === TYPES ===
+
+export interface CardData {
+  id: string;
+  type: 'session' | 'speaker' | 'venue' | 'topic' | 'weather' | 'schedule';
+  size?: 'small' | 'medium' | 'large' | 'hero';
+  data: any;
+  component: React.ComponentType<any>;
+  priority?: number;
+  timestamp?: number;
+}
 
 interface FullScreenCardContainerProps {
   cards: CardData[];
   maxCards?: number;
   onCloseWeather?: () => void;
   onCloseRag?: () => void;
+  className?: string;
+  showHeader?: boolean;
 }
 
-export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = ({ 
+// === ANIMATION VARIANTS ===
+
+const cardContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      staggerChildren: 0.05,
+      staggerDirection: -1
+    }
+  }
+};
+
+const cardItemVariants = {
+  hidden: { 
+    opacity: 0, 
+    scale: 0.9,
+    y: 20
+  },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 300,
+      damping: 24,
+      mass: 0.8
+    }
+  },
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    y: -20,
+    transition: {
+      duration: 0.2
+    }
+  }
+};
+
+// === LAYOUT CALCULATOR ===
+
+const useCardLayout = (cards: CardData[], maxCards: number) => {
+  return useMemo(() => {
+    const activeCards = cards.slice(0, maxCards);
+    const hasHeroCard = activeCards.some(card => card.size === 'hero');
+    
+    // Determine layout variant
+    let layoutVariant: 'single' | 'grid' | 'stack';
+    
+    if (hasHeroCard || activeCards.length === 1) {
+      layoutVariant = 'single';
+    } else if (activeCards.length === 2) {
+      layoutVariant = 'grid';
+    } else {
+      layoutVariant = 'stack';
+    }
+    
+    return {
+      layoutVariant,
+      activeCards,
+      hasHeroCard
+    };
+  }, [cards, maxCards]);
+};
+
+// === MAIN COMPONENT ===
+
+export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = ({
   cards, 
   maxCards = 4,
   onCloseWeather,
-  onCloseRag
+  onCloseRag,
+  className,
+  showHeader = true
 }) => {
   // Optimized logging - only log when cards actually change
   const lastCardHash = useRef<string>('');
@@ -28,7 +115,7 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
   if (currentCardHash !== lastCardHash.current) {
     const cardSummary = cards.map(c => `${c.type}(${c.id})`).join(', ');
     console.log(`🎯 Cards: [${cardSummary}] (${cards.length})`);
-    console.log(`🎯 Container position: right half (50vw), top: 60px, height: calc(85vh - 60px)`);
+    console.log(`🎯 Using BrandedRightCanvas layout with professional header`);
     
     // Machine-readable logging for AI agents
     if (process.env.NODE_ENV === 'development') {
@@ -45,345 +132,143 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
     lastCardHash.current = currentCardHash;
   }
 
-  // Determine layout mode based on card count and types
-  const layoutMode = useMemo(() => {
-    const activeCards = cards.slice(0, maxCards);
-    const hasHeroCard = activeCards.some(card => card.size === 'hero');
-    
-    if (hasHeroCard) return 'hero';
-    if (activeCards.length === 1) return 'single';
-    if (activeCards.length === 2) return 'dual';
-    if (activeCards.length <= 4) return 'grid';
-    return 'cascade';
-  }, [cards, maxCards]);
+  // Calculate layout
+  const { layoutVariant, activeCards, hasHeroCard } = useCardLayout(cards, maxCards);
+  
+  // Get responsive header variant
+  const headerVariant = useResponsiveHeader();
 
-  // Right-side split layout styles (matching StickyInterface positioning)
-  const containerStyles = useMemo(() => {
-    const baseStyles = {
-      position: 'fixed' as const,
-      top: '0', // Align to the top of the viewport
-      left: '50%', // Start from middle of screen (right half)
-      right: 0,
-      width: '50vw', // Take up right half of screen
-      height: '85vh', // Use 85% of viewport height, leaving 15% for the sticky bar
-      pointerEvents: 'none' as const,
-      zIndex: 500,
-    };
-
-    // Always use single card layout
-    return {
-      ...baseStyles,
-      padding: '16px', // Small padding for breathing room
-      // Temporary debug styling to ensure container is visible
-      border: cards.length > 0 ? '2px solid #10b981' : '1px dashed #d1d5db',
-      background: cards.length > 0 ? 'transparent' : 'rgba(16, 185, 129, 0.05)',
-    };
-  }, [layoutMode, cards.length]);
-
-  // Position calculator - always single card taking available container space
-  const getCardPosition = useMemo(() => {
-    return () => {
-      // Single card layout: uses full available space within the container
-      return {
-        pointerEvents: 'auto' as const,
-        position: 'absolute' as const,
-        top: '16px', // Small padding from top
-        left: '16px', // Small padding from left
-        width: 'calc(100% - 32px)', // Full width minus padding
-        height: 'calc(100% - 32px)', // Full height minus padding
-        zIndex: 1000,
-      };
-    };
-  }, []);
-
-  // Animation variants for smooth transitions
-  const cardVariants = {
-    enter: (custom: number) => ({
-      opacity: 0,
-      scale: 0.8,
-      y: 50,
-      transition: {
-        delay: custom * 0.1,
-        duration: 0.4,
-        ease: [0.4, 0, 0.2, 1] as [number, number, number, number]
-      }
-    }),
-    center: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: {
-        duration: 0.4,
-        ease: [0.4, 0, 0.2, 1] as [number, number, number, number]
-      }
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.9,
-      y: -30,
-      transition: {
-        duration: 0.3
-      }
-    }
-  };
-
-  if (cards.length === 0) {
-    // Show empty container for debugging
+  // Don't render if no cards
+  if (activeCards.length === 0) {
     return (
-      <div style={containerStyles}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          color: '#6b7280',
-          fontSize: '16px',
-          fontWeight: '500'
-        }}>
-          No cards to display
-        </div>
-      </div>
+      <BrandedRightCanvas 
+        showHeader={showHeader} 
+        headerVariant={headerVariant}
+        className={className}
+      >
+        <BrandedCardContainer variant="single">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center p-8"
+          >
+            <div className="w-24 h-24 bg-conference-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="text-conference-400 text-3xl">💬</span>
+            </div>
+            <h3 className="text-kiosk-lg font-semibold text-conference-700 mb-3">
+              Ready to Help
+            </h3>
+            <p className="text-kiosk-sm text-conference-600 max-w-md">
+              Ask me about sessions, speakers, venues, or anything about the SnT2025 conference.
+            </p>
+          </motion.div>
+        </BrandedCardContainer>
+      </BrandedRightCanvas>
     );
   }
 
-  const handleCardClose = (card: CardData) => {
-    switch (card.type) {
-      case 'weather':
-        onCloseWeather?.();
-        break;
-      case 'session':
-      case 'speaker':
-      case 'topic':
-        onCloseRag?.();
-        break;
-      default:
-        console.log(`No close handler for card type: ${card.type}`);
-        break;
-    }
-  };
-
-  // Helper function to render actual card content - moved inside component for scope access
-  const renderCardContent = (card: CardData, layoutMode: string) => {
-    // Only log card rendering on card changes, not every render
-    const compact = layoutMode === 'grid' || layoutMode === 'cascade';
-    
-    try {
-      switch (card.type) {
-      case 'weather':
-        return (
-          <WeatherCard
-            weatherData={card.content}
-            onClose={onCloseWeather || (() => {})}
-            isVisible={true}
-          />
-        );
-        
-      case 'session':
-        // 🎨 NEW: Use the new, cleaner, data-rich SessionCard
-        return (
-          <SessionCardDefault
-            session={card.content}
-            className="w-full"
-          />
-        );
-        
-      case 'speaker':
-        return (
-          <SpeakerCardDefault
-            speaker={card.content}
-            className="w-full"
-          />
-        );
-        
-      case 'topic':
-        return (
-          <TopicCardDefault
-            topic={card.content}
-            className="w-full"
-          />
-        );
-        
-      case 'venue':
-        return (
-          <VenueCardDefault
-            venue={card.content}
-            className="w-full"
-          />
-        );
-        
-      default:
-        // Fallback for unknown card types
-        console.log(`⚠️ Unknown card type: ${card.type}`, { 
-          cardId: card.id, 
-          hasContent: !!card.content,
-          contentKeys: card.content ? Object.keys(card.content) : []
-        });
-        return (
-          <div style={{
-            background: `linear-gradient(135deg, ${getCardGradient(card.type)})`,
-            height: '100%',
-            borderRadius: '16px',
-            padding: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: 'white',
-            textAlign: 'center',
-          }}>
-            <h2 style={{ fontSize: '2em', marginBottom: '16px' }}>
-              {card.type.toUpperCase()} CARD
-            </h2>
-            <p style={{ fontSize: '1.2em', opacity: 0.9 }}>
-              Full-screen layout • {layoutMode} mode
-            </p>
-            <p style={{ fontSize: '0.9em', opacity: 0.7, marginTop: '12px' }}>
-              Card ID: {card.id}
-            </p>
-          </div>
-        );
-      }
-    } catch (error) {
-      console.error(`❌ Card rendering error:`, {
-        cardType: card.type,
-        cardId: card.id,
-        error: error,
-        contentPreview: card.content ? JSON.stringify(card.content).substring(0, 100) + '...' : 'No content'
-      });
-      
-      // Return error fallback
-      return (
-        <div style={{
-          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
-          height: '100%',
-          borderRadius: '16px',
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'white',
-          textAlign: 'center',
-        }}>
-          <h2 style={{ fontSize: '2em', marginBottom: '16px' }}>
-            ⚠️ Card Error
-          </h2>
-          <p style={{ fontSize: '1.2em', opacity: 0.9 }}>
-            Failed to render {card.type} card
-          </p>
-          <p style={{ fontSize: '0.9em', opacity: 0.7, marginTop: '12px' }}>
-            Check console for details
-          </p>
-        </div>
-      );
-    }
-  };
-
   return (
-    <div style={containerStyles}>
-      <AnimatePresence mode="popLayout">
-        {cards.slice(0, maxCards).map((card, index) => (
+    <BrandedRightCanvas 
+      showHeader={showHeader} 
+      headerVariant={headerVariant}
+      className={className}
+    >
+      <BrandedCardContainer variant={layoutVariant}>
+        <AnimatePresence mode="wait">
           <motion.div
-            key={card.id}
-            custom={index}
-            variants={cardVariants}
-            initial="enter"
-            animate="center"
+            key={`layout-${layoutVariant}-${activeCards.length}`}
+            variants={cardContainerVariants}
+            initial="hidden"
+            animate="visible"
             exit="exit"
-            layout
-            style={{
-              ...getCardPosition(),
-              borderRadius: '20px',
-              boxShadow: layoutMode === 'hero' 
-                ? '0 25px 50px -12px rgba(0, 0, 0, 0.25)' 
-                : '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              background: 'white',
-              overflow: 'hidden',
-            }}
+            className={cn(
+              "w-full h-full",
+              // Layout-specific classes
+              layoutVariant === 'single' && "flex items-center justify-center",
+              layoutVariant === 'grid' && "grid grid-cols-1 lg:grid-cols-2 gap-6",
+              layoutVariant === 'stack' && "flex flex-col gap-4 overflow-y-auto"
+            )}
           >
-            {/* Replace placeholder with actual card components */}
-            <div style={{ 
-              width: '100%', 
-              height: '100%',
-              fontSize: layoutMode === 'hero' ? '18px' : '16px',
-            }}>
-              {renderCardContent(card, layoutMode)}
-            </div>
-
-            {/* Close button for full-screen cards */}
-            <button
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                width: '32px',
-                height: '32px',
-                borderRadius: '50%',
-                border: 'none',
-                backgroundColor: 'rgba(0, 0, 0, 0.1)',
-                color: 'rgba(0, 0, 0, 0.6)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                pointerEvents: 'auto',
-                zIndex: 1001,
-              }}
-              onClick={() => handleCardClose(card)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.1)';
-              }}
-            >
-              ×
-            </button>
+            {activeCards.map((card, index) => {
+              const CardComponent = card.component;
+              
+              return (
+                <motion.div
+                  key={card.id}
+                  variants={cardItemVariants}
+                  layout
+                  className={cn(
+                    // Base card wrapper styling
+                    "relative",
+                    
+                    // Size-based styling
+                    card.size === 'hero' && "col-span-full",
+                    
+                    // Layout-specific sizing
+                    layoutVariant === 'single' && "w-full max-w-4xl",
+                    layoutVariant === 'grid' && "w-full",
+                    layoutVariant === 'stack' && "w-full flex-shrink-0",
+                    
+                    // Professional card styling
+                    "premium-card-base"
+                  )}
+                  style={{
+                    // Dynamic sizing based on layout
+                    ...(layoutVariant === 'single' && {
+                      maxHeight: hasHeroCard ? '90%' : '80%'
+                    }),
+                    ...(layoutVariant === 'stack' && {
+                      minHeight: '300px',
+                      maxHeight: '500px'
+                    })
+                  }}
+                >
+                  {/* Card Content */}
+                  <div className="relative w-full h-full overflow-hidden">
+                    <CardComponent 
+                      {...card.data} 
+                      onClose={() => {
+                        // Handle specific card closures
+                        if (card.type === 'weather' && onCloseWeather) {
+                          onCloseWeather();
+                        } else if (onCloseRag) {
+                          onCloseRag();
+                        }
+                      }}
+                      compact={layoutVariant === 'stack'}
+                      variant={hasHeroCard ? 'hero' : 'default'}
+                    />
+                  </div>
+                  
+                  {/* Card Index Indicator (for debugging in development) */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="absolute top-2 left-2 w-6 h-6 bg-ctbto-navy/80 text-white text-xs rounded-full flex items-center justify-center font-bold z-10">
+                      {index + 1}
+                    </div>
+                  )}
+                </motion.div>
+              );
+            })}
+            
+            {/* Loading placeholder for additional cards */}
+            {cards.length > maxCards && (
+              <motion.div
+                variants={cardItemVariants}
+                className="premium-card-base p-6 bg-conference-50/50 border-dashed border-2 border-conference-300 flex items-center justify-center"
+              >
+                <div className="text-center">
+                  <div className="text-conference-400 text-2xl mb-2">⏳</div>
+                  <p className="text-kiosk-sm text-conference-600">
+                    +{cards.length - maxCards} more cards available
+                  </p>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
-        ))}
-      </AnimatePresence>
-
-      {/* Layout mode indicator */}
-      <div style={{
-        position: 'absolute',
-        bottom: '20px',
-        left: '20px',
-        background: 'rgba(0, 0, 0, 0.7)',
-        color: 'white',
-        padding: '8px 16px',
-        borderRadius: '20px',
-        fontSize: '12px',
-        fontWeight: '600',
-        backdropFilter: 'blur(10px)',
-        pointerEvents: 'none',
-        zIndex: 1001,
-      }}>
-        {layoutMode.toUpperCase()} LAYOUT • {cards.length} CARDS
-      </div>
-    </div>
+        </AnimatePresence>
+      </BrandedCardContainer>
+    </BrandedRightCanvas>
   );
 };
 
-// Helper function for card-specific gradients
-function getCardGradient(cardType: string): string {
-  switch (cardType) {
-    case 'weather':
-      return '#667eea 0%, #764ba2 100%';
-    case 'session':
-      return '#f093fb 0%, #f5576c 100%';
-    case 'speaker':
-      return '#4facfe 0%, #00f2fe 100%';
-    case 'topic':
-      return '#43e97b 0%, #38f9d7 100%';
-    case 'floor-plan':
-      return '#fa709a 0%, #fee140 100%';
-    case 'qr-schedule':
-      return '#a8edea 0%, #fed6e3 100%';
-    case 'live-status':
-      return '#ff9a9e 0%, #fecfef 100%';
-    default:
-      return '#667eea 0%, #764ba2 100%';
-  }
-} 
+export default FullScreenCardContainer; 
