@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
 import { WelcomeScreen } from './components/WelcomeScreen'
 import { RosaDemo } from './components/RosaDemo'
+import { StagewiseToolbar } from '@stagewise/toolbar-react'
+import ReactPlugin from '@stagewise-plugins/react'
 
 function App() {
   const [screen, setScreen] = useState<'welcome' | 'call'>('welcome')
@@ -21,6 +23,7 @@ function App() {
 
   return (
     <main style={{ height: '100vh' }}>
+      <StagewiseToolbar config={{ plugins: [ReactPlugin] }} />
       <div style={{ 
         position: 'fixed',
         top: 0,
