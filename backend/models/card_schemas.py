@@ -1,140 +1,120 @@
-"""
-Pydantic v2.7+ Card Schema Models for OpenAI Responses API
-Strictly compliant with client.beta.chat.completions.parse() requirements
-"""
-
-from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import List, Optional, Union, Literal
+from typing import List, Optional
+from pydantic import BaseModel, Field, field_validator
 
 
 class SessionCard(BaseModel):
-    """Session card matching PremiumTimetableSession interface - snake_case fields"""
-    
-    session_id: str = Field(..., description="Unique session identifier from Weaviate UUID")
-    title: str = Field(..., description="Clear, descriptive session title")
-    description: Optional[str] = Field(default=None, description="Session abstract or summary")
-    
-    # Time & Location (must match frontend interface)
-    start_time: Optional[str] = Field(default=None, description="Session start time HH:MM format")
-    end_time: Optional[str] = Field(default=None, description="Session end time HH:MM format") 
+    """Structured session card data for frontend display"""
+    id: str = Field(description="Unique session identifier")
+    title: str = Field(description="Session title")
+    description: Optional[str] = Field(default=None, description="Session description")
+    start_time: Optional[str] = Field(default=None, description="Session start time")
+    end_time: Optional[str] = Field(default=None, description="Session end time")
     duration_minutes: Optional[int] = Field(default=None, description="Session duration in minutes")
-    date: Optional[str] = Field(default=None, description="Session date YYYY-MM-DD format")
-    venue: Optional[str] = Field(default=None, description="Room name or venue location")
-    
-    # Session Classification (must match PremiumTimetableSession interface)
-    session_type: Optional[str] = Field(default=None, description="Type like 'Technical Session', 'Keynote'")
+    room: Optional[str] = Field(default=None, description="Room/venue name")
+    building: Optional[str] = Field(default=None, description="Building name")
+    session_type: Optional[str] = Field(default=None, description="Type of session")
+    theme_code: Optional[str] = Field(default=None, description="Theme code")
     speakers: List[str] = Field(default_factory=list, description="List of speaker names")
-    theme: Optional[str] = Field(default=None, description="Session theme or track")
-    track: Optional[str] = Field(default=None, description="Conference track identifier")
-    audience_level: Optional[str] = Field(default=None, description="Beginner/Intermediate/Advanced")
-    day_of_week: Optional[str] = Field(default=None, description="Monday, Tuesday, etc.")
-    time_of_day: Optional[str] = Field(default=None, description="Morning, Afternoon, Evening")
+    has_speakers: bool = Field(default=False, description="Whether session has speakers")
+    related_topics: List[str] = Field(default_factory=list, description="Related topic areas")
+    relevance_score: float = Field(default=0.0, description="Relevance score to user query (0-1)")
     
-    # Computed Fields (must match frontend)
-    has_speakers: bool = Field(default=False, description="Whether session has confirmed speakers")
-    is_interactive: Optional[bool] = Field(default=None, description="Whether session is interactive")
-    
-    # Enrichment Data (must match frontend)
-    keywords: Optional[List[str]] = Field(default=None, description="Keywords extracted from content")
-    priority_level: Optional[Literal['high', 'medium', 'low']] = Field(default=None)
-    relevance_score: Optional[float] = Field(default=None, ge=0.0, le=1.0, description="Query relevance 0-1")
-    theme_code: Optional[str] = Field(default=None, description="Theme code like T1.1, T2.3")
-    scientific_field: Optional[Literal['physics', 'chemistry', 'technology', 'policy']] = Field(default=None)
-    capacity: Optional[int] = Field(default=None, description="Session capacity")
-    registration_required: Optional[bool] = Field(default=None)
-    
-    # Duration field required by frontend
-    duration: Optional[int] = Field(default=None, description="Duration in minutes (alias for duration_minutes)")
-    
-    # Pydantic v2.7+ field validators
-    @field_validator('speakers', mode='after')
+    @field_validator('relevance_score')
     @classmethod
-    def validate_speakers(cls, v: List[str]) -> List[str]:
-        """Remove duplicates and empty strings, preserve order"""
-        seen = set()
-        cleaned = []
-        for speaker in v:
-            speaker = speaker.strip()
-            if speaker and speaker not in seen:
-                seen.add(speaker)
-                cleaned.append(speaker)
-        return cleaned
-    
-    @model_validator(mode='after')
-    def set_computed_fields(self):
-        """Set computed fields after all validation"""
-        # Set has_speakers based on speakers list
-        if self.speakers:
-            self.has_speakers = True
-        else:
-            self.has_speakers = False
-            
-        # Sync duration and duration_minutes
-        if self.duration_minutes and not self.duration:
-            self.duration = self.duration_minutes
-        elif self.duration and not self.duration_minutes:
-            self.duration_minutes = self.duration
-            
-        return self
+    def validate_relevance_score(cls, v):
+        """Validate relevance score is between 0 and 1"""
+        if v < 0:
+            return 0.0
+        elif v > 1:
+            return 1.0
+        return v
 
 
 class SpeakerCard(BaseModel):
-    """Speaker card with session relationships"""
+    """Structured speaker card data for frontend display"""
+    id: str = Field(description="Unique speaker identifier")
+    name: str = Field(description="Speaker full name")
+    title: Optional[str] = Field(default=None, description="Professional title")
+    affiliation: Optional[str] = Field(default=None, description="Organization/institution")
+    bio: Optional[str] = Field(default=None, description="Speaker biography")
+    expertise: List[str] = Field(default_factory=list, description="Areas of expertise")
+    total_sessions: int = Field(default=0, description="Number of sessions speaker is presenting")
+    sessions: List[str] = Field(default_factory=list, description="Session titles")
+    relevance_score: float = Field(default=0.0, description="Relevance score to user query (0-1)")
     
-    speaker_id: str = Field(..., description="Unique speaker identifier")
-    name: str = Field(..., description="Speaker full name")
-    affiliation: Optional[str] = Field(default=None, description="Institution or organization")
-    biography: Optional[str] = Field(default=None, description="Speaker bio or background")
-    sessions: Optional[List[str]] = Field(default_factory=list, description="Session IDs speaker presents")
-    photo_url: Optional[str] = Field(default=None, description="Speaker photo URL")
-    relevance_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    @field_validator('relevance_score')
+    @classmethod
+    def validate_relevance_score(cls, v):
+        """Validate relevance score is between 0 and 1"""
+        if v < 0:
+            return 0.0
+        elif v > 1:
+            return 1.0
+        return v
 
 
 class VenueCard(BaseModel):
-    """Venue/room card with session information"""
-    
-    venue_id: str = Field(..., description="Unique venue identifier")
-    name: str = Field(..., description="Venue/room name")
-    level: Optional[str] = Field(default=None, description="Floor or level")
+    """Structured venue card data for frontend display"""
+    id: str = Field(description="Unique venue identifier")
+    name: str = Field(description="Venue/room name")
+    building: Optional[str] = Field(default=None, description="Building name")
     capacity: Optional[int] = Field(default=None, description="Room capacity")
     description: Optional[str] = Field(default=None, description="Venue description")
-    sessions_count: Optional[int] = Field(default=None, description="Number of sessions in venue")
-    relevance_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    accessibility: Optional[str] = Field(default=None, description="Accessibility information")
+    sessions_count: int = Field(default=0, description="Number of sessions in this venue")
+    current_session: Optional[str] = Field(default=None, description="Current session title")
+    next_session: Optional[str] = Field(default=None, description="Next session title")
+    relevance_score: float = Field(default=0.0, description="Relevance score to user query (0-1)")
+    
+    @field_validator('relevance_score')
+    @classmethod
+    def validate_relevance_score(cls, v):
+        """Validate relevance score is between 0 and 1"""
+        if v < 0:
+            return 0.0
+        elif v > 1:
+            return 1.0
+        return v
 
 
 class TopicCard(BaseModel):
-    """Topic/theme card with related sessions"""
+    """Structured topic card data for frontend display"""
+    id: str = Field(description="Unique topic identifier")
+    title: str = Field(description="Topic title")
+    theme_code: Optional[str] = Field(default=None, description="Theme code")
+    description: Optional[str] = Field(default=None, description="Topic description")
+    keywords: List[str] = Field(default_factory=list, description="Related keywords")
+    sessions_count: int = Field(default=0, description="Number of sessions under this topic")
+    related_sessions: List[str] = Field(default_factory=list, description="Related session titles")
+    relevance_score: float = Field(default=0.0, description="Relevance score to user query (0-1)")
     
-    topic_id: str = Field(..., description="Unique topic identifier")  
-    title: str = Field(..., description="Topic title")
-    theme_code: Optional[str] = Field(default=None, description="Theme code like T1.1")
-    keywords: Optional[List[str]] = Field(default_factory=list, description="Topic keywords")
-    sessions_count: Optional[int] = Field(default=None, description="Number of related sessions")
-    relevance_score: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    @field_validator('relevance_score')
+    @classmethod
+    def validate_relevance_score(cls, v):
+        """Validate relevance score is between 0 and 1"""
+        if v < 0:
+            return 0.0
+        elif v > 1:
+            return 1.0
+        return v
 
 
-# === WRAPPER LIST MODELS (Required by OpenAI Responses API) ===
-# The API requires a single root Pydantic model, so we wrap lists
-
+# List wrapper classes for OpenAI Structured Outputs API
 class SessionCardList(BaseModel):
-    """Wrapper for list of session cards - required by Responses API"""
-    cards: List[SessionCard] = Field(default_factory=list, description="List of session cards")
+    """Container for multiple session cards"""
+    cards: List[SessionCard] = Field(description="List of session cards")
 
 
 class SpeakerCardList(BaseModel):
-    """Wrapper for list of speaker cards - required by Responses API"""
-    cards: List[SpeakerCard] = Field(default_factory=list, description="List of speaker cards")
+    """Container for multiple speaker cards"""
+    cards: List[SpeakerCard] = Field(description="List of speaker cards")
 
 
 class VenueCardList(BaseModel):
-    """Wrapper for list of venue cards - required by Responses API"""
-    cards: List[VenueCard] = Field(default_factory=list, description="List of venue cards")
+    """Container for multiple venue cards"""
+    cards: List[VenueCard] = Field(description="List of venue cards")
 
 
 class TopicCardList(BaseModel):
-    """Wrapper for list of topic cards - required by Responses API"""
-    cards: List[TopicCard] = Field(default_factory=list, description="List of topic cards")
-
-
-# === UNION TYPE FOR FLEXIBILITY ===
-CardOutput = Union[SessionCard, SpeakerCard, VenueCard, TopicCard]
+    """Container for multiple topic cards"""
+    cards: List[TopicCard] = Field(description="List of topic cards")

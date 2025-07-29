@@ -3,12 +3,12 @@ import os
 from typing import List, Dict, Any, Optional
 from openai import AsyncOpenAI
 from pydantic import BaseModel, Field
-from models.card_schemas import (
+from backend.models.card_schemas import (
     SessionCard, SpeakerCard, VenueCard, TopicCard,
     SessionCardList, SpeakerCardList, VenueCardList, TopicCardList
 )
-from weaviate_knowledge_search import SearchResult
-from logger import logger
+from backend.weaviate_knowledge_search import SearchResult
+from backend.logger import logger
 
 class StructuredCardProcessor:
     """

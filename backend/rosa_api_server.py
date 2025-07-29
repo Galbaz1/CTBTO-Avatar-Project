@@ -120,14 +120,32 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
                 first_session = categorized_results["sessions"][0]
                 if session_id not in backend.session_rag_data:
                     backend.session_rag_data[session_id] = {}
+                
+                # Create proper card data structure matching SessionCard schema
+                fallback_card_data = {
+                    "session_id": first_session.get("id", "fallback-session"),
+                    "title": first_session.get("title", "Session Information"),
+                    "description": first_session.get("content", "Conference session details"),
+                    "speakers": [speaker.get("name", "Speaker") for speaker in first_session.get("related_speakers", [])],
+                    "venue": first_session.get("related_room", {}).get("name", "TBA"),
+                    "start_time": first_session.get("metadata", {}).get("startTime", "TBA"),
+                    "end_time": first_session.get("metadata", {}).get("endTime", "TBA"),
+                    "date": first_session.get("metadata", {}).get("date", "TBA"),
+                    "session_type": first_session.get("metadata", {}).get("sessionType", "Session"),
+                    "theme_code": first_session.get("metadata", {}).get("themeCode", ""),
+                    "scientific_field": "physics",  # Default field
+                    "has_speakers": len(first_session.get("related_speakers", [])) > 0,
+                    "relevance_score": first_session.get("relevance_score", 0.7)
+                }
+                
                 backend.session_rag_data[session_id]["latest_session"] = {
-                    "session": first_session,
+                    "card_data": fallback_card_data,
                     "reason": "Most relevant session found (async fallback)",
                     "confidence": 0.7,
                     "timing": "background"
                 }
                 backend.store_card_data_with_delta(session_id, "latest_session", backend.session_rag_data[session_id]["latest_session"])
-                print(f"📊 Async fallback: Stored simple session card for {session_id}")
+                print(f"📊 Async fallback: Stored structured session card for {session_id}")
         except Exception as fallback_error:
             print(f"⚠️ Async fallback also failed for session {session_id}: {fallback_error}")
 
@@ -168,12 +186,45 @@ class RosaBackend:
         if session_id not in self.session_rag_data:
             self.session_rag_data[session_id] = {}
         
-        self.session_rag_data[session_id].update({
-            "query": rag_data.get("query"),
-            "categorized_results": rag_data.get("categorized_results", {}),
-            "search_timestamp": time.time(),
-            "total_results": rag_data.get("total_results", {})
-        })
+        # Handle both search_conference_knowledge and graph_lookup data formats
+        if "categorized_results" in rag_data:
+            # search_conference_knowledge format
+            self.session_rag_data[session_id].update({
+                "query": rag_data.get("query"),
+                "categorized_results": rag_data.get("categorized_results", {}),
+                "search_results": rag_data.get("search_results", []),
+                "search_timestamp": time.time(),
+                "total_results": rag_data.get("total_results", {})
+            })
+        elif "results" in rag_data and "lookup_type" in rag_data:
+            # graph_lookup format - convert to compatible structure
+            raw_results = rag_data.get("results", [])
+            lookup_type = rag_data.get("lookup_type")
+            
+            # Create compatible categorized_results structure
+            categorized_results = {}
+            if lookup_type in ["sessions_on_topic", "sessions_by_speaker", "sessions_in_room"]:
+                categorized_results["sessions"] = raw_results
+            elif lookup_type == "speakers_for_session":
+                categorized_results["speakers"] = raw_results
+            
+            self.session_rag_data[session_id].update({
+                "query": rag_data.get("entity_name", "Unknown"),
+                "categorized_results": categorized_results,
+                "search_results": raw_results,  # Raw SearchResult objects for card generation
+                "search_timestamp": time.time(),
+                "total_results": {"total": len(raw_results)},
+                "lookup_type": lookup_type
+            })
+        else:
+            # Fallback for unknown format
+            self.session_rag_data[session_id].update({
+                "query": rag_data.get("query", "Unknown"),
+                "categorized_results": {},
+                "search_results": [],
+                "search_timestamp": time.time(),
+                "total_results": {}
+            })
     
     def send_app_message(self, message_data: dict, conversation_url: str = None, session_id: str = None):
         """Store app message for frontend polling"""
@@ -412,7 +463,14 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                 def handle_rag_function(args, rag_data, captured_session_id=session_id):
                     """Handle RAG function call results with enhanced error handling"""
                     
-                    query = args.get("query", "Unknown")
+                    # Handle both search_conference_knowledge and graph_lookup argument formats
+                    if "query" in args:
+                        query = args["query"]  # search_conference_knowledge
+                    elif "entity_name" in args:
+                        query = args["entity_name"]  # graph_lookup
+                    else:
+                        query = "Unknown"
+                    
                     print(f"🔍 RAG function called with args: {args}, session_id: {captured_session_id}")
                     
                     # RAG search already done in Agent1.py _execute_tool_call method

@@ -3,7 +3,7 @@
 
 export { SessionCard } from './SessionCard';
 export { SpeakerCard, SpeakerCardDefault, SpeakerCardCompact, SpeakerCardMinimal } from './SpeakerCard';
-export { PremiumSessionCard, PremiumSessionCardDefault, PremiumSessionCardHero, PremiumSessionCardCompact, type PremiumTimetableSession } from './PremiumSessionCard';
+export { PremiumSessionCard, PremiumSessionCardDefault, type PremiumTimetableSession } from './PremiumSessionCard';
 export { TopicCard } from './TopicCard';
 export { VenueCard } from './VenueCard';
 export { ScheduleCard } from './ScheduleCard';

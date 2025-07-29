@@ -65,10 +65,10 @@ build/
 # -----------------------------------------------------------------------------
 # .env
 # .env.*
-*.key
-*.pem
-.rosa_persona_id
-.rosa_conversation_url
+# *.key
+# *.pem
+# .rosa_persona_id
+# .rosa_conversation_url
 
 # -----------------------------------------------------------------------------
 # Generated & Temporary Files
@@ -76,13 +76,13 @@ build/
 # Temporary disabled components
 frontend/temp_disabled/
 
-# Log files
-*.log
-logs/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# # Log files
+# *.log
+# logs/
+# npm-debug.log*
+# yarn-debug.log*
+# yarn-error.log*
+# pnpm-debug.log*
 
 # OS & Editor
 .DS_Store
@@ -104,8 +104,8 @@ backend/RAG-testing/*.bak
 # -----------------------------------------------------------------------------
 # TypeScript & Linting (keep configs, ignore generated)
 # -----------------------------------------------------------------------------
-# Keep configs but ignore generated diagnostic files
-frontend/node_modules/typescript/lib/*/diagnosticMessages.generated.json
+# # Keep configs but ignore generated diagnostic files
+# frontend/node_modules/typescript/lib/*/diagnosticMessages.generated.json
 
 # ESLint cache
 .eslintcache

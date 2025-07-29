@@ -1,6 +1,102 @@
 ---
 alwaysApply: true
 ---
+You are an expert in React, TypeScript, Python, FastAPI, Weaviate v4, Tavus CVI, and kiosk application development, with deep understanding of accessibility, real-time systems, and conference management platforms.
+
+## Project Context
+- **Rosa Kiosk**: AI-powered voice-controlled kiosk for CTBTO SnT2025 conference
+- **Target Environment**: Physical kiosk displays (not mobile), 85%/15% split-screen layout
+- **Voice-First**: Designed for voice-only interaction with visual feedback
+- **Real Conference Data**: Uses actual SnT2025 speaker profiles, sessions, and venue information
+
+## Core Technologies
+- **Frontend**: React 19, TypeScript, Vite, Bun package manager
+- **Backend**: Python 3.13, FastAPI, Weaviate v4, OpenAI API (GPT-4.1 family)
+- **Video Interface**: Tavus CVI (Conversational Video Interface) with @daily-co integration
+- **UI Library**: Radix UI primitives + Tailwind CSS (shadcn/ui patterns)
+- **State Management**: Jotai for client state, 2-second polling for real-time updates
+- **Animation**: Framer Motion (sparingly), respecting `prefers-reduced-motion`
+
+## Code Style and Architecture
+
+### React Patterns
+- Use functional components with hooks; avoid class components
+- Separate logic (Handler components) from UI (Card components) 
+- Follow compound component pattern for complex UI (Card.Title, Card.Body, etc.)
+- Use TypeScript interfaces over types; prefer interfaces for extensibility
+- Implement proper error boundaries and loading states
+
+### Component Architecture
+- **Handlers**: Data fetching, polling, business logic (e.g., SessionHandler, SpeakerHandler)
+- **Cards**: Pure presentational components with props interface
+- **Compound Components**: Flexible composition (Card.Image, Card.Actions)
+- Single responsibility principle: one component, one job
+
+### Async Patterns
+- **Backend**: Fire-and-forget using `asyncio.run_coroutine_threadsafe()`
+- **Frontend**: 2-second polling intervals for real-time updates
+- Store results immediately, process in background
+- Never await long-running operations in API response handlers
+
+### State Management
+- Use session-based data storage for multi-user kiosk scenarios
+- Check connection state before polling
+- Implement graceful error handling without breaking main flow
+- No WebSockets - polling works better for this use case
+
+## Accessibility & Kiosk-Specific Requirements
+
+### WCAG AAA Compliance
+- Minimum 7:1 contrast ratio (#1a1a1a on white)
+- Minimum 18px font size for standing users
+- Large touch targets (44px minimum)
+- Semantic HTML with proper ARIA labels
+- Screen reader compatibility
+
+### Kiosk UX Patterns
+- Fixed positioning for persistent UI elements
+- Reserve bottom 15vh for sticky interface
+- Prevent content overflow with `overflow: hidden`
+- No hover states as primary interaction method
+- No close buttons (voice-controlled)
+- No scrollable content in kiosk mode
+
+## Performance Optimization
+- Tree-shake unused code; measure bundle impact of dependencies
+- Use React.memo for expensive components
+- Dynamic imports for code splitting
+- Optimize images for kiosk display resolution
+- Debounce rapid state updates
+- Leverage Web Vitals optimization (LCP, CLS, FID)
+
+## Data Integration
+- **Real Data Only**: Use actual SnT2025 speaker profiles, session titles, room names
+- No placeholder data like "Dr. Smith" - reference actual conference data
+- Integrate with Weaviate v4 knowledge graph (Speaker, Session, Topic, Room entities)
+- Follow RAG patterns from `design-patterns/WEAVIATE/` directory
+
+## Naming Conventions
+- Use descriptive variable names with auxiliary verbs (isLoading, hasError)
+- Lowercase with dashes for directories (components/auth-wizard)
+- Favor named exports for functions
+- Group related files by feature, not by type
+
+## Key Conventions
+- Always use Bun instead of npm for package management
+- Place test files in root `tests/` directory (tests/frontend/, tests/backend/)
+- Follow the established polling intervals (2-second) without modification
+- Respect the fire-and-forget async pattern for backend operations
+- Maintain the Handler/Card separation for component architecture
+- Use compound components over boolean props for flexibility
+
+## Environment & Deployment
+- Frontend runs on port 5173 (Vite)
+- Backend runs on port 8000 (FastAPI)
+- Use environment variables for API keys and configuration
+- Validate required environment variables at startup
+- Never commit sensitive environment files
+
+Focus on creating accessible, performant kiosk interfaces that work seamlessly with voice interaction and provide real-time conference information to SnT2025 attendees.
 
 # Modern React Development Patterns for Kiosk Applications
 

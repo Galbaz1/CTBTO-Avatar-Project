@@ -182,18 +182,61 @@ export const RosaDemo: React.FC = () => {
 
       // Use the backend-transformed data directly (it's now properly formatted)
       const sessionContent = sessionData.card_data || sessionData;
+      
+      // 🔧 DEBUG: Log the actual data structure being received
+      console.log(`🔧 [SESSION_DATA] Raw sessionContent:`, sessionContent);
+      console.log(`🔧 [SESSION_DATA] Expected fields check:`, {
+        session_id: sessionContent.session_id,
+        title: sessionContent.title,
+        description: sessionContent.description,
+        start_time: sessionContent.start_time,
+        end_time: sessionContent.end_time,
+        venue: sessionContent.venue,
+        speakers: sessionContent.speakers,
+        theme: sessionContent.theme
+      });
+
+      // Transform data to match PremiumSessionCard interface
+      const transformedSessionData = {
+        session_id: sessionContent.session_id || sessionContent.id || 'unknown-session',
+        title: sessionContent.title || 'Untitled Session',
+        description: sessionContent.description || sessionContent.summary || '',
+        start_time: sessionContent.start_time || sessionContent.startTime || '',
+        end_time: sessionContent.end_time || sessionContent.endTime || '',
+        duration: sessionContent.duration || 0,
+        date: sessionContent.date || '',
+        venue: sessionContent.venue || sessionContent.location || sessionContent.room || '',
+        session_type: sessionContent.session_type || sessionContent.type || '',
+        speakers: Array.isArray(sessionContent.speakers) ? sessionContent.speakers : 
+                 sessionContent.speaker ? [sessionContent.speaker] : [],
+        theme: sessionContent.theme || sessionContent.track || '',
+        track: sessionContent.track || sessionContent.theme || '',
+        audience_level: sessionContent.audience_level || '',
+        day_of_week: sessionContent.day_of_week || '',
+        time_of_day: sessionContent.time_of_day || '',
+        duration_minutes: sessionContent.duration_minutes || sessionContent.duration || 0,
+        has_speakers: sessionContent.has_speakers || (sessionContent.speakers && sessionContent.speakers.length > 0),
+        is_interactive: sessionContent.is_interactive || false,
+        keywords: Array.isArray(sessionContent.keywords) ? sessionContent.keywords : [],
+        priority_level: sessionContent.priority_level || 'medium',
+        relevance_score: sessionContent.relevance_score || 0.5,
+        theme_code: sessionContent.theme_code || '',
+        scientific_field: sessionContent.scientific_field || 'technology'
+      };
+
+      console.log(`🔧 [SESSION_DATA] Transformed data:`, transformedSessionData);
 
       cardArray.push({
-        id: sessionContent.session_id || 'current-session-card',
+        id: transformedSessionData.session_id,
         type: 'session',
-        data: sessionContent,
+        data: transformedSessionData,
         component: getCardComponent('session'),
         size: 'full',
       });
 
       const cardArrayHash = JSON.stringify(cardArray.map((c) => ({ id: c.id, type: c.type, title: c.data?.title })));
       if (cardArrayHash !== lastCardArrayHash.current) {
-        console.log(`🎯 Session card ready: "${sessionContent.title}" @ ${sessionContent.venue}`);
+        console.log(`🎯 Session card ready: "${transformedSessionData.title}" @ ${transformedSessionData.venue}`);
         lastCardArrayHash.current = cardArrayHash;
       }
     }
@@ -339,7 +382,16 @@ export const RosaDemo: React.FC = () => {
             position: 'relative',
             overflow: 'hidden',
           }}
-        />
+        >
+          {/* Cards Container - NOW INSIDE THE RIGHT PANEL */}
+          <FullScreenCardContainer
+            cards={cards}
+            maxCards={4}
+            onCloseWeather={() => setShowWeatherCard(false)}
+            onCloseRag={() => setShowRagCards(false)}
+            showHeader={true}
+          />
+        </div>
       </div>
 
       {/* Handlers & UI */}
@@ -356,8 +408,14 @@ export const RosaDemo: React.FC = () => {
         onScheduleUpdate={(schedule) => console.log('Schedule:', schedule)}
       />
 
-      <FullScreenCardContainer cards={cards} maxCards={1} onCloseWeather={() => setShowWeatherCard(false)} onCloseRag={() => setShowRagCards(false)} />
-      <StickyInterface meetingState={status} conversationId={conversationId || undefined} isUserSpeaking={false} isRosaSpeaking={false} />
+      {/* Sticky Interface */}
+      <StickyInterface
+        meetingState={status === 'connected' ? 'joined-meeting' : status}
+        conversationId={conversationId || ''}
+        isUserSpeaking={false}
+        isRosaSpeaking={false}
+      />
+      
     </CVIProvider>
   );
 }; 

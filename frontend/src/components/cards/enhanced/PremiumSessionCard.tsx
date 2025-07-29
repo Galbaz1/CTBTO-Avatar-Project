@@ -1,7 +1,9 @@
-import React, { createContext, useContext } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Badge } from '../compound/Badge';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, Users, Building } from 'lucide-react';
 
 // === TYPES & INTERFACES ===
 
@@ -23,42 +25,17 @@ interface PremiumTimetableSession {
   time_of_day: string;
   duration_minutes: number;
   has_speakers: boolean;
-  is_interactive: boolean;
-  keywords?: string[];
-  priority_level?: 'high' | 'medium' | 'low';
-  relevance_score?: number;
-  theme_code?: string; // e.g., "T1.1", "T2.3"
-  scientific_field?: 'physics' | 'chemistry' | 'technology' | 'policy';
-  capacity?: number;
-  registration_required?: boolean;
+  is_important: boolean;
+  relevance_score: number;
 }
-
-interface PremiumSessionCardContextValue {
-  session: PremiumTimetableSession;
-  variant?: 'default' | 'compact' | 'hero' | 'keynote';
-  animated?: boolean;
-  className?: string;
-}
-
-// === CONTEXT ===
-
-const PremiumSessionCardContext = createContext<PremiumSessionCardContextValue | null>(null);
-
-const usePremiumSessionCard = () => {
-  const context = useContext(PremiumSessionCardContext);
-  if (!context) {
-    throw new Error('PremiumSessionCard components must be used within PremiumSessionCard');
-  }
-  return context;
-};
 
 // === SOPHISTICATED ANIMATION SYSTEM ===
 
 const cardVariants = {
   hidden: { 
     opacity: 0, 
-    y: 32,
-    scale: 0.96,
+    y: 20,
+    scale: 0.95,
   },
   visible: { 
     opacity: 1, 
@@ -67,453 +44,244 @@ const cardVariants = {
     transition: {
       type: "spring" as const,
       stiffness: 300,
-      damping: 24,
+      damping: 30,
       mass: 0.8,
-      staggerChildren: 0.08,
     }
   },
-  focus: {
-    scale: 1.02,
-    y: -8,
+  hover: {
+    y: -2,
     transition: {
-      duration: 0.2,
-      ease: [0.25, 0.46, 0.45, 0.94] as const
+      duration: 0.2
     }
   }
-};
-
-const contentVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94] as const
-    }
-  }
-};
-
-const badgeVariants = {
-  hidden: { opacity: 0, scale: 0.8, y: 8 },
-  visible: (i: number) => ({
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.06,
-      duration: 0.25,
-      ease: [0.25, 0.46, 0.45, 0.94] as const
-    }
-  })
 };
 
 // === UTILITY FUNCTIONS ===
 
-const getThemeColor = (field?: string) => {
-  switch (field) {
-    case 'physics': return 'science-physics';
-    case 'chemistry': return 'science-chemistry';
-    case 'technology': return 'science-technology';
-    case 'policy': return 'science-policy';
-    default: return 'ctbto-navy';
+const formatTime = (timeString: string) => {
+  try {
+    return new Date(timeString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+  } catch {
+    return timeString;
   }
 };
 
-const getPriorityColor = (priority?: string) => {
-  switch (priority) {
-    case 'high': return 'priority-high';
-    case 'medium': return 'priority-medium';
-    case 'low': return 'priority-low';
-    default: return 'conference-500';
+const formatDate = (dateString: string) => {
+  try {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short', 
+      day: 'numeric'
+    });
+  } catch {
+    return dateString;
   }
+};
+
+const getSessionTypeColor = (sessionType: string) => {
+  const type = sessionType.toLowerCase();
+  if (type.includes('keynote')) return 'bg-amber-100 text-amber-800 border-amber-200';
+  if (type.includes('panel')) return 'bg-blue-100 text-blue-800 border-blue-200';
+  if (type.includes('technical')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+  if (type.includes('workshop')) return 'bg-purple-100 text-purple-800 border-purple-200';
+  return 'bg-gray-100 text-gray-800 border-gray-200';
+};
+
+const getThemeColor = (theme: string) => {
+  const themeNum = theme.match(/T(\d+)/)?.[1];
+  const colors = [
+    'bg-red-100 text-red-700',
+    'bg-orange-100 text-orange-700', 
+    'bg-yellow-100 text-yellow-700',
+    'bg-green-100 text-green-700',
+    'bg-blue-100 text-blue-700',
+    'bg-indigo-100 text-indigo-700',
+    'bg-purple-100 text-purple-700'
+  ];
+  return colors[parseInt(themeNum || '0') % colors.length] || 'bg-gray-100 text-gray-700';
 };
 
 // === MAIN COMPONENT ===
 
 interface PremiumSessionCardProps {
   session: PremiumTimetableSession;
-  variant?: 'default' | 'compact' | 'hero' | 'keynote';
-  animated?: boolean;
+  size?: 'compact' | 'default' | 'full';
+  showActions?: boolean;
+  onClick?: () => void;
   className?: string;
-  children: React.ReactNode;
 }
 
-function PremiumSessionCard({ 
-  session, 
-  variant = 'default',
-  animated = true, 
-  className,
-  children 
-}: PremiumSessionCardProps) {
-  const contextValue: PremiumSessionCardContextValue = {
-    session,
-    variant,
-    animated,
-    className
-  };
+export const PremiumSessionCardDefault: React.FC<PremiumSessionCardProps> = ({
+  session,
+  onClick,
+  className
+}) => {
+  const relevancePercent = Math.round((session.relevance_score || 0) * 100);
 
-  const isKeynote = session.session_type?.toLowerCase().includes('keynote');
-  const isHighPriority = session.priority_level === 'high';
-
-  return (
-    <PremiumSessionCardContext.Provider value={contextValue}>
-      <motion.article
-        variants={animated ? cardVariants : undefined}
-        initial={animated ? "hidden" : undefined}
-        animate={animated ? "visible" : undefined}
-        whileFocus={animated ? "focus" : undefined}
-        layout
-        className={cn(
-          // === BASE PREMIUM CARD STYLING ===
-          "relative overflow-hidden",
-          "bg-ctbto-card", // Gradient background from design tokens
-          "border border-ctbto/20",
-          "shadow-ctbto", // CTBTO-branded shadow
-          
-          // === SOPHISTICATED BORDER RADIUS ===
-          variant === 'hero' ? 'rounded-display' : 
-          variant === 'keynote' ? 'rounded-premium' : 'rounded-card',
-          
-          // === PREMIUM TYPOGRAPHY ===
-          "font-primary", // Verdana as per CTBTO guidelines
-          "text-ctbto-contrast",
-          
-          // === VARIANT-SPECIFIC SIZING ===
-          variant === 'hero' ? 'p-8' :
-          variant === 'compact' ? 'p-4' : 'p-6',
-          
-          // === KEYNOTE SPECIAL STYLING ===
-          isKeynote && "ring-2 ring-science-keynote/20 bg-gradient-to-br from-white via-red-50/30 to-orange-50/20",
-          
-          // === HIGH PRIORITY ACCENT ===
-          isHighPriority && "border-l-4 border-l-priority-high",
-          
-          // === ACCESSIBILITY ===
-          "focus:outline-none focus:ring-2 focus:ring-ctbto-navy focus:ring-offset-2",
-          "focus:ring-offset-white",
-          
-          className
-        )}
-        role="article"
-        aria-labelledby={`session-title-${session.session_id}`}
-        aria-describedby={`session-description-${session.session_id}`}
-        tabIndex={0}
-      >
-        {/* === PREMIUM BACKGROUND EFFECTS === */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-transparent to-conference-50/40 pointer-events-none" />
-        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-radial from-ctbto-seafoam/10 to-transparent pointer-events-none" />
-        
-        {/* === KEYNOTE ACCENT RIBBON === */}
-        {isKeynote && (
-          <div className="absolute top-4 -right-8 rotate-45 bg-science-keynote text-white text-kiosk-xs px-8 py-1 shadow-lg">
-            KEYNOTE
-          </div>
-        )}
-        
-        <div className="relative z-10">
-          {children}
-        </div>
-      </motion.article>
-    </PremiumSessionCardContext.Provider>
-  );
-}
-
-// === COMPOUND COMPONENTS ===
-
-function PremiumSessionCardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
-  const { animated } = usePremiumSessionCard();
-  
-  return (
-    <motion.header
-      variants={animated ? contentVariants : undefined}
-      className={cn("mb-6", className)}
-    >
-      {children}
-    </motion.header>
-  );
-}
-
-function PremiumSessionCardTitle({ children, className }: { children?: React.ReactNode; className?: string }) {
-  const { session, variant } = usePremiumSessionCard();
-  const displayTitle = children || session.title;
-  
-  return (
-    <h2
-      id={`session-title-${session.session_id}`}
-      className={cn(
-        // === SOPHISTICATED TYPOGRAPHY ===
-        "font-display font-bold text-conference-900",
-        "leading-tight tracking-tight",
-        "mb-3",
-        
-        // === VARIANT-SPECIFIC SIZING ===
-        variant === 'hero' ? 'text-kiosk-3xl' :
-        variant === 'compact' ? 'text-kiosk-lg' : 'text-kiosk-xl',
-        
-        // === TEXT HANDLING ===
-        variant === 'compact' ? 'line-clamp-2' : 'line-clamp-3',
-        
-        className
-      )}
-    >
-      {displayTitle}
-    </h2>
-  );
-}
-
-function PremiumSessionCardMeta({ className }: { className?: string }) {
-  const { session, animated } = usePremiumSessionCard();
-  
-  const badges = [
-    { label: session.session_type, variant: 'default', color: getThemeColor(session.scientific_field) },
-    { label: session.theme_code || session.theme, variant: 'outline', color: 'conference-600' },
-    { label: `${session.duration_minutes}min`, variant: 'secondary', color: 'conference-500' },
-    ...(session.priority_level ? [{ label: session.priority_level, variant: 'outline', color: getPriorityColor(session.priority_level) }] : []),
-  ];
-  
-  return (
-    <div className={cn(
-      "flex flex-wrap items-center gap-2 mb-4",
-      className
-    )}>
-      {badges.map((badge, index) => (
-        <motion.div
-          key={index}
-          variants={animated ? badgeVariants : undefined}
-          custom={index}
-        >
-          <Badge
-            variant={badge.variant as any}
-            className={cn(
-              "text-kiosk-xs font-medium px-3 py-1",
-              `bg-${badge.color}/10 text-${badge.color} border-${badge.color}/20`
-            )}
-          >
-            {badge.label}
-          </Badge>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function PremiumSessionCardDescription({ children, className }: { children?: React.ReactNode; className?: string }) {
-  const { session, variant } = usePremiumSessionCard();
-  const displayDescription = children || session.description;
-  
-  if (!displayDescription) return null;
-  
-  return (
-    <p
-      id={`session-description-${session.session_id}`}
-      className={cn(
-        // === PROFESSIONAL TYPOGRAPHY ===
-        "text-conference-700 font-medium leading-relaxed",
-        
-        // === VARIANT-SPECIFIC SIZING ===
-        variant === 'hero' ? 'text-kiosk-base' :
-        variant === 'compact' ? 'text-kiosk-sm' : 'text-kiosk-sm',
-        
-        // === TEXT HANDLING ===
-        variant === 'compact' ? 'line-clamp-2' : 'line-clamp-4',
-        
-        "mb-5",
-        className
-      )}
-    >
-      {displayDescription}
-    </p>
-  );
-}
-
-function PremiumSessionCardDetails({ className }: { className?: string }) {
-  const { session, variant, animated } = usePremiumSessionCard();
-  
-  const details = [
-    { icon: '📅', label: 'Date', value: session.date },
-    { icon: '⏰', label: 'Time', value: `${session.start_time} - ${session.end_time}` },
-    { icon: '📍', label: 'Venue', value: session.venue },
-    { icon: '👥', label: 'Audience', value: session.audience_level },
-  ];
-  
   return (
     <motion.div
-      variants={animated ? contentVariants : undefined}
-      className={cn(
-        "grid grid-cols-1 gap-3 mb-6",
-        variant !== 'compact' && "sm:grid-cols-2",
-        className
-      )}
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover="hover"
+      className={cn("w-full", className)}
+      onClick={onClick}
     >
-      {details.map((detail, index) => (
-        <div
-          key={index}
-          className="flex items-center gap-3 p-3 bg-conference-50/80 rounded-lg border border-conference-200/60"
-        >
-          <span className="text-lg" role="img" aria-hidden="true">
-            {detail.icon}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-kiosk-xs text-conference-600 font-medium">
-              {detail.label}
-            </div>
-            <div className="text-kiosk-sm font-semibold text-conference-800 truncate">
-              {detail.value}
-            </div>
-          </div>
-        </div>
-      ))}
-    </motion.div>
-  );
-}
-
-function PremiumSessionCardSpeakers({ maxSpeakers = 3, className }: { maxSpeakers?: number; className?: string }) {
-  const { session, animated } = usePremiumSessionCard();
-  
-  if (!session.speakers || session.speakers.length === 0) return null;
-  
-  const displaySpeakers = session.speakers.slice(0, maxSpeakers);
-  const remainingCount = session.speakers.length - maxSpeakers;
-  
-  return (
-    <motion.div
-      variants={animated ? contentVariants : undefined}
-      className={cn("mb-6", className)}
-    >
-      <h4 className="text-kiosk-sm font-semibold text-conference-800 mb-3">
-        Speakers ({session.speakers.length})
-      </h4>
-      <div className="space-y-2">
-        {displaySpeakers.map((speaker, index) => (
-          <motion.div
-            key={index}
-            variants={animated ? badgeVariants : undefined}
-            custom={index}
-            className="flex items-center gap-3 p-3 bg-white/80 rounded-lg border border-conference-200/40 shadow-professional"
-          >
-            {/* Speaker Avatar Placeholder */}
-            <div className="w-10 h-10 bg-gradient-to-br from-ctbto-navy to-ctbto-seafoam rounded-full flex items-center justify-center text-white font-bold text-sm">
-              {speaker.split(' ').map(n => n[0]).join('').slice(0, 2)}
-            </div>
+      <Card className={cn(
+        // === CORE LAYOUT ===
+        "relative overflow-hidden",
+        "border border-gray-200/60 hover:border-gray-300/80",
+        "transition-all duration-200 ease-out",
+        "hover:shadow-lg hover:shadow-gray-200/50",
+        
+        // === CTBTO PROFESSIONAL STYLING ===
+        "bg-white",
+        onClick && "cursor-pointer"
+      )}>
+        
+        {/* === CTBTO HEADER WITH LOGO === */}
+        <div className={cn(
+          "h-1.5 w-full",
+          "bg-gradient-to-r from-[#204054] via-[#2A5469] to-[#7FCDCD]" // CTBTO brand gradient
+        )} />
+        
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <div className="text-kiosk-sm font-semibold text-conference-900 truncate">
-                {speaker}
+              <CardTitle className={cn(
+                "text-lg font-semibold text-gray-900 leading-tight",
+                "line-clamp-2"
+              )}>
+                {session.title}
+              </CardTitle>
+              
+              {/* Session Type & Theme Badges */}
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Badge 
+                  variant="outline" 
+                  className={cn(
+                    "text-xs px-2 py-1 font-medium",
+                    getSessionTypeColor(session.session_type)
+                  )}
+                >
+                  {session.session_type}
+                </Badge>
+                
+                {session.theme && (
+                  <Badge 
+                    variant="outline"
+                    className={cn(
+                      "text-xs px-2 py-1 font-medium",
+                      getThemeColor(session.theme)
+                    )}
+                  >
+                    {session.theme}
+                  </Badge>
+                )}
               </div>
             </div>
-          </motion.div>
-        ))}
-        {remainingCount > 0 && (
-          <div className="text-center pt-2">
-            <Badge variant="outline" className="text-kiosk-xs">
-              +{remainingCount} more speaker{remainingCount > 1 ? 's' : ''}
-            </Badge>
+            
+            {/* CTBTO Logo Area */}
+            <div className="flex flex-col items-end gap-1">
+              <div className={cn(
+                "w-8 h-6 rounded-sm",
+                "bg-gradient-to-br from-[#7FCDCD] to-[#5BB5B5]", // CTBTO seafoam
+                "flex items-center justify-center",
+                "text-[10px] font-bold text-white",
+                "shadow-sm"
+              )}>
+                CTBTO
+              </div>
+              {session.relevance_score && (
+                <span className="text-xs text-gray-500 font-medium">
+                  {relevancePercent}% match
+                </span>
+              )}
+            </div>
           </div>
-        )}
-      </div>
+        </CardHeader>
+
+        <CardContent className="pb-4">
+          {/* Description */}
+          {session.description && (
+            <CardDescription className={cn(
+              "text-sm text-gray-600 leading-relaxed mb-4",
+              "line-clamp-3"
+            )}>
+              {session.description}
+            </CardDescription>
+          )}
+
+          {/* Session Details Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Date & Time */}
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="w-4 h-4 text-[#204054]" />
+              <div>
+                <div className="font-medium text-gray-900">
+                  {formatDate(session.date)}
+                </div>
+                <div className="text-gray-600 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {formatTime(session.start_time)} - {formatTime(session.end_time)}
+                </div>
+              </div>
+            </div>
+
+            {/* Venue */}
+            <div className="flex items-center gap-2 text-sm">
+              <Building className="w-4 h-4 text-[#7FCDCD]" />
+              <div>
+                <div className="font-medium text-gray-900">
+                  {session.venue || 'TBA'}
+                </div>
+                <div className="text-gray-600">
+                  {session.duration_minutes ? `${session.duration_minutes}min` : ''}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Speakers */}
+          {session.speakers && session.speakers.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-100">
+              <div className="flex items-center gap-2 mb-2">
+                <Users className="w-4 h-4 text-[#204054]" />
+                <span className="text-sm font-medium text-gray-900">
+                  Speakers ({session.speakers.length})
+                </span>
+              </div>
+              <div className="text-sm text-gray-600 line-clamp-2">
+                {session.speakers.join(', ')}
+              </div>
+            </div>
+          )}
+        </CardContent>
+
+        {/* Footer with CTBTO Branding */}
+        <CardFooter className={cn(
+          "pt-3 border-t border-gray-100",
+          "bg-gradient-to-r from-gray-50/50 to-[#E6F3F3]/30" // Subtle CTBTO seafoam
+        )}>
+          <div className="flex items-center justify-between w-full">
+            <div className="text-xs text-gray-500">
+              SnT2025 Conference
+            </div>
+            <div className="text-xs font-medium text-[#204054]">
+              Session {session.session_id}
+            </div>
+          </div>
+        </CardFooter>
+      </Card>
     </motion.div>
   );
-}
-
-function PremiumSessionCardFooter({ children, className }: { children?: React.ReactNode; className?: string }) {
-  const { session, animated } = usePremiumSessionCard();
-  
-  const defaultFooter = (
-    <div className="flex items-center justify-between pt-4 border-t border-conference-200/60">
-      <div className="flex items-center gap-4">
-        {session.relevance_score && (
-          <div className="text-kiosk-xs text-conference-600">
-            Relevance: <span className="font-semibold">{(session.relevance_score * 100).toFixed(0)}%</span>
-          </div>
-        )}
-        {session.is_interactive && (
-          <Badge variant="outline" className="text-kiosk-xs bg-science-technology/10 text-science-technology border-science-technology/20">
-            Interactive
-          </Badge>
-        )}
-      </div>
-      {session.registration_required && (
-        <Badge variant="default" className="text-kiosk-xs bg-priority-medium text-white">
-          Registration Required
-        </Badge>
-      )}
-    </div>
-  );
-  
-  return (
-    <motion.footer
-      variants={animated ? contentVariants : undefined}
-      className={cn("mt-6", className)}
-    >
-      {children || defaultFooter}
-    </motion.footer>
-  );
-}
-
-// === COMPOUND COMPONENT ASSIGNMENT ===
-
-PremiumSessionCard.Header = PremiumSessionCardHeader;
-PremiumSessionCard.Title = PremiumSessionCardTitle;
-PremiumSessionCard.Meta = PremiumSessionCardMeta;
-PremiumSessionCard.Description = PremiumSessionCardDescription;
-PremiumSessionCard.Details = PremiumSessionCardDetails;
-PremiumSessionCard.Speakers = PremiumSessionCardSpeakers;
-PremiumSessionCard.Footer = PremiumSessionCardFooter;
-
-// === PRESET LAYOUTS ===
-
-function PremiumSessionCardDefault({ session, className }: { session: PremiumTimetableSession; className?: string }) {
-  return (
-    <PremiumSessionCard session={session} variant="default" className={className}>
-      <PremiumSessionCard.Header>
-        <PremiumSessionCard.Title />
-        <PremiumSessionCard.Meta />
-      </PremiumSessionCard.Header>
-      <PremiumSessionCard.Description />
-      <PremiumSessionCard.Details />
-      <PremiumSessionCard.Speakers maxSpeakers={3} />
-      <PremiumSessionCard.Footer />
-    </PremiumSessionCard>
-  );
-}
-
-function PremiumSessionCardHero({ session, className }: { session: PremiumTimetableSession; className?: string }) {
-  return (
-    <PremiumSessionCard session={session} variant="hero" className={className}>
-      <PremiumSessionCard.Header>
-        <PremiumSessionCard.Title />
-        <PremiumSessionCard.Meta />
-      </PremiumSessionCard.Header>
-      <PremiumSessionCard.Description />
-      <PremiumSessionCard.Details />
-      <PremiumSessionCard.Speakers maxSpeakers={5} />
-      <PremiumSessionCard.Footer />
-    </PremiumSessionCard>
-  );
-}
-
-function PremiumSessionCardCompact({ session, className }: { session: PremiumTimetableSession; className?: string }) {
-  return (
-    <PremiumSessionCard session={session} variant="compact" className={className}>
-      <PremiumSessionCard.Header>
-        <PremiumSessionCard.Title />
-        <PremiumSessionCard.Meta />
-      </PremiumSessionCard.Header>
-      <PremiumSessionCard.Description />
-      <PremiumSessionCard.Details />
-      <PremiumSessionCard.Footer />
-    </PremiumSessionCard>
-  );
-}
+};
 
 // === EXPORTS ===
 
-export {
-  PremiumSessionCard,
-  PremiumSessionCardDefault,
-  PremiumSessionCardHero,
-  PremiumSessionCardCompact,
-  type PremiumTimetableSession
-};
-
-export default PremiumSessionCard; 
+export const PremiumSessionCard = PremiumSessionCardDefault;
+export type { PremiumTimetableSession }; 
