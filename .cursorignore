@@ -1,2 +1,130 @@
+# =============================================================================
+# CTBTO Avatar Project - Cursor Ignore Configuration
+# =============================================================================
+# This file prevents Cursor AI from accessing large, generated, or irrelevant
+# files specific to our Avatar/Kiosk project structure.
+
+# -----------------------------------------------------------------------------
+# Python Virtual Environment (Rosa backend)
+# -----------------------------------------------------------------------------
+# The backend/rosa/ directory is a Python venv - ignore completely
+backend/rosa/
+**/rosa/bin/
+**/rosa/lib/
+**/rosa/include/
+**/rosa/pyvenv.cfg
+
+# -----------------------------------------------------------------------------
+# Python Cache & Compiled Files
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.pytest_cache/
+
+# -----------------------------------------------------------------------------
+# Node.js Dependencies & Build Artifacts
+# -----------------------------------------------------------------------------
+# Frontend dependencies (massive - 100+ packages)
+frontend/node_modules/
+**/node_modules/
+node_modules/
+
+# Package lock files (auto-generated, huge)
+frontend/package-lock.json
+frontend/bun.lock
+package-lock.json
+**/package-lock.json
+
+# Build outputs
+frontend/dist/
+frontend/build/
+dist/
+build/
+.vite/
+.turbo/
+
+# -----------------------------------------------------------------------------
+# Large SVG Floorplan Files (Conference-specific)
+# -----------------------------------------------------------------------------
+# These are massive SVG files (500KB-1MB each) for Hofburg Palace floorplans
+backend/backend_data/floorplan_info/*.svg
+# Specifically the huge ones we found:
+backend/backend_data/floorplan_info/hofburg_1_mezzanine_all_areas.svg
+backend/backend_data/floorplan_info/hofburg_0_parterre_all_areas.svg
+backend/backend_data/floorplan_info/zeremonienzaal.svg
+
+# But keep the JSON config files (small and useful)
+!backend/backend_data/floorplan_info/*.json
+
+# -----------------------------------------------------------------------------
+# Environment & Secrets
+# -----------------------------------------------------------------------------
+.env
+.env.*
+*.key
+*.pem
+.rosa_persona_id
+.rosa_conversation_url
+
+# -----------------------------------------------------------------------------
+# Generated & Temporary Files
+# -----------------------------------------------------------------------------
+# Temporary disabled components
+frontend/temp_disabled/
+
+# Log files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS & Editor
+.DS_Store
 .vscode/
-reference_only/
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# -----------------------------------------------------------------------------
+# RAG Testing & Large Data (keep structure visible)
+# -----------------------------------------------------------------------------
+# Keep test files accessible but ignore large data dumps if they exist
+backend/RAG-testing/large_datasets/
+backend/RAG-testing/test_outputs/
+backend/RAG-testing/*.bak
+
+# -----------------------------------------------------------------------------
+# TypeScript & Linting (keep configs, ignore generated)
+# -----------------------------------------------------------------------------
+# Keep configs but ignore generated diagnostic files
+frontend/node_modules/typescript/lib/*/diagnosticMessages.generated.json
+
+# ESLint cache
+.eslintcache
+
+# -----------------------------------------------------------------------------
+# AI/ML Model Files (if any get downloaded)
+# -----------------------------------------------------------------------------
+*.bin
+*.onnx
+*.pkl
+*.model
+models/
+weights/
+
+# -----------------------------------------------------------------------------
+# CVI (Tavus) Generated Assets (if large)
+# -----------------------------------------------------------------------------
+# Keep the component code but ignore any large generated video/audio assets
+frontend/src/components/cvi/assets/
+*.mp4
+*.wav
+*.m4a

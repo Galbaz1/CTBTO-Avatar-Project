@@ -3,6 +3,9 @@
 # Starts: FastAPI backend (uvicorn), Vite frontend dev server, optional ngrok tunnel
 set -euo pipefail
 
+# Set PYTHONPATH to repo root for clean imports
+export PYTHONPATH="${PYTHONPATH:-}:$(pwd)"
+
 # -------- CONFIG --------
 BACKEND_PORT=8000
 FRONTEND_PORT=5173

@@ -12,10 +12,7 @@ from typing import List, Dict, Any, Optional, Callable, Generator
 from dotenv import load_dotenv
 
 # Import structured logging
-try:
-    from backend.logger import logger, LLMInstance
-except ImportError:
-    from logger import logger, LLMInstance
+from backend.logger import logger, LLMInstance
 
 # Load environment variables from .env file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))

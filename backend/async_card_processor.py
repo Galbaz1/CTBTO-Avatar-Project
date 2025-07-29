@@ -181,7 +181,7 @@ class CardGenerationQueue:
         
         try:
             # Import here to avoid circular imports
-            from rosa_api_server import generate_cards_async
+            from backend.rosa_api_server import generate_cards_async
             
             # Track active task
             self._track_active_task(request.session_id, worker_name)

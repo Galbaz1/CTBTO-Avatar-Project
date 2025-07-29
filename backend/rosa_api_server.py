@@ -20,21 +20,8 @@ from backend.main_conversation_agent import CTBTOAgent
 # Import structured logging
 from backend.logger import logger, LLMInstance, log_task_duration
 
-# Load environment variables (handle both run contexts)
-import os
-import sys
-
-# Add backend directory to Python path if running from parent directory  
-backend_dir = os.path.dirname(os.path.abspath(__file__))
-if backend_dir not in sys.path:
-    sys.path.insert(0, backend_dir)
-
-if os.path.exists('../.env'):
-    load_dotenv('../.env')  # Running from backend/ directory
-elif os.path.exists('.env'):
-    load_dotenv('.env')     # Running from Rosa_custom_backend/ directory  
-else:
-    print("⚠️ Warning: .env file not found in expected locations")
+# Load environment variables
+load_dotenv()  # Automatically finds .env in project root or parent dirs
 
 # Check if we're in development mode
 IS_DEVELOPMENT = os.getenv("NODE_ENV") == "development"

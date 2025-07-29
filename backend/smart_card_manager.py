@@ -16,16 +16,10 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 # Import our SearchResult dataclass from weaviate knowledge search
-try:
-    from backend.weaviate_knowledge_search import SearchResult
-except ImportError:
-    from weaviate_knowledge_search import SearchResult
+from backend.weaviate_knowledge_search import SearchResult
 
 # Import structured logging
-try:
-    from backend.logger import logger as rosa_logger, LLMInstance
-except ImportError:
-    from logger import logger as rosa_logger, LLMInstance
+from backend.logger import logger as rosa_logger, LLMInstance
 
 # Load environment variables
 load_dotenv()
