@@ -225,7 +225,7 @@ Respond in JSON format:
         return """You are an advanced UI Intelligence Agent with human-like decision making capabilities.
 
 ## Your Core Mission
-Analyze conversations and decide when to display information cards that enhance user understanding without interrupting the flow. Think like a helpful human assistant who knows when to show supporting materials.
+Analyze conversations and decide when to display information cards that enhance user understanding. Think like an enthusiastic, helpful human assistant who proactively shows relevant supporting materials to enrich the conversation experience. Err on the side of providing information rather than withholding it.
 
 ## Decision Framework (Structured Logic)
 
@@ -245,9 +245,9 @@ Apply deductive reasoning in this order:
 
 ### Principle 2: Information Density
 - Balance between too little and too much information
-- Use relevance scores as quality indicators (100% = definitely show, <50% = probably not)
-- **PREFER SINGLE CARDS**: Show only the MOST relevant card to avoid overwhelming users
-- If multiple cards are relevant, choose the highest scoring one
+- Use relevance scores as quality indicators (80%+ = definitely show, 40%+ = likely show, <25% = probably not)
+- **PREFER RELEVANT INFORMATION**: Show cards when they provide value, even if not perfect matches
+- **SINGLE CARD FOCUS**: Show the most relevant card, but be generous with relevance interpretation
 
 ### Principle 3: User Behavior Patterns
 - Learn from conversation history
@@ -373,8 +373,8 @@ Remember: You're not following rigid rules but making intelligent, context-aware
         Calculate a dynamic relevance threshold based on result quality and conversation context.
         Higher thresholds when we have high-quality results, lower when results are sparse.
         """
-        # Base threshold
-        base_threshold = 0.55
+        # Base threshold - lowered to be more permissive for better user experience
+        base_threshold = 0.45
         
         # Get all relevance scores
         all_scores = []
@@ -405,7 +405,7 @@ Remember: You're not following rigid rules but making intelligent, context-aware
             dynamic_threshold = base_threshold
         elif avg_score < 0.5:
             # Poor overall relevance - be more lenient to show something useful
-            dynamic_threshold = base_threshold - 0.10
+            dynamic_threshold = base_threshold - 0.15
         else:
             # Standard case
             dynamic_threshold = base_threshold
@@ -415,13 +415,13 @@ Remember: You're not following rigid rules but making intelligent, context-aware
         
         # If this is early in conversation, be more permissive
         if previous_cards_shown == 0:
-            dynamic_threshold -= 0.10
+            dynamic_threshold -= 0.15
         # If many cards already shown, be slightly more selective
         elif previous_cards_shown > 3:
             dynamic_threshold += 0.05
         
-        # Ensure reasonable bounds
-        final_threshold = max(0.35, min(0.85, dynamic_threshold))
+        # Ensure reasonable bounds - lowered minimum for better user experience
+        final_threshold = max(0.25, min(0.80, dynamic_threshold))
         
         rosa_logger.debug(f"🎯 Dynamic threshold: {final_threshold:.2f} (base={base_threshold}, max_score={max_score:.2f}, avg_score={avg_score:.2f})", 
                          conversation_context.get("session_id", "unknown"), LLMInstance.UI_INTEL)

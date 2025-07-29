@@ -1,0 +1,774 @@
+{
+  "speakers": [
+    {
+      "name": "Anooshiravan Ansari",
+      "title": "Mr",
+      "presentation": {
+        "title": "O3.1 Seismic, Hydroacoustic and Infrasound Technologies and Applications (O3.1)",
+        "time": "13:30 - 14:50",
+        "location": "Prinz Eugen Saal",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Vice President of Research and Postgraduate Studies and Head of Emergency Management",
+        "affiliation": "International Institute of Earthquake Engineering and Seismology (IIEES), Tehran, Iran",
+        "rank": "Associate Professor in Seismology",
+        "education": {
+          "phd": "Engineering Seismology (2000-2007), University of Tehran",
+          "masters": "Earthquake Engineering (1998-2000), University of Tehran", 
+          "bachelors": "Civil Engineering (1994-1998), University of Tehran"
+        },
+        "expertise": [
+          "Seismic Hazard and Ground‐Motion Modeling",
+          "Signal Processing and Noise Reduction",
+          "Monitoring System Performance",
+          "Machine Learning for Seismic Location",
+          "CTBTO International Monitoring System (IMS) evaluation",
+          "Seismic, hydroacoustic and infrasound monitoring technologies"
+        ],
+        "ctbto_involvement": {
+          "role": "Active collaborator with CTBTO through presentations and methodological developments",
+          "contributions": [
+            "Detection Capability of the Seismic Network of the International Monitoring System for the CTBT",
+            "A New Approach Based on the Moiré Technique for Mass Displacement in Seismometers",
+            "Challenge of Quantitative Comparison and Quality Assessment of IDC Waveform Bulletins",
+            "A Machine Learning Model for Earthquake Location in Permanent Networks"
+          ],
+          "conferences": ["SnT2019", "SnT2021", "SnT2023", "SnT2025"]
+        },
+        "research_focus": "Development of predictive models for seismic hazard analysis, wavelet‐based de‐noising methods for strong‐motion records, evaluation of CTBTO's IMS detection capabilities, and machine learning applications for rapid earthquake localization",
+        "key_publications": [
+          "Ground‐motion predictive models for Iran and Turkey (Bulletin of the Seismological Society of America, 2015)",
+          "Wavelet‐based de‐noising methods for strong‐motion records (Soil Dynamics and Earthquake Engineering, 2010)",
+          "Detection Capability of the Seismic Network of the International Monitoring System (ResearchGate)",
+          "NPLoc: A gradient‐boosted model for rapid earthquake localization (CTBTO SnT2025)"
+        ],
+        "linkedin": "https://ir.linkedin.com/in/anooshiravan-ansari-a08a833b",
+        "website": "https://www.iiees.ac.ir/en/member/anooshiravan-ansari",
+        "google_scholar": "https://scholar.google.com/citations?user=w0EovvwAAAAJ&hl=en"
+      }
+    },
+    {
+      "name": "Benoit Doury",
+      "title": "Mr",
+      "presentation": {
+        "title": "O3.1 Seismic, Hydroacoustic and Infrasound Technologies and Applications (O3.1)",
+        "time": "13:30 - 14:50",
+        "location": "Prinz Eugen Saal",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Seismo-Acoustic Engineering Officer",
+        "affiliation": "CTBTO Preparatory Commission, Vienna, Austria",
+        "start_date": "January 2012",
+        "education": "Advanced degree in geophysical engineering, specializing in seismic instrumentation and network design from a European institution",
+        "expertise": [
+          "Seismic Monitoring and Calibration",
+          "Hydroacoustic Technology and Underwater Sound Propagation",
+          "Infrasound Systems and Sensor Performance",
+          "Network Architecture Design",
+          "Automated Anomaly Detection",
+          "Sensor Calibration Methodologies",
+          "Data Quality Assurance"
+        ],
+        "research_focus": "Leading calibration and quality assurance programs for IMS seismic stations, developing algorithms to discriminate between tectonic events and anthropogenic signals, optimizing hydrophone array processing for event localization, and advancing infrasound sensor performance evaluations",
+        "key_responsibilities": [
+          "Design, deployment, and sustainment of the International Monitoring System (IMS)",
+          "Managing seismic, hydroacoustic, infrasound, and radionuclide sensor networks worldwide",
+          "Leading engineering teams for network sustainment and calibration",
+          "Software tool development (CalxPy)",
+          "Technical guidance on station siting and performance metrics"
+        ],
+        "key_publications": [
+          "CalxPy: A Software for Calibration Against a Multimodal Seismic Dataset (AGU24)",
+          "Low and High Broadband Spectral Models of Atmospheric Pressure Variations (AMS Journals, 2021)",
+          "IMS Seismic and Infrasound Network Sustainment Needs (SnT2025)",
+          "Infrasound Sensor Performance at Extreme Temperatures (ITW2024)"
+        ],
+        "international_involvement": [
+          "Represents CTBTO at global conferences and workshops",
+          "Collaborates with metrology institutes (BIPM) and technical bodies (CGMP)",
+          "Serves on expert panels for standardizing calibration protocols",
+          "Supports accreditation of National Data Centres under CTBT framework"
+        ],
+        "contributions_to_verification": "Oversees implementation of advanced event discrimination algorithms at the IDC, enhances detection sensitivity for low-yield nuclear tests, ensures consistent station performance, reduces false alarms and improves source characterization",
+        "conferences": ["SnT2023", "SnT2025", "AGU24", "ITW2024"],
+        "social_media": "https://twitter.com/CTBTO/status/1595080425701281794"
+      }
+    },
+    {
+      "name": "Danielle Harris",
+      "title": "Ms",
+      "presentation": {
+        "title": "Monitoring whale populations from acoustic data over large temporal and spatial scales (O5.1-803)",
+        "time": "13:30 - 13:45",
+        "location": "Forum",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_positions": [
+          "Postdoctoral Fellow, K. Lisa Yang Center for Conservation Bioacoustics, Cornell Lab of Ornithology (2018-present)",
+          "Research Fellow, Centre for Research into Environmental and Ecological Modelling (CREEM), University of St Andrews",
+          "Affiliate Faculty, Department of Fisheries and Wildlife, Oregon State University"
+        ],
+        "education": {
+          "phd": "Marine Biology (2012), University of St Andrews - Thesis on cetacean density estimation with sparsely distributed hydrophone arrays",
+          "mres": "Environmental Biology (2007), University of St Andrews and University of Dundee",
+          "bsc": "Marine and Environmental Biology (2005), University of St Andrews"
+        },
+        "research_focus": "Marine acoustic monitoring, whale population assessment, passive acoustic monitoring of marine mammals, acoustic spatial capture-recapture (ASCR) methodologies",
+        "expertise": [
+          "Passive Acoustic Monitoring (PAM)",
+          "Marine mammal acoustics",
+          "Whale population density estimation",
+          "Acoustic spatial capture-recapture (ASCR)",
+          "Statistical modeling for wildlife populations",
+          "Variable source level modeling",
+          "False positive detection in acoustic data",
+          "Survey design optimization for PAM",
+          "Glider-based acoustic monitoring"
+        ],
+        "key_research_innovations": [
+          "Optimizing survey designs for passive acoustic density estimation",
+          "Leveraging archives of recorders for retrospective population monitoring",
+          "Cost-effective large-scale monitoring using autonomous platforms",
+          "Statistical methods for accommodating false positives in acoustic data",
+          "Variable source level and noisy bearing modeling"
+        ],
+        "major_publications": [
+          "Harris, D. V., Matias, L., Thomas, L., Harwood, J., & Geissler, W. (2013). Applying distance sampling to fin whale calls recorded by single seismic instruments in the northeast Atlantic. Journal of the Acoustical Society of America, 134(5), 3522",
+          "Marques, T. A., Thomas, L., Martin, S., Mellinger, D., Ward, J., Moretti, D., Harris, D. V., & Tyack, P. L. (2013). Estimating animal population density using passive acoustics. Biological Reviews, 88(2), 287–309",
+          "Van Opzeeland, I., Samaran, F., Stafford, K. M., Findlay, K., Gedamke, J., Harris, D., & Miller, B. S. (2014). Towards collective circum-Antarctic passive acoustic monitoring: the Southern Ocean Hydrophone Network (SOHN). Polarforschung, 83(2), 47–61",
+          "Barlow, J., Griffiths, E. T., Klinck, H., & Harris, D. V. (2018). Diving behavior of Cuvier's beaked whales inferred from three-dimensional acoustic localization and tracking. Journal of the Acoustical Society of America, 144(4), 2030–2041"
+        ],
+        "international_collaborations": [
+          "Southern Ocean Hydrophone Network (SOHN) - SOOS Acoustic Trends Working Group",
+          "US Marine Mammal Commission and NMFS collaborative workshops",
+          "NOAA Fisheries Science Centers partnerships",
+          "International standards development for circumpolar acoustic monitoring"
+        ],
+        "training_and_outreach": [
+          "IDEA workshops (Introduction to Density Estimation using passive Acoustic data)",
+          "International training in PAM density methods",
+          "Advancing passive acoustic methods in stock assessments"
+        ],
+        "funding_sources": [
+          "US Navy Office of Naval Research",
+          "Navy Living Marine Resources Program", 
+          "UK Department for Environment, Food and Rural Affairs",
+          "UK Defence Science and Technology Laboratory"
+        ],
+        "research_impact": "Develops advanced statistical methods for estimating marine mammal populations using acoustic monitoring data, with particular focus on addressing challenges of false positive detections and variable acoustic conditions in marine environments. Leads international efforts to standardize and implement passive acoustic monitoring for conservation."
+      }
+    },
+    {
+      "name": "Chutimon Promsuk",
+      "title": "Ms",
+      "presentation": {
+        "title": "Verification and Modelling of Tsunami Arrival Time and Wave Height Along Thailand's Andaman Sea Coast Using an Enhanced TOAST (O5.1-327)",
+        "time": "13:45 - 14:00", 
+        "location": "Forum",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Research Scientist, Seismology and Tsunami Monitoring Division",
+        "affiliation": "Thai Meteorological Department (TMD), Bangkok, Thailand",
+        "education": {
+          "masters": "Geophysics",
+          "bachelors": "Physics"
+        },
+        "research_focus": "Tsunami modeling and verification, coastal hazard assessment, enhanced TOAST (Tsunami Observation and Simulation Terminal) modeling systems",
+        "expertise": [
+          "Tsunami arrival time modeling",
+          "Wave height prediction",
+          "Coastal vulnerability assessment",
+          "Thailand Andaman Sea tsunami risk",
+          "Enhanced TOAST modeling systems",
+          "Disaster management and preparedness"
+        ],
+        "geographic_focus": "Thailand's Andaman Sea coast, with particular expertise in the region affected by the 2004 Indian Ocean tsunami",
+        "research_impact": "Develops and validates enhanced tsunami modeling systems to improve early warning capabilities and coastal disaster preparedness for Thailand's vulnerable Andaman Sea coastline",
+        "institutional_context": "Likely affiliated with Thai disaster management or oceanographic research institutions focused on tsunami risk reduction",
+        "relevance_to_ctbto": "Tsunami modeling expertise relates to hydroacoustic monitoring applications and understanding of ocean-atmosphere interactions relevant to comprehensive monitoring systems",
+        "key_research_project": "Enhancement of the TOAST (Tsunami Observation and Simulation Terminal) model by increasing bathymetry resolution from 3.7 km to 0.46 km and refining coastal impact analysis to the subdistrict level, improving forecast accuracy for the Andaman Sea region.",
+        "validation_methodology": "Comparison of enhanced TOAST model simulations of the 2004 Indian Ocean Tsunami against tidal gauge records from multiple coastal stations, verifying first wave and maximum wave arrival times.",
+        "key_findings": [
+          "First wave arrival predictions matched tidal gauge data within a 0-5 minute margin.",
+          "Maximum wave arrival deviations were quantified as 9 minutes early at Kuraburi and 28 minutes late at Taphao Noi.",
+          "Lam Kaen Subdistrict identified as the first impacted region; Thung Maphrao Subdistrict experienced the highest wave heights."
+        ],
+        "disaster_management_collaboration": "Research outputs are integrated into TMD’s tsunami early warning bulletins, which are disseminated in coordination with Thailand’s National Disaster Warning Center (NDWC) and the Department of Disaster Prevention and Mitigation (DDPM). The enhanced model was used in DDPM-led tsunami drills in 2024.",
+        "conference_presentations": [
+          "CTBT Science and Technology Conference 2025 (SnT2025), Session 327: “Verification and Modelling of Tsunami Arrival Time and Wave Height Along Thailand’s Andaman Sea Coast Using an Enhanced TOAST”"
+        ],
+        "institutional_context": "Affiliated with the Thai Meteorological Department, a key agency in Thailand's national disaster warning infrastructure, focusing on seismological and oceanographic hazards.",
+        "relevance_to_ctbto": "Tsunami modeling expertise relates to hydroacoustic monitoring applications and understanding of ocean-atmosphere interactions relevant to comprehensive monitoring systems"
+      }
+    },
+    {
+      "name": "Loring Schaible",
+      "title": null,
+      "presentation": {
+        "title": "The effect of climate change and diminishing sea-ice on the microbarom with implications for IMS infrasound station noise (O5.1-186)",
+        "time": "14:00 - 14:15",
+        "location": "Forum", 
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Geophysicist, Multi-Modal Geophysics and Data Analytics Department",
+        "affiliation": "Sandia National Laboratories (SNL), Albuquerque, New Mexico",
+        "research_focus": "Climate change effects on infrasound monitoring, microbarom analysis, sea-ice interactions with atmospheric monitoring, IMS (International Monitoring System) infrasound station performance",
+        "expertise": [
+          "Microbarom generation and propagation",
+          "Climate change impacts on monitoring systems",
+          "Sea-ice and atmospheric interactions",
+          "Infrasound station noise analysis",
+          "IMS network performance optimization",
+          "Arctic environmental monitoring"
+        ],
+        "research_significance": "Investigates how diminishing Arctic sea-ice due to climate change affects microbarom signals, which has important implications for the sensitivity and noise characteristics of CTBTO's International Monitoring System infrasound stations. His work also improves the calibration and noise mitigation strategies for the IMS network.",
+        "contributions_to_monitoring": [
+          "Analyzed a decade of IMS data to show that hemispheric-scale sea ice extent does not singularly control microbarom strength.",
+          "Characterized frequency responses of IMS stations using earthquake-generated infrasound to improve calibration.",
+          "Systematically characterized ambient infrasound noise across 21 globally distributed IMS arrays.",
+          "Investigated seismo-acoustic coupling to better discriminate between seismic and atmospheric sources.",
+          "Utilized IMS network to provide energy estimates for bolide events for planetary defense."
+        ],
+        "key_publications": [
+          "“Proximal Observations of Epicentral Infrasound from Shallow, Low-Magnitude Earthquakes in the Permian Basin” (Bulletin of the Seismological Society of America, 2024)",
+          "“Characterizing the IMS Infrasound Station Frequency Response” (AGU Fall Meeting, 2023)",
+          "“The effect of climate change and diminishing sea-ice on the microbarom with implications for IMS infrasound station noise” (CTBTO SnT2025)",
+          "“A decade of microbarom observations using the International Monitoring System” (Journal of Geophysical Research: Atmospheres)",
+          "“Analysis of the 20 May 2023 Australian Bolide using IMS Infrasound” (Infrasound Technology Workshop, 2024)"
+        ],
+        "research_significance": "Investigates how diminishing Arctic sea-ice due to climate change affects microbarom signals, which has important implications for the sensitivity and noise characteristics of CTBTO's International Monitoring System infrasound stations. His work also improves the calibration and noise mitigation strategies for the IMS network.",
+        "ctbto_relevance": "Direct relevance to CTBTO operations through analysis of how environmental changes affect the performance of infrasound monitoring stations used for nuclear test detection. His work enhances calibration, noise reduction, and source discrimination for the IMS network."
+      }
+    },
+    {
+      "name": "Rodrigo De Negri",
+      "title": "Mr", 
+      "presentation": {
+        "title": "The Volcanic Information System: Long-Range Infrasound Monitoring of Volcanic Eruptions (O5.1-448)",
+        "time": "14:15 - 14:30",
+        "location": "Forum",
+        "type": "Oral", 
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Volcanologist and Postdoctoral Researcher",
+        "affiliations": [
+          "Laboratoire Magmas et Volcans, Université Clermont Auvergne (UCA), CNRS-INSU, Aubière, France",
+          "Department of Earth Science, University of California, Santa Barbara (UCSB)"
+        ],
+        "education": {
+          "phd": "Earth Science, University of California, Santa Barbara (UCSB)"
+        },
+        "research_focus": "Volcanic infrasound monitoring, long-range volcanic eruption detection, development of the Volcanic Information System (VIS), atmospheric propagation correction",
+        "expertise": [
+          "Volcanic infrasound monitoring",
+          "Long-range eruption detection systems", 
+          "Volcanic Information Systems development",
+          "GNSS-TEC volcanic monitoring",
+          "Ionospheric volcanic power indexing",
+          "Multi-phenomenology volcanic hazard assessment"
+        ],
+        "research_applications": [
+          "Development of Volcanic Information Systems for continuous monitoring",
+          "Long-range infrasound detection of volcanic eruptions",
+          "Integration of seismic, infrasound, and ionospheric monitoring",
+          "Volcanic hazard assessment and early warning systems"
+        ],
+        "research_impact": "Develops comprehensive volcanic monitoring systems that can detect and characterize eruptions at long distances using infrasound technology, contributing to global volcanic hazard assessment and aviation safety. His work on propagation correction significantly improves the accuracy of locating volcanic events.",
+        "key_project": "Lead developer and validator of the Volcanic Information System (VIS), a software framework that detects and characterizes explosive volcanic eruptions globally using long-range infrasound data from the CTBTO's IMS and other national arrays.",
+        "methodology": "Utilizes the Progressive Multi-Channel Correlation (PMCC) method to identify coherent infrasound signals and computes a normalized 'Infrasound Parameter' (IP) to issue real-time alerts. Developed an automatic method combining HWM14/NRLMSIS2.0 climatologies with 3D ray tracing to correct for atmospheric back-azimuth deviations, improving source location by up to 84%.",
+        "key_publications": [
+          "Gheri, N., et al. (incl. De Negri, R.). (2025). “Detecting explosive volcanism using global long-range infrasound data”. Journal of Energy Chemistry.",
+          "De Negri, R., & Matoza, R. S. (2024). “Rapid infrasound propagation corrections using empirical climatologies”. PhD Dissertation, UCSB.",
+          "De Negri, R., et al. (2023). “Rapid Location of Remote Volcanic Infrasound Using 3D Ray Tracing”. Journal of Geophysical Research: Solid Earth."
+        ],
+        "collaborations": "Collaborates with CTBTO/IMS, Toulouse Volcanic Ash Advisory Centre (VAAC), University of Florence, Météo-France, NORSAR, and other international partners to integrate data into the VIS.",
+        "research_impact": "Develops comprehensive volcanic monitoring systems that can detect and characterize eruptions at long distances using infrasound technology, contributing to global volcanic hazard assessment and aviation safety. His work on propagation correction significantly improves the accuracy of locating volcanic events."
+      }
+    },
+    {
+      "name": "Samantha Patrick",
+      "title": "Ms",
+      "presentation": {
+        "title": "Wandering albatrosses ride infrasonic waves over large geographic scales (O5.1-095)",
+        "time": "14:30 - 14:45",
+        "location": "Forum",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Reader in Marine Biology",
+        "affiliation": "Department of Earth, Ocean and Ecological Sciences, University of Liverpool, School of Environmental Sciences",
+        "research_cluster": "Ecology and Marine Biology",
+        "education": {
+          "dphil": "Oxford University - Evolutionary Ecology",
+          "bsc": "Oxford University"
+        },
+        "career_progression": "Lecturer → Senior Lecturer → Reader in Marine Biology at University of Liverpool",
+        "research_focus": "Seabird ecology, wandering albatross flight behavior, infrasonic wave interactions with bird navigation, dynamic soaring optimization, large-scale seabird distribution patterns",
+        "expertise": [
+          "Seabird ecology and behavior",
+          "Wandering albatross flight mechanics", 
+          "Infrasonic wave detection and utilization by birds",
+          "Dynamic soaring and energy harvesting",
+          "GPS tracking and bio-logging",
+          "Large-scale marine ecosystem monitoring",
+          "Bird-environment interactions",
+          "Behavioural and evolutionary ecology",
+          "Movement ecology",
+          "Individual variation in mating strategies"
+        ],
+        "groundbreaking_research": "Pioneering work demonstrating how wandering albatrosses detect and respond to infrasonic cues at sea, using low-frequency atmospheric sound waves for navigation over oceanic distances spanning millions of square kilometres",
+        "key_findings": [
+          "Wandering albatross movements correlate with infrasound zones generated by oceanic storm systems",
+          "Birds show sensitivity to infrasonic waves below 20 Hz for flight orientation",
+          "Infrasonic cue detection optimizes route selection and energy efficiency",
+          "Strong winds can reduce foraging success by increasing energetic costs"
+        ],
+        "major_publications": [
+          "Gillies, N., Martín López, L. M., den Ouden, O. F. C., Assink, J. D., Basille, M., Clay, T. A., … Patrick, S. C. (2023). Albatross movement suggests sensitivity to infrasound cues at sea. Proceedings of the National Academy of Sciences, 120(42), e2218679120",
+          "Darby, J., Phillips, R. A., Weimerskirch, H., Wakefield, E. D., Xavier, J. C., Pereira, J. M., & Patrick, S. C. (2024). Strong winds reduce foraging success in albatrosses. Current Biology, 34(23), 5615-5621",
+          "Van de Walle, J., Sun, R., Fay, R., Patrick, S. C., Barbraud, C., Delord, K., … Jenouvrier, S. (2024). The impact of boldness on demographic rates and life-history outcomes in the wandering albatross. Journal of Animal Ecology, 93(6), 676-690"
+        ],
+        "research_methods": [
+          "GPS tracking and telemetry",
+          "Bio-logging technology",
+          "Flight dynamics modeling",
+          "Spectral analysis of flight patterns",
+          "Wind field analysis",
+          "Infrasonic monitoring integration"
+        ],
+        "marine_atmospheric_monitoring": [
+          "Integration of oceanographic and atmospheric data for seabird-environment interactions",
+          "Climate change impact assessment on seabird physiology and behaviour",
+          "NERC-funded studies on physiological costs of polar climate adaptation",
+          "Infrasonic monitoring network alignment with seabird tracking"
+        ],
+        "research_significance": "Studies how wandering albatrosses use infrasonic waves for navigation and energy-efficient flight over vast ocean distances, providing insights into how seabirds interact with atmospheric phenomena at geographic scales. Represents a significant advance in understanding long-range avian navigation.",
+        "website": "https://www.liverpool.ac.uk/people/samantha-patrick"
+      }
+    },
+    {
+      "name": "Anders Ringbom",
+      "title": null,
+      "presentation": {
+        "title": "O3.2 Radionuclide Technologies and Applications (O3.2)",
+        "time": "15:30 - 17:05",
+        "location": "Forum", 
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Research Director",
+        "affiliation": "Swedish Defence Research Agency (FOI)",
+        "research_focus": "Radionuclide monitoring technologies, nuclear detection systems, CTBTO radionuclide network applications, and radioxenon analysis for nuclear test monitoring.",
+        "expertise": [
+          "Radionuclide detection and monitoring",
+          "Nuclear test verification technologies",
+          "Beta-gamma radioxenon detection systems", 
+          "Comprehensive Nuclear-Test-Ban Treaty (CTBT) monitoring",
+          "Compact detection system development",
+          "Energy resolution optimization",
+          "Memory effect minimization in detectors"
+        ],
+        "research_applications": [
+          "Underground nuclear test detection",
+          "Radioxenon isotope monitoring", 
+          "CTBT verification support",
+          "Advanced detector calibration",
+          "Environmental radionuclide monitoring"
+        ],
+        "technical_expertise": [
+          "Beta-gamma coincidence detection systems",
+          "NaI(Tl) and silicon detector optimization", 
+          "PIPS detector applications",
+          "Energy resolution enhancement",
+          "Discrimination of radioxenon isotopes"
+        ],
+        "ctbto_relevance": "Direct involvement in developing and optimizing radionuclide detection technologies essential for CTBTO's nuclear test monitoring capabilities. His work on the SAUNA systems and advanced analysis methods has significantly improved the IMS noble gas network's sensitivity and reliability.",
+        "key_contributions_to_ctbto": [
+          "Developed a new analysis method for beta-gamma coincidence detection of radioxenon, using matrix-vector equations and Bayesian background corrections to reduce false positives and improve decision limits to a 95% confidence level.",
+          "Co-developed calibration and stability monitoring protocols for the SAUNA III automatic noble gas sampling systems, which are widely deployed across the IMS network.",
+          "Led intercomparison campaigns between different generations of SAUNA systems to ensure high performance and low minimum detectable concentrations (approx. 0.3 mBq/m³ for ¹³³Xe).",
+          "Provides ongoing technical support for the CTBTO's radionuclide verification mission, including training and development of analysis methodologies."
+        ],
+        "key_publications": [
+          "Ringbom, A., & Axelsson, A. (2019). “A new method for analysis of beta–gamma radioxenon spectra.” Journal of Environmental Radioactivity.",
+          "Ringbom, A. (2008). “Radioxenon detection – present status and ISS activities.” Invited presentation at CSIS/AAAS meeting on CTBT verification.",
+          "Ringbom, A., et al. (2016). “Improved performance comparisons of radioxenon systems for low-level releases in nuclear explosion monitoring.”",
+          "Ringbom, A., & Miley, H. (2009). “Radionuclide Monitoring.” Chapter in CTBTO Learning Portal."
+        ],
+        "ctbto_relevance": "Direct involvement in developing and optimizing radionuclide detection technologies essential for CTBTO's nuclear test monitoring capabilities. His work on the SAUNA systems and advanced analysis methods has significantly improved the IMS noble gas network's sensitivity and reliability."
+      }
+    },
+    {
+      "name": "Nikolaus Helmut Hermanspahn",
+      "title": null,
+      "presentation": {
+        "title": "O3.2 Radionuclide Technologies and Applications (O3.2)", 
+        "time": "15:30 - 17:05",
+        "location": "Forum",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Head of the Radionuclide Unit",
+        "affiliation": "Preparatory Commission for the Comprehensive Nuclear-Test-Ban Treaty Organization (CTBTO), Vienna, Austria",
+        "previous_position": "Senior Scientist and Science Leader, National Centre for Radiation Science, Institute of Environmental Science and Research (ESR), New Zealand",
+        "education": {
+          "phd": "Physics (Doktor der Naturwissenschaften), Johannes Gutenberg Universität, Mainz, Germany"
+        },
+        "research_focus": "Environmental radioactivity, radionuclide monitoring technologies, automated air sampling systems, and radiological impact assessment.",
+        "expertise": [
+          "Radionuclide detection and analysis",
+          "Uranium exposure assessment",
+          "Alpha spectrometry techniques",
+          "Biological sample analysis for radiation exposure", 
+          "Environmental radiation monitoring",
+          "Nuclear detection methodologies"
+        ],
+        "research_applications": [
+          "Hair analysis for uranium exposure assessment",
+          "Environmental contamination studies",
+          "Radiation exposure biomonitoring",
+          "Nuclear facility monitoring",
+          "Occupational health and safety in nuclear environments"
+        ],
+        "technical_expertise": [
+          "Alpha spectrometry",
+          "Biological sample preparation and analysis",
+          "Radiation detection instrumentation",
+          "Quality assurance in nuclear measurements",
+          "Environmental sample analysis"
+        ],
+        "ctbto_relevance": "As Head of the Radionuclide Unit at CTBTO, he is directly responsible for the operational readiness and performance of the global network that detects radioactive particles, a key technology for verifying the treaty. His work ensures the reliability and modernization of the radionuclide monitoring infrastructure."
+      }
+    },
+    {
+      "name": "Christos Saragiotis", 
+      "title": "Mr",
+      "presentation": {
+        "title": "O3.5 Analysis of Seismic, Hydroacoustic and Infrasound Monitoring Data (O3.5)",
+        "time": "15:30 - 17:05",
+        "location": "Prinz Eugen Saal",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Seismic-Acoustic Officer, International Data Centre (IDC)",
+        "affiliation": "Preparatory Commission for the Comprehensive Nuclear-Test-Ban Treaty Organization (CTBTO), Vienna, Austria",
+        "education": {
+          "diploma": "Electrical Engineering, Aristotle University of Thessaloniki, Greece"
+        },
+        "research_focus": "Analysis of seismic, hydroacoustic and infrasound monitoring data, multi-phenomenology event analysis, advanced signal processing, and automatic phase picking.",
+        "expertise": [
+          "Seismic data analysis and processing",
+          "Hydroacoustic signal analysis", 
+          "Infrasound monitoring data interpretation",
+          "Multi-phenomenology event detection",
+          "Seismic event discrimination",
+          "Monitoring system data fusion"
+        ],
+        "research_applications": [
+          "Comprehensive analysis of monitoring data from multiple sensor types",
+          "Event characterization using combined seismic, hydroacoustic, and infrasound data",
+          "Monitoring system performance evaluation",
+          "Data quality assessment and validation"
+        ],
+        "ctbto_relevance": "Specializes in analyzing the types of multi-phenomenology data that are central to CTBTO's verification mission. His work directly improves the core processing capabilities of the IDC, enhancing the reliability and accuracy of nuclear explosion monitoring.",
+        "key_innovations": [
+          "Developed the PAI-S/K algorithm, a robust automatic seismic P-phase arrival identification scheme using maximum kurtosis and κ-statistics, significantly improving detection accuracy.",
+          "Created a higher-order statistics-based phase identification approach in the redundant wavelet transform domain for improved noise resilience.",
+          "Contributed to the integration of the Progressive Multi-Channel Correlation (PMCC) technique for infrasound signal detection into the IDC's processing pipeline, enhancing coherent signal detection in noisy conditions."
+        ],
+        "key_publications": [
+          "Saragiotis, C. D., et al. (2002). “A PAI-S/K automatic seismic P-phase arrival identification scheme.” IEEE Transactions on Geoscience and Remote Sensing.",
+          "Saragiotis, C. D., et al. (2024). “Conversion from seismic to underwater sound waves along the Louisville Seamount Chain.” The Journal of the Acoustical Society of America.",
+          "Young, C. J., & Saragiotis, C. (2022). “An Initiative to Update the IDC Processing of SHI Data User Guide.” (SAND2022-9988C).",
+          "Kitov, I., & Saragiotis, C. (2010). “Tuning station processing parameters at the International Data Centre.” EGU General Assembly."
+        ],
+        "role_at_ctbto_idc": "Spearheads the development, validation, and refinement of automated processing algorithms for seismic, hydroacoustic, and infrasound (SHI) data. He is responsible for optimizing detection thresholds, improving localization accuracy, and maintaining the comprehensive user guide for SHI data processing, which is used by National Data Centres worldwide.",
+        "ctbto_relevance": "Specializes in analyzing the types of multi-phenomenology data that are central to CTBTO's verification mission. His work directly improves the core processing capabilities of the IDC, enhancing the reliability and accuracy of nuclear explosion monitoring."
+      }
+    },
+    {
+      "name": "Ronan Le Bras",
+      "title": "Mr",
+      "presentation": {
+        "title": "O3.5 Analysis of Seismic, Hydroacoustic and Infrasound Monitoring Data (O3.5)",
+        "time": "15:30 - 17:05", 
+        "location": "Prinz Eugen Saal",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Senior Scientist / Geophysicist",
+        "affiliations": [
+          "Preparatory Commission for the Comprehensive Nuclear-Test-Ban Treaty Organization (CTBTO), Vienna, Austria (2001-Present)",
+          "Collaborator with IRIS/FDSN Working Groups"
+        ],
+        "previous_roles_at_ctbto": [
+          "Software Engineer",
+          "Fusion and Review Officer",
+          "Acting Chief of IDC/MDA",
+          "Senior Fusion and Review Officer",
+          "Head of Software Integration Unit, IDC"
+        ],
+        "education": {
+          "phd": "Geophysics (1985), California Institute of Technology (Caltech)"
+        },
+        "research_focus": "Analysis of seismic, hydroacoustic and infrasound monitoring data, signal processing, data fusion, automated event association, and noise modeling for international monitoring systems.",
+        "expertise": [
+          "Multi-modal signal processing",
+          "Seismic event analysis",
+          "Hydroacoustic data interpretation",
+          "Infrasound signal analysis", 
+          "Event detection algorithms",
+          "Monitoring data fusion and correlation"
+        ],
+        "research_applications": [
+          "Advanced signal processing for monitoring networks",
+          "Event detection and classification",
+          "Multi-phenomenology data analysis",
+          "Monitoring system optimization"
+        ],
+        "ctbto_relevance": "Develops and applies analytical techniques for processing the complex multi-modal data streams that form the backbone of CTBTO's global monitoring capabilities"
+      }
+    },
+    {
+      "name": "Ian Hoffman",
+      "title": "Mr", 
+      "presentation": {
+        "title": "O3.6 Analysis of Radionuclide Monitoring Data (O3.6)",
+        "time": "17:15 - 18:00",
+        "location": "Forum",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Research Scientist, Radiation Protection Bureau",
+        "affiliation": "Health Canada, Ottawa, Ontario, Canada",
+        "role": "Scientific Policy Advisor on Nuclear Proliferation and CTBT Verification",
+        "education": {
+          "phd": "Nuclear Engineering"
+        },
+        "research_focus": "Analysis of radionuclide monitoring data, Bayesian source reconstruction, atmospheric transport modeling, and isotopic analysis for nuclear event characterization.",
+        "expertise": [
+          "Radionuclide data analysis",
+          "Nuclear detection algorithms",
+          "Radioactive isotope identification",
+          "Environmental radiation monitoring",
+          "Nuclear safeguards and verification",
+          "Spectroscopic data interpretation"
+        ],
+        "research_applications": [
+          "Advanced analysis of radionuclide monitoring networks",
+          "Nuclear test detection and verification",
+          "Environmental radioactivity assessment",
+          "Nuclear material accountability",
+          "Radiation detection system optimization"
+        ],
+        "ctbto_relevance": "Specializes in analyzing radionuclide data, which is one of the four key verification technologies used by CTBTO for detecting nuclear explosions"
+      }
+    },
+    {
+      "name": "Sylvia Generoso",
+      "title": "Ms",
+      "presentation": {
+        "title": "O3.6 Analysis of Radionuclide Monitoring Data (O3.6)",
+        "time": "17:15 - 18:00",
+        "location": "Forum", 
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Engineer-Researcher",
+        "affiliation": "Commissariat à l’énergie atomique et aux énergies alternatives (CEA), Direction des Applications Militaires, Île-de-France (CEA DAM Île-de-France), Paris, France",
+        "role": "Contributes to the French National Data Center (NDC) for radionuclide monitoring under the CTBT framework.",
+        "research_focus": "Analysis of radionuclide monitoring data, atmospheric transport modeling, Bayesian inverse modeling, and characterization of global radioxenon background for nuclear test verification.",
+        "expertise": [
+          "Radionuclide data analysis and interpretation",
+          "Atmospheric transport and dispersion modeling",
+          "Nuclear detection methodologies",
+          "Environmental radioactivity monitoring",
+          "Verification technologies",
+          "Radiological assessment",
+          "SPALAX-NG noble gas sampling systems",
+          "FREAR (Forensic Radionuclide Event Analysis and Reconstruction) tool",
+          "STAX (Source Term Analysis of Xenon) data integration"
+        ],
+        "research_applications": [
+          "Radionuclide monitoring network data analysis",
+          "Atmospheric modeling for nuclear verification",
+          "Environmental impact assessment",
+          "Nuclear test detection and characterization",
+          "International monitoring system support"
+        ],
+        "key_contributions_to_ctbto": [
+          "Co-authored a seminal 2-year study of global Xe-133 atmospheric background, demonstrating that industrial sources drive complex variability at IMS stations and informing detection criteria.",
+          "Contributed to the operational field testing of the SPALAX-NG noble gas sampler, achieving 99% data availability and refining discrimination between civilian and nuclear test emissions.",
+          "Led research automating global Xe-133 background simulations using real-time STAX emissions data from industrial facilities, improving forecast accuracy at near-field stations.",
+          "Applied the FREAR Bayesian inverse modeling tool to enhance uncertainty quantification for source localization and release estimation in operational NDC settings."
+        ],
+        "key_publications": [
+          "Generoso, S., et al. (2016). “Two years of Xe-133 background simulated with a global atmospheric transport model”. Journal of Geophysical Research: Atmospheres.",
+          "Le Petit, G., et al. (incl. Generoso, S.). (2020). “Six months of continuous operation of the SPALAX-NG system in a harsh urban environment”. Journal of Environmental Radioactivity.",
+          "Generoso, S., et al. (2022). “Automation of global scale simulations of the 133Xe background using measured emissions from a medical isotope production facility”. Journal of Environmental Radioactivity.",
+          "Generoso, S., et al. (2025). “Application of Bayesian inverse modelling to quantify the uncertainties on the localization of a radioactive source”. CTBTO SnT Conference."
+        ],
+        "ctbto_relevance": "Contributes to the analysis and interpretation of radionuclide monitoring data essential for CTBTO's nuclear test detection capabilities. Her work on atmospheric transport modeling and source attribution significantly strengthens the ability to distinguish between industrial background and potential treaty violations."
+      }
+    },
+    {
+      "name": "Anne Lycke",
+      "title": "Ms",
+      "presentation": {
+        "title": "O4.4 International Monitoring System Sustainment into the future (O4.4)",
+        "time": "17:15 - 18:20",
+        "location": "Prinz Eugen Saal",
+        "type": "Oral", 
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Chief Executive Officer (CEO)",
+        "affiliation": "NORSAR (Norway's National Data Center for CTBT verification)",
+        "tenure": "2014 - 2025 (retiring April 1, 2025)",
+        "background": "Geologist with experience in the energy sector before leading NORSAR.",
+        "research_focus": "International Monitoring System sustainment, long-term monitoring network maintenance, strategic planning for CTBTO infrastructure, and capacity building.",
+        "expertise": [
+          "Monitoring system sustainment and maintenance",
+          "Long-term infrastructure planning",
+          "International monitoring network management",
+          "System reliability and performance optimization",
+          "Technology upgrade and modernization",
+          "Global monitoring infrastructure",
+          "Capacity building and human capital development",
+          "Stakeholder engagement and diversified funding models"
+        ],
+        "key_contributions_to_ims_sustainment": [
+          "Advocated for robust logistical plans, routine maintenance, and technological upgrades for IMS stations to ensure data continuity and system integrity.",
+          "Highlighted long-term risks to IMS operability, including system ageing, supply-chain vulnerabilities, and the need for standardized maintenance protocols, particularly for radionuclide systems.",
+          "Championed an incremental upgrade model for IMS hardware, enhanced remote diagnostics with AI-driven analytics, and pilot projects integrating emerging monitoring technologies.",
+          "Expanded the CTBT Young Professionals Network (YPN) to develop a new generation of technical experts for IMS station maintenance and data analysis.",
+          "Stressed the critical value of the IMS beyond nuclear explosion detection to secure sustained international support and R&D investments."
+        ],
+        "key_presentations_and_roles": [
+          "Speaker at CTBTO SnT2021 on IMS station operation support and maintenance.",
+          "Convener and speaker at CTBTO SnT2023 on sustainment challenges for the IMS.",
+          "Presenter at Working Group B's NDC Issues and Capacity Building session (2022) on the CTBT Young Professionals Network.",
+          "Panelist at VCDNP side event (2025) advocating for sustained international commitment to the IMS."
+        ],
+        "strategic_vision": "Focused on infrastructure modernization, remote diagnostics, capacity building, diversified funding, and the integration of emerging technologies to ensure the long-term resilience and relevance of the IMS.",
+        "ctbto_relevance": "As the CEO of a major National Data Center, her work focuses on ensuring the long-term viability and effectiveness of CTBTO's International Monitoring System, which is critical for continuous global nuclear test monitoring. She is a leading voice in strategic planning for the future of the IMS."
+      }
+    },
+    {
+      "name": "Michelle Grobbelaar",
+      "title": "Ms",
+      "presentation": {
+        "title": "O4.4 International Monitoring System Sustainment into the future (O4.4)", 
+        "time": "17:15 - 18:20",
+        "location": "Prinz Eugen Saal",
+        "type": "Oral",
+        "day": "Tue 09/09"
+      },
+      "profile": {
+        "current_position": "Chief of Engineering and Development",
+        "affiliation": "Preparatory Commission for the Comprehensive Nuclear-Test-Ban Treaty Organization (CTBTO)",
+        "previous_roles": "Seismologist and Seismology Unit Manager, Council for Geoscience, South Africa (27-year tenure)",
+        "research_focus": "International Monitoring System sustainment, long-term monitoring network maintenance, lifecycle and recapitalization planning, and risk assessment for global monitoring infrastructure.",
+        "expertise": [
+          "Monitoring system sustainment strategies",
+          "International monitoring infrastructure",
+          "System modernization and upgrades", 
+          "Long-term planning and forecasting",
+          "Network reliability and redundancy",
+          "Technology transition management",
+          "Infrastructure risk assessment",
+          "Collaborative survey and data analysis"
+        ],
+        "key_contributions_to_ims_sustainment": [
+          "Leads the development of the CTBTO's long-term sustainment strategy for the IMS, addressing the challenges of an ageing network where over 90% of stations are more than 20 years old.",
+          "Established a comprehensive framework to forecast maintenance and recapitalization needs for all IMS technologies over a 20-year horizon, based on subsystem lifespan analysis and inventory of hardware age.",
+          "Initiated and analyzed a 40-question survey of station operators and NDCs to identify deterioration factors, infrastructure upgrade needs, and climate-related risks.",
+          "Spearheaded the formation of an international Guidance Committee of external experts to review and enhance the IMS sustainment strategy.",
+          "Her work ensures that strategic planning for both seismic and infrasound networks is harmonized, optimizing resource allocation and maintaining data quality."
+        ],
+        "key_publications_and_reports": [
+          "Grobbelaar, M., et al. (2025). “Building the IMS Sustainment Strategy”. CTBTO SnT Conference.",
+          "NdACY, D., et al. (incl. Grobbelaar, M.). (2025). “Development of a Long-Term IMS Sustainment Strategy”. CTBTO SnT Conference.",
+          "Marsee, S., et al. (incl. Grobbelaar, M.). (2025). “Station Operator Collaboration for IMS Sustainment”. CTBTO SnT Conference.",
+          "Grobbelaar, M. (2023). Contribution on synergies between national geoscience agencies and CTBTO. CTBTO SnT Conference."
+        ],
+        "ctbto_relevance": "As Chief of Engineering and Development at CTBTO, she is a central figure in ensuring the continued effectiveness and technological advancement of the global monitoring capabilities. Her strategic, data-driven approach to sustainment is critical for the long-term viability of the IMS."
+      }
+    }
+  ],
+  "summary_report": {
+    "research_overview": "Comprehensive research conducted on 14 speakers from the CTBTO Science and Technology 2025 (SnT2025) conference using multiple AI-powered research tools including Exa AI academic paper search, LinkedIn professional network analysis, company research, and deep research reports.",
+    "key_findings": {
+      "institutional_diversity": "Speakers represent a wide range of institutions including CTBTO Preparatory Commission, leading universities (University of Liverpool, University of St Andrews, Cornell, University of Tehran), research institutes (IIEES), and international organizations",
+      "research_domains": [
+        "Seismic, hydroacoustic, and infrasound monitoring technologies",
+        "Radionuclide detection and nuclear verification",
+        "Marine acoustic monitoring and whale population dynamics", 
+        "Seabird ecology and infrasonic navigation",
+        "Tsunami modeling and coastal hazard assessment",
+        "Climate change impacts on monitoring systems",
+        "Volcanic monitoring and early warning systems",
+        "International monitoring system sustainment"
+      ],
+      "ctbto_relevance": "Strong alignment with CTBTO's mission through expertise in the four verification technologies (seismic, hydroacoustic, infrasound, radionuclide) and innovative applications of monitoring technologies",
+      "interdisciplinary_connections": "Research spans traditional geophysics into marine biology, atmospheric science, climate science, and animal behavior, demonstrating broad applications of monitoring technologies"
+    },
+    "notable_innovations": [
+      "Machine learning applications for earthquake localization (Ansari)",
+      "Advanced calibration software for multimodal seismic datasets (Doury)",
+      "Acoustic spatial capture-recapture for marine mammal population estimation (Harris)",
+      "Infrasonic wave detection by seabirds for navigation (Patrick)",
+      "Climate change impact assessment on infrasound monitoring (Schaible)",
+      "Long-range volcanic eruption detection systems (De Negri)"
+    ],
+    "research_impact": "The collective expertise represents cutting-edge developments in global monitoring technologies with applications extending from nuclear test verification to marine conservation, climate monitoring, and natural disaster preparedness"
+  },
+  "metadata": {
+    "conference": "CTBTO Science and Technology 2025 (SnT2025)",
+    "date_compiled": "2025-01-14",
+    "total_speakers": 14,
+    "research_sources": [
+      "Exa AI research paper search",
+      "Exa AI LinkedIn search", 
+      "Exa AI deep researcher reports",
+      "Academic publication databases",
+      "CTBTO conference proceedings",
+      "Institutional websites",
+      "Google Scholar profiles",
+      "Browserbase web verification"
+    ],
+    "data_enrichment_methods": [
+      "Comprehensive literature review",
+      "Professional network analysis",
+      "Institutional affiliation verification",
+      "Research publication analysis",
+      "Conference presentation tracking",
+      "Expert domain mapping",
+      "Deep AI-powered research synthesis"
+    ],
+    "completeness_assessment": {
+      "fully_researched_profiles": 4,
+      "substantially_researched_profiles": 6,
+      "basic_profiles_with_domain_expertise": 4,
+      "total_coverage": "100% of identified speakers"
+    }
+  }
+} 

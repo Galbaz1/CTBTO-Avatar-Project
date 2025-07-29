@@ -117,13 +117,15 @@ function SessionCard({
         animate={animated ? "visible" : undefined}
         layout
         className={cn(
-          // Base card styling - optimized for kiosk visibility
-          "relative rounded-lg border border-gray-200 bg-white p-6 shadow-sm",
-          // High contrast for kiosk environment - WCAG AAA compliance
-          "text-gray-900",
-          // Focus states for voice navigation (no hover states)
-          "focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2",
-          // Responsive sizing for kiosk displays
+          // Base card styling - optimized for kiosk visibility with enhanced contrast
+          "relative rounded-lg border border-gray-300 bg-white p-6 shadow-lg",
+          // WCAG AAA compliance - 7:1 contrast ratio
+          "text-gray-950",
+          // Enhanced focus states for voice navigation accessibility
+          "focus-within:ring-4 focus-within:ring-blue-600 focus-within:ring-offset-2",
+          // Professional shadow and spacing for kiosk displays
+          "shadow-[0_4px_12px_rgba(0,0,0,0.15)]",
+          // Responsive sizing for kiosk displays  
           compact ? "p-4" : "p-6",
           className
         )}
@@ -163,8 +165,8 @@ function SessionCardTitle({ children, className }: { children?: React.ReactNode;
       className={cn(
         // Large, readable fonts for kiosk environment (18px+ minimum)
         compact ? "text-lg font-semibold" : "text-xl font-bold",
-        // High contrast text - WCAG AAA
-        "text-gray-900",
+        // WCAG AAA compliance - 7:1 contrast ratio
+        "text-gray-950",
         // Text overflow handling for long titles
         "line-clamp-2 leading-tight",
         className
@@ -184,20 +186,87 @@ function SessionCardMeta({ className }: { className?: string }) {
       compact ? "text-sm" : "text-base",
       className
     )}>
-      <Badge variant="secondary" className="text-xs font-medium">
+      <Badge variant="secondary" className="text-xs font-medium bg-blue-50 text-blue-800 border-blue-200">
         {session.session_id}
       </Badge>
-      <Badge variant="outline" className="text-xs">
+      <Badge variant="outline" className="text-xs bg-gray-50 text-gray-800 border-gray-300">
         {session.venue}
       </Badge>
-      <Badge variant="outline" className="text-xs">
+      <Badge variant="outline" className="text-xs bg-green-50 text-green-800 border-green-200">
         {session.start_time} - {session.end_time}
       </Badge>
       {session.session_type && (
-        <Badge variant="default" className="text-xs">
+        <Badge variant="default" className="text-xs bg-purple-100 text-purple-800 border-purple-200">
           {session.session_type}
         </Badge>
       )}
+    </div>
+  );
+}
+
+// New component for enhanced data display
+function SessionCardThemes({ className }: { className?: string }) {
+  const { session, compact } = useSessionCard();
+  
+  const themes = [session.theme, session.track].filter(Boolean);
+  
+  if (themes.length === 0) return null;
+  
+  return (
+    <div className={cn("space-y-2", className)}>
+      <h4 className={cn(
+        "font-semibold",
+        compact ? "text-sm" : "text-base",
+        "text-gray-950"
+      )}>
+        Conference Themes
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {themes.map((theme, index) => (
+          <Badge 
+            key={index}
+            variant="outline"
+            className={cn(
+              compact ? "text-xs" : "text-sm",
+              "bg-orange-50 text-orange-800 border-orange-200 font-medium"
+            )}
+          >
+            {theme}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Enhanced description component with better formatting
+function SessionCardDescription({ children, className }: { children?: React.ReactNode; className?: string }) {
+  const { session, compact } = useSessionCard();
+  const displayDescription = children || session.description;
+  
+  return (
+    <div className={cn("space-y-2", className)}>
+      <h4 className={cn(
+        "font-semibold",
+        compact ? "text-sm" : "text-base",
+        "text-gray-950"
+      )}>
+        Session Details
+      </h4>
+      <p
+        id={`session-description-${session.session_id}`}
+        className={cn(
+          // Readable text size for kiosk
+          compact ? "text-sm" : "text-base",
+          // WCAG AAA compliance - 7:1 contrast ratio
+          "text-gray-950",
+          // Handle long descriptions with better line height
+          "leading-relaxed",
+          className
+        )}
+      >
+        {displayDescription}
+      </p>
     </div>
   );
 }
@@ -208,32 +277,10 @@ function SessionCardBody({ children, className }: { children: React.ReactNode; c
   return (
     <motion.div
       variants={animated ? contentVariants : undefined}
-      className={cn("space-y-3", className)}
+      className={cn("space-y-4", className)}
     >
       {children}
     </motion.div>
-  );
-}
-
-function SessionCardDescription({ children, className }: { children?: React.ReactNode; className?: string }) {
-  const { session, compact } = useSessionCard();
-  const displayDescription = children || session.description;
-  
-  return (
-    <p
-      id={`session-description-${session.session_id}`}
-      className={cn(
-        // Readable text size for kiosk
-        compact ? "text-sm" : "text-base",
-        // High contrast - WCAG AAA
-        "text-gray-700",
-        // Handle long descriptions
-        "line-clamp-3 leading-relaxed",
-        className
-      )}
-    >
-      {displayDescription}
-    </p>
   );
 }
 
@@ -247,11 +294,11 @@ function SessionCardSpeakers({ className }: { className?: string }) {
   return (
     <div className={cn("space-y-2", className)}>
       <h4 className={cn(
-        "font-medium",
+        "font-semibold",
         compact ? "text-sm" : "text-base",
-        "text-gray-800"
+        "text-gray-950"
       )}>
-        {session.speakers.length === 1 ? 'Speaker' : 'Speakers'}
+        {session.speakers.length === 1 ? 'Speaker' : 'Speakers'} ({session.speakers.length})
       </h4>
       <div className="flex flex-wrap gap-2">
         {session.speakers.map((speaker, index) => (
@@ -268,8 +315,7 @@ function SessionCardSpeakers({ className }: { className?: string }) {
               className={cn(
                 "font-medium",
                 compact ? "text-xs px-2 py-1" : "text-sm px-3 py-1",
-                // No hover effects - voice-only interaction
-                "bg-blue-50 text-blue-700 border-blue-200"
+                "bg-blue-100 text-blue-800 border-blue-200"
               )}
             >
               {speaker}
@@ -291,11 +337,11 @@ function SessionCardTopics({ className }: { className?: string }) {
   return (
     <div className={cn("space-y-2", className)}>
       <h4 className={cn(
-        "font-medium",
+        "font-semibold",
         compact ? "text-sm" : "text-base",
-        "text-gray-800"
+        "text-gray-950"
       )}>
-        Topics
+        Topics & Categories
       </h4>
       <div className="flex flex-wrap gap-2">
         {topics.map((topic, index) => (
@@ -304,8 +350,7 @@ function SessionCardTopics({ className }: { className?: string }) {
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
-              // Clear, accessible colors - no hover states
-              "bg-gray-50 text-gray-700 border-gray-300"
+              "bg-gray-50 text-gray-800 border-gray-300 font-medium"
             )}
           >
             {topic}
@@ -320,17 +365,22 @@ function SessionCardFooter({ children, className }: { children?: React.ReactNode
   const { session, animated } = useSessionCard();
   
   const defaultFooter = (
-    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-      <div className="flex items-center space-x-4 text-sm text-gray-500">
-        <span>{session.duration} minutes</span>
+    <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+      <div className="flex items-center space-x-4 text-sm text-gray-600">
+        <span className="font-medium">{session.duration} minutes</span>
         {session.audience_level && (
-          <Badge variant="outline" size="sm">
+          <Badge variant="outline" size="sm" className="bg-gray-100 text-gray-700 border-gray-200">
             {session.audience_level}
+          </Badge>
+        )}
+        {session.is_interactive && (
+          <Badge variant="outline" size="sm" className="bg-green-100 text-green-700 border-green-200">
+            Interactive
           </Badge>
         )}
       </div>
       {session.relevance_score && (
-        <div className="text-xs text-gray-400">
+        <div className="text-xs text-gray-500 font-medium">
           Relevance: {(session.relevance_score * 100).toFixed(0)}%
         </div>
       )}
@@ -356,6 +406,7 @@ SessionCard.Body = SessionCardBody;
 SessionCard.Description = SessionCardDescription;
 SessionCard.Speakers = SessionCardSpeakers;
 SessionCard.Topics = SessionCardTopics;
+SessionCard.Themes = SessionCardThemes;
 SessionCard.Footer = SessionCardFooter;
 
 // === PRESET LAYOUTS ===
@@ -369,6 +420,7 @@ function SessionCardDefault({ session, className }: { session: TimetableSession;
       </SessionCard.Header>
       <SessionCard.Body>
         <SessionCard.Description />
+        <SessionCard.Themes />
         <SessionCard.Speakers />
         <SessionCard.Topics />
       </SessionCard.Body>
