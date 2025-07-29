@@ -1,6 +1,5 @@
 ---
-description: Always use this rule before you call the context7 MCP tool.
-alwaysApply: false
+alwaysApply: true
 ---
 # Context7 MCP Integration Rules
 

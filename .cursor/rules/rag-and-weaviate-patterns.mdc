@@ -1,6 +1,5 @@
 ---
-description: You must always use this rule when you have a conversation with the user about Weaviate or RAG or if you want to edit any related code.
-alwaysApply: false
+alwaysApply: true
 ---
 # Rules for RAG and Weaviate Development
 
@@ -52,4 +51,4 @@ import weaviate.classes.query as wvc_query
 import weaviate.classes.data as wvc_data
 ```
 
-By following these rules, we will build a RAG system that is intelligent, scalable, and capable of the complex reasoning we have planned using modern, V4-compliant patterns.
+See the WEAVIATE folder for more docs on weaviare. MUST READ.
