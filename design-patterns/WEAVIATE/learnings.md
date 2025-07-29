@@ -92,7 +92,7 @@ The data in the vector database is not the final product; it's an intermediate s
 - **Solution:** Use relative paths from script location:
 ```python
 script_dir = os.path.dirname(os.path.realpath(__file__))
-dotenv_path = os.path.join(script_dir, '..', '..', 'Rosa_custom_backend', '.env')
+dotenv_path = os.path.join(script_dir, '..', '..', 'frontend', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 ```
 

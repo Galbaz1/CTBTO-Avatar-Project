@@ -20,7 +20,7 @@ import time
 # Add backend directory to path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.Agent1 import CTBTOAgent
+from backend.main_conversation_agent import CTBTOAgent
 
 def simulate_frontend_message_handler(event_type: str, data: dict):
     """

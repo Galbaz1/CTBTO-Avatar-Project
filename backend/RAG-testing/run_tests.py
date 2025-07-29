@@ -67,7 +67,7 @@ def run_quick_test():
     try:
         # Import and run minimal test
         sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from backend.vector_search_tool import VectorSearchTool, SearchQuery
+        from backend.weaviate_knowledge_search import VectorSearchTool, SearchQuery
         
         search_tool = VectorSearchTool()
         

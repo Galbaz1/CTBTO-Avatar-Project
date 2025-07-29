@@ -1,5 +1,18 @@
 {
+  "name": "rosa-monorepo",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "start": "bash scripts/start-all.sh",
+    "dev": "concurrently \"uvicorn backend.rosa_api_server:app --reload\" \"cd frontend && vite\"",
+    "install:all": "npm --workspaces=false install && cd frontend && npm install"
+  },
   "dependencies": {
     "zustand": "^5.0.6"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
   }
 }

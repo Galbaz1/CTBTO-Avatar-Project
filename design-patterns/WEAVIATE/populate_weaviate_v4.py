@@ -28,16 +28,16 @@ import weaviate.classes.query as wvc_query
 def load_config():
     """Loads and validates required environment variables."""
     print("Loading configuration...")
-    # Assumes script is in design-patterns/WEAVIATE and .env is in Rosa_custom_backend
+    # Assumes script is in design-patterns/WEAVIATE and .env is in frontend/
     script_dir = os.path.dirname(os.path.realpath(__file__))
-    dotenv_path = os.path.join(script_dir, '..', '..', 'Rosa_custom_backend', '.env')
+    dotenv_path = os.path.join(script_dir, '..', '..', 'frontend', '.env')
     load_dotenv(dotenv_path=dotenv_path)
     
     config = {
         "WEAVIATE_URL": os.getenv('WEAVIATE_URL'),
         "WEAVIATE_API_KEY": os.getenv('WEAVIATE_API_KEY'),
         "OPENAI_API_KEY": os.getenv('OPENAI_API_KEY'),
-        "DATA_PATH": os.path.join(script_dir, '..', '..', 'Rosa_custom_backend', 'backend', 'backend_data')
+        "DATA_PATH": os.path.join(script_dir, '..', '..', 'backend', 'backend_data')
     }
     
     if not all([config["WEAVIATE_URL"], config["WEAVIATE_API_KEY"], config["OPENAI_API_KEY"]]):

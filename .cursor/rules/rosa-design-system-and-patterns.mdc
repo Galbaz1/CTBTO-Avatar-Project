@@ -1,27 +1,24 @@
----
-alwaysApply: true
----
 
 # Rosa Kiosk: Professional Design System & Patterns (2025)
 
 
 ## 1. Core Philosophy & Guiding Principles
 
-- **Accessibility First**: All components MUST adhere to WCAG 2.1 AAA contrast ratios (7:1) and follow UC Berkeley's accessible card patterns. Reference: `wcag-contrast-aaa.md`, `ucb-accessible-card-ui.md`.
-- **Composition Over Inheritance**: Build complex UIs by composing smaller, single-responsibility components. Reference: `design-principles.md`.
-- **Atomic Design Methodology**: Structure components hierarchically as Atoms, Molecules, and Organisms. Cards are considered Organisms. Reference: `atomic-design.md`.
+- **Accessibility First**: All components MUST adhere to WCAG 2.1 AAA contrast ratios (7:1) and follow UC Berkeley's accessible card patterns. Reference: `design-patterns/wcag-contrast-aaa.md`, `design-patterns/ucb-accessible-card-ui.md`.
+- **Composition Over Inheritance**: Build complex UIs by composing smaller, single-responsibility components. Reference: `design-patterns/design-principles.md`.
+- **Atomic Design Methodology**: Structure components hierarchically as Atoms, Molecules, and Organisms. Cards are considered Organisms. Reference: `design-patterns/atomic-design.md`.
 
 ## 2. Component Architecture
 
 ### 2.1. Foundation: Radix UI + Tailwind CSS
-- **DO** use Radix UI Primitives as the base for all interactive components. This provides accessibility and behavior out-of-the-box. Reference: `radix-primitives.md`.
+- **DO** use Radix UI Primitives as the base for all interactive components. This provides accessibility and behavior out-of-the-box. Reference: `design-patterns/radix-primitives.md`.
 - **DO** use Tailwind CSS for styling. This aligns with the `shadcn/ui` approach mentioned in other project docs.
 
 ### 2.2. Card Components: The Compound Component Pattern
 - **DO** build complex components like Cards using the **Compound Component Pattern**. This is the primary pattern for creating flexible and reusable components.
 - A Card "organism" should be composed of smaller "atom" or "molecule" components (`Card.Title`, `Card.Body`, `Card.Image`, `Card.Actions`).
 - **DON'T** create monolithic Card components with many boolean props (`withImage`, `isDashed`, etc.). This is an anti-pattern.
-- **Reference**: The evolution described in `react-component-reusable-scalable-typescript.md` is the canonical guide for this approach.
+- **Reference**: The evolution described in `design-patterns/react-component-reusable-scalable-typescript.md` is the canonical guide for this approach.
 
 **Example Card Implementation:**
 ```jsx
@@ -42,29 +39,29 @@ import { Card } from './Card';
 ```
 
 ### 2.3. Icon System
-- **DO** follow the SVG Icon system pattern outlined in `svg-icons-react-typescript-guide.md`.
+- **DO** follow the SVG Icon system pattern outlined in `design-patterns/svg-icons-react-typescript-guide.md`.
 - This involves a type-safe `Icon` component that dynamically loads SVGs and allows for runtime color and size props.
 
 ## 3. State Management & Data Flow
 
 - **Unidirectional Data Flow**: Data flows down from container components (Handlers) to presentational components (Cards) via props.
-- **Custom Hooks**: Encapsulate reusable logic (e.g., data fetching, interaction state) in custom hooks. This is preferred over HOCs. Reference: `hoc-patterns.md` (for understanding the problems they solve).
-- **React Context**: Use `Context` only for truly global state like theme, authentication, or session info. Avoid it for passing state that can be passed via props or composition. Reference: `context-api.md`.
+- **Custom Hooks**: Encapsulate reusable logic (e.g., data fetching, interaction state) in custom hooks. This is preferred over HOCs. Reference: `design-patterns/hoc-patterns.md` (for understanding the problems they solve).
+- **React Context**: Use `Context` only for truly global state like theme, authentication, or session info. Avoid it for passing state that can be passed via props or composition. Reference: `design-patterns/context-api.md`.
 
 ## 4. Tavus CVI Integration
 
 > The Tavus CVI library is a core part of the application. Follow these patterns strictly.
 
-- **Provider**: The entire application MUST be wrapped in the `<CVIProvider>`. Reference: `tavus-cvi-overview.md`.
+- **Provider**: The entire application MUST be wrapped in the `<CVIProvider>`. Reference: `design-patterns/tavus-cvi-overview.md`.
 - **Core Components**:
     - Use the `Conversation` block for the main video chat UI.
     - Use the `HairCheck` block for the pre-call device setup screen.
-    Reference: `tavus-cvi-blocks.md`.
+    Reference: `design-patterns/tavus-cvi-blocks.md`.
 - **Core Hooks**:
     - Manage call state with `useCVICall` (join/leave).
     - Manage local devices with `useLocalCamera`, `useLocalMicrophone`, `useLocalScreenshare`.
     - Handle permissions with `useRequestPermissions` and `useStartHaircheck`.
-    Reference: `tavus-cvi-hooks.md`.
+    Reference: `design-patterns/tavus-cvi-hooks.md`.
 
 ## 5. Accessibility (A11y) Checklist
 
@@ -76,6 +73,9 @@ import { Card } from './Card';
 - [ ] **ARIA**: Use `aria-labelledby` and other roles where necessary.
 
 ---
+
+
+
 
 
 

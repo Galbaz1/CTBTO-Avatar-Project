@@ -18,7 +18,7 @@ import logging
 # Add parent directory to path to import our modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from backend.vector_search_tool import VectorSearchTool, SearchQuery, SearchResult
+from backend.weaviate_knowledge_search import VectorSearchTool, SearchQuery, SearchResult
 from dotenv import load_dotenv
 
 # Load environment variables

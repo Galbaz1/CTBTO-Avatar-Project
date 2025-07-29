@@ -10,7 +10,7 @@ import os
 # Add backend directory to path so we can import Agent1
 sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 
-from backend.Agent1 import CTBTOAgent
+from backend.main_conversation_agent import CTBTOAgent
 import json
 
 def test_conference_functions():
