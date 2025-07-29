@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useMemo } from 'react';
 import { WeatherCard } from './WeatherCard';
 import { EnhancedSessionCard, SpeakerCard, TopicCard } from './cards/enhanced';

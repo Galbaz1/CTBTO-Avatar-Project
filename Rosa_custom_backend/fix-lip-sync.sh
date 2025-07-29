@@ -31,7 +31,7 @@ echo "Please add your Tavus API key to .env"
 fi
 
 echo -e "${BLUE}📝 Applying lip sync optimizations...${NC}"
-echo "🧠 Persona ID: pfa22a49cab9"
+echo "🧠 Persona ID: p9c106c443e2"
 echo ""
 
 # Apply optimizations to Rosa persona
@@ -45,7 +45,7 @@ echo -e "${YELLOW}🔧 Optimization 3: Optimize STT Settings${NC}"
 echo "   Configures speech recognition for faster turn-taking"
 
 curl --request PATCH \
-  --url https://tavusapi.com/v2/personas/pfa22a49cab9 \
+  --url https://tavusapi.com/v2/personas/p9c106c443e2 \
   --header 'Content-Type: application/json' \
   --header "x-api-key: $TAVUS_API_KEY" \
   --data '[

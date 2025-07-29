@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import type { SessionCardData } from '../../../types';
+import type { TimetableEntry as SessionCardData } from '../../cards/enhanced/TimetableProcessor';
 
 interface SessionHandlerProps {
   meetingState: string;

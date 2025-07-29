@@ -17,12 +17,12 @@ fi
 
 echo "🔒 Updating Rosa persona to disable perception for privacy..."
 echo "⚡ Adding performance optimizations for better lip sync..."
-echo "📝 Persona ID: pfa22a49cab9"
+echo "📝 Persona ID: p9c106c443e2"
 echo ""
 
 # Update persona using JSON Patch to disable perception AND add performance optimizations
 curl --request PATCH \
-  --url https://tavusapi.com/v2/personas/pfa22a49cab9 \
+  --url https://tavusapi.com/v2/personas/p9c106c443e2 \
   --header 'Content-Type: application/json' \
   --header "x-api-key: $TAVUS_API_KEY" \
   --data '[

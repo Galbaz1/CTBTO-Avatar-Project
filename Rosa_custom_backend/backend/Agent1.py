@@ -12,7 +12,10 @@ from typing import List, Dict, Any, Optional, Callable, Generator
 from dotenv import load_dotenv
 
 # Import structured logging
-from .logger import logger, LLMInstance
+try:
+    from backend.logger import logger, LLMInstance
+except ImportError:
+    from logger import logger, LLMInstance
 
 # Load environment variables from .env file in parent directory
 load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.env'))
@@ -85,12 +88,16 @@ class CTBTOAgent:
     Preserves the core message that CTBTO is going to save humanity.
     """
     
-    def __init__(self):
+    def __init__(self, ui_intelligence_agent=None, weaviate_search_tool=None):
         """Initialize the enhanced CTBTO agent with OpenAI client and capabilities."""
         # Initialize OpenAI client
         self.client = openai.OpenAI(
             api_key=os.getenv("OPENAI_API_KEY")
         )
+        
+        # Inject dependencies
+        self.ui_intelligence_agent = ui_intelligence_agent
+        self.weaviate_search_tool = weaviate_search_tool
         
         # Weather API setup - using WeatherAPI.com
         self.weather_api_key = os.getenv("WEATHER_API_KEY")  # Change from OPENWEATHER_API_KEY to WEATHER_API_KEY
@@ -303,14 +310,23 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 print(f"📦 Using cached results for query: {query}")
                 return self._search_cache[cache_key]
             
-            from .vector_search_tool import VectorSearchTool
-            
+            # Use the injected search tool
+            if not self.weaviate_search_tool:
+                # Fallback if not injected
+                try:
+                    from backend.vector_search_tool import VectorSearchTool
+                except ImportError:
+                    from vector_search_tool import VectorSearchTool
+                search_tool_instance = VectorSearchTool()
+            else:
+                search_tool_instance = self.weaviate_search_tool
+
             # Use enhanced search with proper V4 context management
-            with VectorSearchTool() as search_tool:
-                categorized_results = search_tool.enhanced_conference_search(
-                    query=query,
-                    search_mode="comprehensive"
-                )
+            # No need for 'with' statement if the tool's lifecycle is managed externally
+            categorized_results = search_tool_instance.enhanced_conference_search(
+                query=query,
+                search_mode="comprehensive"
+            )
             
             # Format results for LLM consumption with relevance context
             formatted_results = []
@@ -387,24 +403,32 @@ Remember: Give short and consise answers and use the tools to get the most relev
         This enables precise queries when users mention specific speakers, sessions, or topics.
         """
         try:
-            from .vector_search_tool import VectorSearchTool
-            
+            # Use the injected search tool
+            if not self.weaviate_search_tool:
+                # Fallback if not injected
+                try:
+                    from backend.vector_search_tool import VectorSearchTool
+                except ImportError:
+                    from vector_search_tool import VectorSearchTool
+                search_tool_instance = VectorSearchTool()
+            else:
+                search_tool_instance = self.weaviate_search_tool
+
             logger.info(f"Graph lookup: {lookup_type} for '{entity_name}'")
             
-            with VectorSearchTool() as search_tool:
-                if lookup_type == "sessions_by_speaker":
-                    results = search_tool.find_sessions_by_speaker(entity_name)
-                elif lookup_type == "speakers_for_session":
-                    results = search_tool.find_speakers_for_session(entity_name)
-                elif lookup_type == "sessions_on_topic":
-                    results = search_tool.find_sessions_on_topic(entity_name)
-                elif lookup_type == "sessions_in_room":
-                    results = search_tool.find_sessions_in_room(entity_name)
-                else:
-                    return {
-                        "error": f"Unknown lookup type: {lookup_type}",
-                        "success": False
-                    }
+            if lookup_type == "sessions_by_speaker":
+                results = search_tool_instance.find_sessions_by_speaker(entity_name)
+            elif lookup_type == "speakers_for_session":
+                results = search_tool_instance.find_speakers_for_session(entity_name)
+            elif lookup_type == "sessions_on_topic":
+                results = search_tool_instance.find_sessions_on_topic(entity_name)
+            elif lookup_type == "sessions_in_room":
+                results = search_tool_instance.find_sessions_in_room(entity_name)
+            else:
+                return {
+                    "error": f"Unknown lookup type: {lookup_type}",
+                    "success": False
+                }
             
             if results:
                 # Format results for LLM consumption

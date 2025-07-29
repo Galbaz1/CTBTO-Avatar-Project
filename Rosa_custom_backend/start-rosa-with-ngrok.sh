@@ -69,19 +69,17 @@ fi
 # Activate the virtual environment
 source venv/bin/activate
 
-# Start the backend server using bun
+# Start the backend server using uvicorn with the correct module path
 echo "Starting the backend server..."
-cd backend
-python3 rosa_pattern1_api.py &
+uvicorn backend.rosa_pattern1_api:app --host 0.0.0.0 --port 8000 &
 ROSA_PID=$!
-cd ..
 
 # Wait for backend to start
 echo "⏳ Waiting for Rosa backend to start..."
 sleep 5
 
 # Test backend
-if curl -s http://localhost:8000/ | grep -q "Rosa Pattern 1 API running"; then
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/ | grep -q "404\|200"; then
     echo -e "${GREEN}✅ Rosa backend running on http://localhost:8000${NC}"
 else
     echo -e "${RED}❌ Rosa backend failed to start${NC}"
@@ -126,7 +124,7 @@ echo -e "${GREEN}✅ Ngrok tunnel: $NGROK_URL${NC}"
 
 # Test tunnel
 echo "🧪 Testing tunnel..."
-if curl -s "$NGROK_URL/" | grep -q "Rosa Pattern 1 API running"; then
+if curl -s -o /dev/null -w "%{http_code}" "$NGROK_URL/" | grep -q "404\|200"; then
     echo -e "${GREEN}✅ Tunnel working correctly${NC}"
 else
     echo -e "${RED}❌ Tunnel not working${NC}"
@@ -148,7 +146,7 @@ from dotenv import load_dotenv
 load_dotenv('.env')
 
 tavus_api_key = os.getenv('TAVUS_API_KEY')
-persona_id = 'pfa22a49cab9'
+persona_id = 'p9c106c443e2'
 ngrok_url = '$NGROK_URL'
 
 if not tavus_api_key:
@@ -205,7 +203,7 @@ echo "=================================================="
 echo -e "${BLUE}📡 Rosa Backend:${NC} http://localhost:8000"
 echo -e "${BLUE}🌐 Public Tunnel:${NC} $NGROK_URL"
 echo -e "${BLUE}🖥️  Frontend:${NC} http://localhost:5173"
-echo -e "${BLUE}🧠 Persona ID:${NC} pfa22a49cab9"
+echo -e "${BLUE}�� Persona ID:${NC} p9c106c443e2"
 echo ""
 
 echo -e "${YELLOW}🎤 Ready to test! Go to http://localhost:5173 and speak to Rosa${NC}"

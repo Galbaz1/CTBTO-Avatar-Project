@@ -1,352 +1,630 @@
-import React, { useMemo } from 'react';
+import React, { createContext, useContext } from 'react';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
+import { Badge } from '../compound/Badge';
 
-// Schedule session interface based on timetable.json
+// === TYPES & INTERFACES ===
+
+interface SnT2025Schedule {
+  title: string;
+  dateRange: {
+    start: string;
+    end: string;
+  };
+  totalDays: number;
+  totalSessions: number;
+  dailySchedules: DailySchedule[];
+  timeSlots: TimeSlot[];
+  venues: string[];
+  sessionTypes: string[];
+  themes: string[];
+  priority_level?: 'high' | 'medium' | 'low';
+  relevance_score?: number;
+}
+
+interface DailySchedule {
+  date: string;
+  day_of_week: string;
+  sessions: ScheduleSession[];
+  totalDuration: number;
+  venueCount: number;
+  isConferenceDay: boolean;
+}
+
 interface ScheduleSession {
   session_id: string;
   title: string;
   start_time: string;
   end_time: string;
-  date: string;
-  day_of_week: string;
-  time_of_day: string;
   venue: string;
   session_type: string;
   speakers: string[];
   theme: string;
-  track: string;
   duration_minutes: number;
-  is_interactive: boolean;
-  is_technical: boolean;
-  is_social: boolean;
-  audience_level: string;
+  is_keynote?: boolean;
+  audience_level?: string;
 }
 
-interface ScheduleData {
-  title: string;
+interface TimeSlot {
+  time: string;
   sessions: ScheduleSession[];
-  dateRange?: {
-    start: string;
-    end: string;
-  };
-  totalDays?: number;
-  totalSessions: number;
+  isBreak?: boolean;
+  isPrimary?: boolean;
 }
 
-interface ScheduleCardProps {
-  schedule: ScheduleData;
-  viewMode?: 'day' | 'time' | 'type' | 'track';
+interface ScheduleCardContextValue {
+  schedule: SnT2025Schedule;
+  viewMode: 'daily' | 'time' | 'venue' | 'theme';
   compact?: boolean;
-  showToday?: boolean;
-  onSessionClick?: (sessionId: string) => void;
-  onSpeakerClick?: (speaker: string) => void;
-  onVenueClick?: (venue: string) => void;
-  onClose?: () => void;
+  animated?: boolean;
   className?: string;
 }
 
-export const ScheduleCard: React.FC<ScheduleCardProps> = React.memo(({
-  schedule,
-  viewMode = 'day',
-  compact = false,
-  showToday: _showToday = true,
-  onSessionClick,
-  onSpeakerClick,
-  onVenueClick,
-  onClose,
-  className = ''
-}) => {
-  const getScheduleIcon = () => {
-    switch (viewMode) {
-      case 'day': return '📅';
-      case 'time': return '⏰';
-      case 'type': return '📋';
-      case 'track': return '📊';
-      default: return '📅';
+// === CONTEXT ===
+
+const ScheduleCardContext = createContext<ScheduleCardContextValue | null>(null);
+
+const useScheduleCard = () => {
+  const context = useContext(ScheduleCardContext);
+  if (!context) {
+    throw new Error('ScheduleCard components must be used within ScheduleCard');
+  }
+  return context;
+};
+
+// === ANIMATION VARIANTS ===
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.3,
     }
-  };
+  }
+};
 
-  const getSessionTypeIcon = (type: string) => {
-    switch (type) {
-      case 'Keynote': return '🎤';
-      case 'Panel Discussion': return '👥';
-      case 'Technical Session': return '🔬';
-      case 'Workshop': return '🛠️';
-      case 'Lightning Talks': return '⚡';
-      case 'Break': return '☕';
-      default: return '📋';
+const contentVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: {
+      delay: 0.1,
+      duration: 0.2
     }
-  };
+  }
+};
 
-  const getTimeOfDayIcon = (timeOfDay: string) => {
-    switch (timeOfDay) {
-      case 'morning': return '🌅';
-      case 'afternoon': return '☀️';
-      case 'evening': return '🌆';
-      default: return '⏰';
+const sessionVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: (i: number) => ({
+    opacity: 1,
+    scale: 1,
+    transition: {
+      delay: i * 0.02,
+      duration: 0.2,
     }
+  })
+};
+
+// === MAIN COMPONENT ===
+
+interface ScheduleCardProps {
+  schedule: SnT2025Schedule;
+  viewMode?: 'daily' | 'time' | 'venue' | 'theme';
+  compact?: boolean;
+  animated?: boolean;
+  className?: string;
+  children: React.ReactNode;
+}
+
+function ScheduleCard({ 
+  schedule, 
+  viewMode = 'daily',
+  compact = false, 
+  animated = true, 
+  className,
+  children 
+}: ScheduleCardProps) {
+  const contextValue: ScheduleCardContextValue = {
+    schedule,
+    viewMode,
+    compact,
+    animated,
+    className
   };
-
-  const getTrackColor = (track: string) => {
-    const colors = {
-      'Technology': 'bg-cyan-100 text-cyan-800',
-      'Innovation': 'bg-orange-100 text-orange-800',
-      'Training': 'bg-indigo-100 text-indigo-800',
-      'Policy': 'bg-red-100 text-red-800',
-      'Social': 'bg-pink-100 text-pink-800',
-      'General': 'bg-gray-100 text-gray-800',
-      'Modeling': 'bg-teal-100 text-teal-800',
-      'Assessment': 'bg-emerald-100 text-emerald-800',
-      'Ethics': 'bg-violet-100 text-violet-800'
-    };
-    return colors[track as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  const formatTime = (time: string) => {
-    return new Date(`2000-01-01T${time}`).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-  };
-
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  // Group sessions based on view mode
-  const groupedSessions = useMemo(() => {
-    switch (viewMode) {
-      case 'day':
-        return schedule.sessions.reduce((groups, session) => {
-          const day = session.day_of_week;
-          if (!groups[day]) groups[day] = [];
-          groups[day].push(session);
-          return groups;
-        }, {} as Record<string, ScheduleSession[]>);
-
-      case 'time':
-        return schedule.sessions.reduce((groups, session) => {
-          const timeOfDay = session.time_of_day;
-          if (!groups[timeOfDay]) groups[timeOfDay] = [];
-          groups[timeOfDay].push(session);
-          return groups;
-        }, {} as Record<string, ScheduleSession[]>);
-
-      case 'type':
-        return schedule.sessions.reduce((groups, session) => {
-          const type = session.session_type;
-          if (!groups[type]) groups[type] = [];
-          groups[type].push(session);
-          return groups;
-        }, {} as Record<string, ScheduleSession[]>);
-
-      case 'track':
-        return schedule.sessions.reduce((groups, session) => {
-          const track = session.track;
-          if (!groups[track]) groups[track] = [];
-          groups[track].push(session);
-          return groups;
-        }, {} as Record<string, ScheduleSession[]>);
-
-      default:
-        return { 'All Sessions': schedule.sessions };
-    }
-  }, [schedule.sessions, viewMode]);
-
-  // Sort sessions within each group
-  Object.keys(groupedSessions).forEach(group => {
-    groupedSessions[group].sort((a, b) => {
-      // Primary sort by date, then by time
-      const dateCompare = a.date.localeCompare(b.date);
-      if (dateCompare !== 0) return dateCompare;
-      return a.start_time.localeCompare(b.start_time);
-    });
-  });
-
-  // Calculate stats
-  const totalSessions = schedule.sessions.length;
-  const interactiveSessions = schedule.sessions.filter(s => s.is_interactive).length;
-  const technicalSessions = schedule.sessions.filter(s => s.is_technical).length;
-  const socialSessions = schedule.sessions.filter(s => s.is_social).length;
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border border-gray-200 ${compact ? 'p-3' : 'p-6'} ${className}`}>
-      {/* Header */}
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center space-x-3">
-          <span className="text-3xl">{getScheduleIcon()}</span>
-          <div>
-            <h3 className={`font-bold text-gray-900 ${compact ? 'text-base' : 'text-xl'}`}>
-              {schedule.title}
-            </h3>
-            <div className="flex items-center space-x-2 mt-1">
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {totalSessions} sessions
-              </span>
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                View: {viewMode}
-              </span>
-            </div>
-          </div>
-        </div>
-        {onClose && (
-          <button 
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            ✕
-          </button>
+    <ScheduleCardContext.Provider value={contextValue}>
+      <motion.article
+        variants={animated ? cardVariants : undefined}
+        initial={animated ? "hidden" : undefined}
+        animate={animated ? "visible" : undefined}
+        layout
+        className={cn(
+          // Base card styling - optimized for kiosk visibility
+          "relative rounded-lg border border-gray-200 bg-white p-6 shadow-sm",
+          // High contrast for kiosk environment - WCAG AAA compliance
+          "text-gray-900",
+          // Focus states for voice navigation (no hover states)
+          "focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2",
+          // Responsive sizing for kiosk displays
+          compact ? "p-4" : "p-6",
+          className
         )}
-      </div>
+        // Voice-only: no mouse interaction handlers
+        role="article"
+        aria-labelledby={`schedule-title-${schedule.title.replace(/\s+/g, '-')}`}
+        aria-describedby={`schedule-description-${schedule.title.replace(/\s+/g, '-')}`}
+      >
+        {children}
+      </motion.article>
+    </ScheduleCardContext.Provider>
+  );
+}
 
-      {/* Date Range */}
-      {schedule.dateRange && !compact && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-          <p className="text-sm font-medium text-gray-900">
-            📅 Conference Dates
-          </p>
-          <p className="text-sm text-gray-600">
-            {formatDate(schedule.dateRange.start)} - {formatDate(schedule.dateRange.end)}
-          </p>
-          {schedule.totalDays && (
-            <p className="text-xs text-gray-500 mt-1">
-              {schedule.totalDays} days total
-            </p>
-          )}
-        </div>
+// === COMPOUND COMPONENTS ===
+
+function ScheduleCardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { animated } = useScheduleCard();
+  
+  return (
+    <motion.header
+      variants={animated ? contentVariants : undefined}
+      className={cn("mb-4", className)}
+    >
+      {children}
+    </motion.header>
+  );
+}
+
+function ScheduleCardTitle({ children, className }: { children?: React.ReactNode; className?: string }) {
+  const { schedule, compact } = useScheduleCard();
+  const displayTitle = children || schedule.title;
+  
+  return (
+    <h3
+      id={`schedule-title-${schedule.title.replace(/\s+/g, '-')}`}
+      className={cn(
+        // Large, readable fonts for kiosk environment (18px+ minimum)
+        compact ? "text-lg font-semibold" : "text-xl font-bold",
+        // High contrast text - WCAG AAA
+        "text-gray-900",
+        // Text overflow handling for long titles
+        "line-clamp-2 leading-tight",
+        className
       )}
+    >
+      {displayTitle}
+    </h3>
+  );
+}
 
-      {/* Quick Stats */}
-      <div className="mb-4 grid grid-cols-4 gap-3 text-center">
-        <div className="p-2 bg-blue-50 rounded-lg">
-          <p className="text-lg font-bold text-blue-900">{totalSessions}</p>
-          <p className="text-xs text-blue-600">Total</p>
-        </div>
-        <div className="p-2 bg-yellow-50 rounded-lg">
-          <p className="text-lg font-bold text-yellow-900">{interactiveSessions}</p>
-          <p className="text-xs text-yellow-600">Interactive</p>
-        </div>
-        <div className="p-2 bg-purple-50 rounded-lg">
-          <p className="text-lg font-bold text-purple-900">{technicalSessions}</p>
-          <p className="text-xs text-purple-600">Technical</p>
-        </div>
-        <div className="p-2 bg-green-50 rounded-lg">
-          <p className="text-lg font-bold text-green-900">{socialSessions}</p>
-          <p className="text-xs text-green-600">Social</p>
-        </div>
+function ScheduleCardMeta({ className }: { className?: string }) {
+  const { schedule, compact } = useScheduleCard();
+  
+  return (
+    <div className={cn(
+      "flex flex-wrap items-center gap-2 mt-2", 
+      compact ? "text-sm" : "text-base",
+      className
+    )}>
+      <Badge variant="secondary" className="text-xs font-medium">
+        {schedule.totalDays} days
+      </Badge>
+      <Badge variant="outline" className="text-xs">
+        {schedule.totalSessions} sessions
+      </Badge>
+      <Badge variant="outline" className="text-xs">
+        {schedule.venues.length} venues
+      </Badge>
+      {schedule.priority_level && (
+        <Badge variant="outline" className="text-xs">
+          {schedule.priority_level} priority
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+function ScheduleCardBody({ children, className }: { children: React.ReactNode; className?: string }) {
+  const { animated } = useScheduleCard();
+  
+  return (
+    <motion.div
+      variants={animated ? contentVariants : undefined}
+      className={cn("space-y-4", className)}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function ScheduleCardOverview({ className }: { className?: string }) {
+  const { schedule, compact } = useScheduleCard();
+  
+  return (
+    <div className={cn("space-y-2", className)}>
+      <div className="flex justify-between items-center">
+        <span className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800"
+        )}>
+          Conference Schedule
+        </span>
+        <span className="text-sm text-gray-500">
+          {schedule.dateRange.start} - {schedule.dateRange.end}
+        </span>
       </div>
-
-      {/* Grouped Sessions */}
-      <div className="space-y-4">
-        {Object.entries(groupedSessions).map(([groupName, sessions]) => (
-          <div key={groupName}>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-900 flex items-center space-x-2">
-                {viewMode === 'time' && <span>{getTimeOfDayIcon(groupName)}</span>}
-                {viewMode === 'type' && <span>{getSessionTypeIcon(groupName)}</span>}
-                <span className="capitalize">{groupName}</span>
-                <span className="text-xs text-gray-500">({sessions.length})</span>
-              </h4>
-            </div>
-
-            <div className="space-y-2">
-              {sessions.slice(0, compact ? 3 : sessions.length).map((session, index) => (
-                <div
-                  key={index}
-                  onClick={() => onSessionClick?.(session.session_id)}
-                  className="p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-1">
-                        <span className="text-lg">{getSessionTypeIcon(session.session_type)}</span>
-                        <h5 className="font-medium text-gray-900 text-sm">
-                          {session.title}
-                        </h5>
-                        {session.is_interactive && (
-                          <span className="px-2 py-0.5 bg-yellow-100 text-yellow-800 rounded text-xs">
-                            Interactive
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center space-x-4 text-xs text-gray-600 mb-2">
-                        <span>📅 {formatDate(session.date)}</span>
-                        <span>⏰ {formatTime(session.start_time)} - {formatTime(session.end_time)}</span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onVenueClick?.(session.venue);
-                          }}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          📍 {session.venue}
-                        </button>
-                      </div>
-
-                      {/* Speakers */}
-                      {session.speakers.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {session.speakers.slice(0, 3).map((speaker, idx) => (
-                            <button
-                              key={idx}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onSpeakerClick?.(speaker);
-                              }}
-                              className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs hover:bg-blue-100"
-                            >
-                              {speaker}
-                            </button>
-                          ))}
-                          {session.speakers.length > 3 && (
-                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
-                              +{session.speakers.length - 3} more
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTrackColor(session.track)}`}>
-                      {session.track}
-                    </span>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-purple-600">
-                        🏷️ {session.theme}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {session.duration_minutes}min
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-
-              {compact && sessions.length > 3 && (
-                <div className="text-center">
-                  <span className="text-sm text-gray-500">
-                    ... and {sessions.length - 3} more sessions
-                  </span>
-                </div>
-              )}
-            </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="text-center p-2 bg-blue-50 rounded-md">
+          <div className={cn(
+            "font-bold text-blue-900",
+            compact ? "text-sm" : "text-base"
+          )}>
+            {schedule.totalSessions}
           </div>
-        ))}
-      </div>
-
-      {/* Footer */}
-      <div className="mt-4 pt-3 border-t text-xs text-gray-500 text-center">
-        View mode: {viewMode} • {Object.keys(groupedSessions).length} groups • {totalSessions} total sessions
+          <div className="text-xs text-blue-600">Sessions</div>
+        </div>
+        <div className="text-center p-2 bg-green-50 rounded-md">
+          <div className={cn(
+            "font-bold text-green-900",
+            compact ? "text-sm" : "text-base"
+          )}>
+            {schedule.venues.length}
+          </div>
+          <div className="text-xs text-green-600">Venues</div>
+        </div>
+        <div className="text-center p-2 bg-purple-50 rounded-md">
+          <div className={cn(
+            "font-bold text-purple-900",
+            compact ? "text-sm" : "text-base"
+          )}>
+            {schedule.sessionTypes.length}
+          </div>
+          <div className="text-xs text-purple-600">Types</div>
+        </div>
       </div>
     </div>
   );
-});
+}
 
-ScheduleCard.displayName = 'ScheduleCard'; 
+function ScheduleCardDays({ maxDays = 3, className }: { maxDays?: number; className?: string }) {
+  const { schedule, compact, animated } = useScheduleCard();
+  
+  const displayDays = schedule.dailySchedules.slice(0, maxDays);
+  
+  return (
+    <div className={cn("space-y-3", className)}>
+      <h4 className={cn(
+        "font-medium",
+        compact ? "text-sm" : "text-base",
+        "text-gray-800"
+      )}>
+        Daily Overview
+      </h4>
+      <div className="space-y-2">
+        {displayDays.map((day, index) => (
+          <motion.div
+            key={day.date}
+            variants={animated ? sessionVariants : undefined}
+            custom={index}
+            initial={animated ? "hidden" : undefined}
+            animate={animated ? "visible" : undefined}
+            layout
+            className={cn(
+              "p-3 rounded-md border border-gray-200 bg-gray-50",
+              // Voice-only: no hover effects
+              "focus-within:ring-1 focus-within:ring-blue-500"
+            )}
+          >
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h5 className={cn(
+                  "font-medium",
+                  compact ? "text-sm" : "text-base",
+                  "text-gray-900"
+                )}>
+                  {day.day_of_week}
+                </h5>
+                <p className="text-xs text-gray-600">{day.date}</p>
+              </div>
+              <div className="text-right">
+                <Badge variant="outline" className="text-xs">
+                  {day.sessions.length} sessions
+                </Badge>
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-600">
+              <span>{Math.round(day.totalDuration / 60)}h duration</span>
+              <span>•</span>
+              <span>{day.venueCount} venues</span>
+              {day.sessions.some(s => s.is_keynote) && (
+                <>
+                  <span>•</span>
+                  <Badge variant="default" className="text-xs">Keynote</Badge>
+                </>
+              )}
+            </div>
+          </motion.div>
+        ))}
+        {schedule.dailySchedules.length > maxDays && (
+          <div className="text-center pt-2">
+            <Badge variant="outline" className="text-xs">
+              +{schedule.dailySchedules.length - maxDays} more days
+            </Badge>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleCardTimeSlots({ maxSlots = 4, className }: { maxSlots?: number; className?: string }) {
+  const { schedule, compact, animated } = useScheduleCard();
+  
+  const displaySlots = schedule.timeSlots.slice(0, maxSlots);
+  
+  return (
+    <div className={cn("space-y-3", className)}>
+      <h4 className={cn(
+        "font-medium",
+        compact ? "text-sm" : "text-base",
+        "text-gray-800"
+      )}>
+        Key Time Slots
+      </h4>
+      <div className="space-y-2">
+        {displaySlots.map((slot, index) => (
+          <motion.div
+            key={slot.time}
+            variants={animated ? sessionVariants : undefined}
+            custom={index}
+            initial={animated ? "hidden" : undefined}
+            animate={animated ? "visible" : undefined}
+            layout
+            className={cn(
+              "p-3 rounded-md border",
+              slot.isPrimary ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-50",
+              // Voice-only: no hover effects
+              "focus-within:ring-1 focus-within:ring-blue-500"
+            )}
+          >
+            <div className="flex justify-between items-start mb-1">
+              <h5 className={cn(
+                "font-medium",
+                compact ? "text-sm" : "text-base",
+                slot.isPrimary ? "text-blue-900" : "text-gray-900"
+              )}>
+                {slot.time}
+              </h5>
+              <Badge 
+                variant={slot.isPrimary ? "default" : "outline"} 
+                className="text-xs"
+              >
+                {slot.sessions.length} sessions
+              </Badge>
+            </div>
+            <div className="text-xs text-gray-600">
+              {slot.sessions.map(s => s.venue).join(', ')}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleCardVenues({ className }: { className?: string }) {
+  const { schedule, compact } = useScheduleCard();
+  
+  return (
+    <div className={cn("space-y-2", className)}>
+      <h4 className={cn(
+        "font-medium",
+        compact ? "text-sm" : "text-base",
+        "text-gray-800"
+      )}>
+        Conference Venues
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {schedule.venues.map((venue, index) => (
+          <Badge 
+            key={index}
+            variant="outline"
+            className={cn(
+              compact ? "text-xs" : "text-sm",
+              // Clear, accessible colors - no hover states
+              "bg-green-50 text-green-700 border-green-200"
+            )}
+          >
+            {venue}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleCardSessionTypes({ className }: { className?: string }) {
+  const { schedule, compact } = useScheduleCard();
+  
+  return (
+    <div className={cn("space-y-2", className)}>
+      <h4 className={cn(
+        "font-medium",
+        compact ? "text-sm" : "text-base",
+        "text-gray-800"
+      )}>
+        Session Types
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {schedule.sessionTypes.map((type, index) => (
+          <Badge 
+            key={index}
+            variant="outline"
+            className={cn(
+              compact ? "text-xs" : "text-sm",
+              // Clear, accessible colors - no hover states
+              "bg-purple-50 text-purple-700 border-purple-200"
+            )}
+          >
+            {type}
+          </Badge>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleCardThemes({ className }: { className?: string }) {
+  const { schedule, compact } = useScheduleCard();
+  
+  if (!schedule.themes || schedule.themes.length === 0) {
+    return null;
+  }
+  
+  return (
+    <div className={cn("space-y-2", className)}>
+      <h4 className={cn(
+        "font-medium",
+        compact ? "text-sm" : "text-base",
+        "text-gray-800"
+      )}>
+        Research Themes
+      </h4>
+      <div className="flex flex-wrap gap-2">
+        {schedule.themes.slice(0, compact ? 4 : 8).map((theme, index) => (
+          <Badge 
+            key={index}
+            variant="outline"
+            className={cn(
+              compact ? "text-xs" : "text-sm",
+              // Clear, accessible colors - no hover states
+              "bg-blue-50 text-blue-700 border-blue-200"
+            )}
+          >
+            {theme}
+          </Badge>
+        ))}
+        {schedule.themes.length > (compact ? 4 : 8) && (
+          <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
+            +{schedule.themes.length - (compact ? 4 : 8)} more
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ScheduleCardFooter({ children, className }: { children?: React.ReactNode; className?: string }) {
+  const { schedule, animated } = useScheduleCard();
+  
+  const defaultFooter = (
+    <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+      <div className="flex items-center space-x-4 text-sm text-gray-500">
+        <span>{schedule.dateRange.start} - {schedule.dateRange.end}</span>
+        {schedule.priority_level && (
+          <Badge variant="outline" size="sm">
+            {schedule.priority_level} priority
+          </Badge>
+        )}
+      </div>
+      {schedule.relevance_score && (
+        <div className="text-xs text-gray-400">
+          Relevance: {(schedule.relevance_score * 100).toFixed(0)}%
+        </div>
+      )}
+    </div>
+  );
+  
+  return (
+    <motion.footer
+      variants={animated ? contentVariants : undefined}
+      className={cn("mt-4", className)}
+    >
+      {children || defaultFooter}
+    </motion.footer>
+  );
+}
+
+// === COMPOUND COMPONENT ASSIGNMENT ===
+
+ScheduleCard.Header = ScheduleCardHeader;
+ScheduleCard.Title = ScheduleCardTitle;
+ScheduleCard.Meta = ScheduleCardMeta;
+ScheduleCard.Body = ScheduleCardBody;
+ScheduleCard.Overview = ScheduleCardOverview;
+ScheduleCard.Days = ScheduleCardDays;
+ScheduleCard.TimeSlots = ScheduleCardTimeSlots;
+ScheduleCard.Venues = ScheduleCardVenues;
+ScheduleCard.SessionTypes = ScheduleCardSessionTypes;
+ScheduleCard.Themes = ScheduleCardThemes;
+ScheduleCard.Footer = ScheduleCardFooter;
+
+// === PRESET LAYOUTS ===
+
+function ScheduleCardDefault({ schedule, className }: { schedule: SnT2025Schedule; className?: string }) {
+  return (
+    <ScheduleCard schedule={schedule} className={className}>
+      <ScheduleCard.Header>
+        <ScheduleCard.Title />
+        <ScheduleCard.Meta />
+      </ScheduleCard.Header>
+      <ScheduleCard.Body>
+        <ScheduleCard.Overview />
+        <ScheduleCard.Days maxDays={3} />
+        <ScheduleCard.TimeSlots maxSlots={4} />
+        <ScheduleCard.Venues />
+      </ScheduleCard.Body>
+      <ScheduleCard.Footer />
+    </ScheduleCard>
+  );
+}
+
+function ScheduleCardCompact({ schedule, className }: { schedule: SnT2025Schedule; className?: string }) {
+  return (
+    <ScheduleCard schedule={schedule} compact className={className}>
+      <ScheduleCard.Header>
+        <ScheduleCard.Title />
+        <ScheduleCard.Meta />
+      </ScheduleCard.Header>
+      <ScheduleCard.Body>
+        <ScheduleCard.Overview />
+        <ScheduleCard.Days maxDays={2} />
+        <ScheduleCard.Venues />
+      </ScheduleCard.Body>
+    </ScheduleCard>
+  );
+}
+
+function ScheduleCardMinimal({ schedule, className }: { schedule: SnT2025Schedule; className?: string }) {
+  return (
+    <ScheduleCard schedule={schedule} compact className={className}>
+      <ScheduleCard.Header>
+        <ScheduleCard.Title />
+        <ScheduleCard.Meta />
+      </ScheduleCard.Header>
+      <ScheduleCard.Body>
+        <ScheduleCard.Overview />
+      </ScheduleCard.Body>
+    </ScheduleCard>
+  );
+}
+
+// === EXPORTS ===
+
+export {
+  ScheduleCard,
+  ScheduleCardDefault,
+  ScheduleCardCompact,
+  ScheduleCardMinimal,
+  type SnT2025Schedule,
+  type DailySchedule,
+  type ScheduleSession,
+  type TimeSlot
+};
+
+export default ScheduleCard; 

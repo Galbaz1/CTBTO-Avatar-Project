@@ -15,10 +15,10 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 # Import our CTBTO agent
-from Agent1 import CTBTOAgent
+from backend.Agent1 import CTBTOAgent
 
 # Import structured logging
-from logger import logger, LLMInstance, log_task_duration
+from backend.logger import logger, LLMInstance, log_task_duration
 
 # Load environment variables (handle both run contexts)
 import os
@@ -136,6 +136,8 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
                     "confidence": decision.confidence,
                     "timing": decision.timing
                 }
+                # Record delta for frontend micro-update
+                backend.store_card_data_with_delta(session_id, "latest_session", backend.session_rag_data[session_id]["latest_session"])
                 print(f"📊 Async: Stored session card for {session_id}")
             elif decision.card_type == "speaker":
                 backend.session_rag_data[session_id]["latest_speaker"] = {
@@ -144,6 +146,7 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
                     "confidence": decision.confidence,
                     "timing": decision.timing
                 }
+                backend.store_card_data_with_delta(session_id, "latest_speaker", backend.session_rag_data[session_id]["latest_speaker"])
                 print(f"👤 Async: Stored speaker card for {session_id}")
             elif decision.card_type == "topic":
                 backend.session_rag_data[session_id]["latest_topic"] = {
@@ -152,6 +155,7 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
                     "confidence": decision.confidence,
                     "timing": decision.timing
                 }
+                backend.store_card_data_with_delta(session_id, "latest_topic", backend.session_rag_data[session_id]["latest_topic"])
                 print(f"🏷️ Async: Stored topic card for {session_id}")
         
         print(f"🧠 Async: UI Intelligence made {len(card_decisions)} card decisions for session {session_id}")
@@ -174,6 +178,7 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
                     "confidence": 0.7,
                     "timing": "background"
                 }
+                backend.store_card_data_with_delta(session_id, "latest_session", backend.session_rag_data[session_id]["latest_session"])
                 print(f"📊 Async fallback: Stored simple session card for {session_id}")
         except Exception as fallback_error:
             print(f"⚠️ Async fallback also failed for session {session_id}: {fallback_error}")
@@ -190,6 +195,11 @@ class RosaBackend:
         self.latest_weather_data = None  # Latest weather data (fallback)
         self.session_rag_data = {}  # RAG data per session (for UI Intelligence)
         self.rag_cache = {}  # Simple cache for RAG queries (key: query_hash, value: results)
+        # --- UIDelta tracking ---
+        # Keeps the last known UI state per session so that we can calculate JSON patch-style deltas
+        self.session_ui_state = {}
+        # Stores outstanding delta operations waiting to be consumed by the frontend
+        self.session_ui_deltas = {}
     
     def register_session(self, session_id: str, conversation_url: str):
         """Register a session with its conversation URL"""
@@ -231,6 +241,58 @@ class RosaBackend:
                     print(f"📱 Stored weather data for session {session_id}")
         except Exception as e:
             print(f"❌ Failed to store weather data: {e}")
+
+    # ------------------------------------------------------------------
+    #  🔄 UIDelta Helpers
+    # ------------------------------------------------------------------
+
+    def _ensure_session_delta_buffers(self, session_id: str):
+        """Ensure internal buffers exist for the given session"""
+        if session_id not in self.session_ui_state:
+            self.session_ui_state[session_id] = {}
+        if session_id not in self.session_ui_deltas:
+            self.session_ui_deltas[session_id] = []
+
+    def store_card_data_with_delta(self, session_id: str, card_key: str, new_data: dict):
+        """Store card data and emit a JSON-patch style delta operation if changed.
+
+        Args:
+            session_id: Current Daily session id
+            card_key:  e.g. "latest_session", "latest_speaker"
+            new_data:  Dict payload to store
+        Returns: List[dict] delta operations generated for this change
+        """
+        import copy, time as _time
+
+        self._ensure_session_delta_buffers(session_id)
+
+        previous = self.session_ui_state[session_id].get(card_key)
+
+        # Simple diff: emit a single op if the value has changed
+        if previous != new_data:
+            op_type = "add" if previous is None else "replace"
+            delta_op = {
+                "op": op_type,
+                "path": f"/{card_key}",
+                "value": new_data,
+                "timestamp": _time.time(),
+            }
+
+            self.session_ui_deltas[session_id].append(delta_op)
+            # Update stored state (deep copy to avoid reference mutation)
+            self.session_ui_state[session_id][card_key] = copy.deepcopy(new_data)
+
+            return [delta_op]
+
+        return []
+
+    def get_latest_ui_deltas(self, session_id: str):
+        """Retrieve and clear outstanding delta operations for a session."""
+        self._ensure_session_delta_buffers(session_id)
+        deltas = self.session_ui_deltas[session_id]
+        # Reset buffer after serving to client
+        self.session_ui_deltas[session_id] = []
+        return deltas
 
 # Global backend instance
 rosa_backend = RosaBackend()
@@ -618,7 +680,7 @@ async def get_latest_topic_data(session_id: str):
 @app.get("/metrics/card-generation")
 async def get_card_generation_metrics():
     """Get card generation performance metrics for monitoring and debugging"""
-    from logger import get_card_generation_metrics
+    from backend.logger import get_card_generation_metrics
     
     try:
         metrics = get_card_generation_metrics()
@@ -646,6 +708,26 @@ async def get_card_generation_metrics():
             "status": "error"
         }
 
+@app.get("/latest-ui-delta/{session_id}")
+async def get_latest_ui_delta(session_id: str):
+    """Endpoint polled by UIDeltaHandler to obtain JSON patch style UI updates"""
+    try:
+        deltas = rosa_backend.get_latest_ui_deltas(session_id)
+        return {
+            "deltas": deltas,
+            "timestamp": time.time(),
+            "session_id": session_id,
+            "error": None,
+        }
+    except Exception as e:
+        print(f"❌ Error retrieving UI deltas for {session_id}: {e}")
+        return {
+            "deltas": [],
+            "timestamp": time.time(),
+            "session_id": session_id,
+            "error": str(e),
+        }
+
 if __name__ == "__main__":
     import uvicorn
     import logging
@@ -664,7 +746,7 @@ if __name__ == "__main__":
     print("📊 Logging: Session-focused, minimal noise")
     
     # Show color guide if colors are enabled
-    from logger import Colors
+    from backend.logger import Colors
     use_colors = os.getenv("NO_COLOR", "").lower() != "true"
     if use_colors:
         print("\n🎨 Agent Color Guide:")

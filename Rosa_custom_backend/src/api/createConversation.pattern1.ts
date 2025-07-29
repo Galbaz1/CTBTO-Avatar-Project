@@ -31,7 +31,7 @@ export const createConversation = async (
     // - api_key: "rosa-backend-key-2025" 
     // - model: "rosa-ctbto-agent"
     // - perception: "off" (privacy compliant)
-    const personaId = 'pfa22a49cab9'; // Rosa Clean Diplomatic Assistant
+    const personaId = 'p9c106c443e2'; // Rosa Clean Diplomatic Assistant
 
     const requestPayload = {
       persona_id: personaId,

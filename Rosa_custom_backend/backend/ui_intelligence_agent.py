@@ -16,10 +16,16 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 # Import our SearchResult dataclass from vector_search_tool
-from .vector_search_tool import SearchResult
+try:
+    from backend.vector_search_tool import SearchResult
+except ImportError:
+    from vector_search_tool import SearchResult
 
 # Import structured logging
-from .logger import logger as rosa_logger, LLMInstance
+try:
+    from backend.logger import logger as rosa_logger, LLMInstance
+except ImportError:
+    from logger import logger as rosa_logger, LLMInstance
 
 # Load environment variables
 load_dotenv()
@@ -83,13 +89,17 @@ class UIIntelligenceAgent:
                 "time_in_conversation": conversation_context.get("elapsed_time", "0s")
             },
             "available_information": {
-                "rag_results": {category: [r.title for r in results] for category, results in rag_results.items() if results},
+                "rag_results": {category: [r.get('title', r.get('name', 'Unknown')) if isinstance(r, dict) else r.title for r in results] for category, results in rag_results.items() if results},
                 "relevance_scores": {
-                    "highest": max([r.relevance_score for r in rag_results.get("sessions", []) if r.relevance_score], default=0),
-                    "average": sum([r.relevance_score for r in rag_results.get("sessions", []) if r.relevance_score]) / len(rag_results.get("sessions", [])) if rag_results.get("sessions") else 0
+                    "highest": max([r.get('relevance_score', 0) if isinstance(r, dict) else r.relevance_score for r in rag_results.get("sessions", [])], default=0),
+                    "average": sum([r.get('relevance_score', 0) if isinstance(r, dict) else r.relevance_score for r in rag_results.get("sessions", [])]) / len(rag_results.get("sessions", [])) if rag_results.get("sessions") else 0
                 },
                 "result_categories": list(rag_results.keys()),
-                "available_rooms": list(set([r.related_room.get("name") for r in rag_results.get("sessions", []) if r.related_room and r.related_room.get("name")])),
+                "available_rooms": list(set([
+                    r.get('related_room', {}).get('name') if isinstance(r, dict) else (r.related_room.get("name") if r.related_room else None)
+                    for r in rag_results.get("sessions", []) 
+                    if (isinstance(r, dict) and r.get('related_room', {}).get('name')) or (not isinstance(r, dict) and r.related_room and r.related_room.get("name"))
+                ])),
                 "card_types_available": ["session", "speaker", "topic", "venue"]
             },
             "conversation_metadata": {
@@ -147,6 +157,42 @@ Respond in JSON format:
             # Convert to card display format if cards should be shown
             if show_cards:
                 cards_to_format = decision.get("cards", [])
+
+                # --- QUICK FALLBACK -----------------------------------------------------
+                # Sometimes the LLM sets show_cards=true but forgets to include the
+                # actual card objects.  In that case, fall back to the top-scoring
+                # session result so the UI always gets at least one card.
+                if show_cards and not cards_to_format:
+                    top_session = None
+                    if rag_results.get("sessions"):
+                        # rag_results sessions may be list[dict] or list[SearchResult]
+                        top_session = rag_results["sessions"][0]
+
+                    if top_session:
+                        if isinstance(top_session, dict):
+                            meta = top_session.get("metadata", {})
+                            cards_to_format = [{
+                                "type": "session",
+                                "id": meta.get("uuid") or top_session.get("id"),
+                                "title": top_session.get("title") or meta.get("title"),
+                                "description": meta.get("description", ""),
+                                "speakers": [s.get("name") for s in top_session.get("related_speakers", [])] if top_session.get("related_speakers") else [],
+                                "time": f"{meta.get('day', '')} {meta.get('startTime', '')}",
+                                "venue": meta.get("venue", meta.get("related_room", {}).get("name", ""))
+                            }]
+                        else:
+                            # Handle SearchResult dataclass
+                            meta = getattr(top_session, "metadata", {})
+                            cards_to_format = [{
+                                "type": "session",
+                                "id": getattr(top_session, "id", None),
+                                "title": getattr(top_session, "title", meta.get("title")),
+                                "description": meta.get("description", ""),
+                                "speakers": [s.name if hasattr(s, "name") else s.get("name") for s in getattr(top_session, "related_speakers", [])] if getattr(top_session, "related_speakers", None) else [],
+                                "time": f"{meta.get('day', '')} {meta.get('startTime', '')}",
+                                "venue": meta.get("related_room", {}).get("name", "")
+                            }]
+                        rosa_logger.info("⚠️ Fallback: generated 1 session card because LLM omitted cards array", session_id, LLMInstance.UI_INTEL)
                 rosa_logger.card_decision(session_id, True, len(cards_to_format), confidence)
                 formatted_cards = self._format_cards_for_display(cards_to_format, rag_results, conversation_context, session_id)
                 return formatted_cards
@@ -312,12 +358,19 @@ Remember: You're not following rigid rules but making intelligent, context-aware
         Higher thresholds when we have high-quality results, lower when results are sparse.
         """
         # Base threshold
-        base_threshold = 0.60
+        base_threshold = 0.55
         
         # Get all relevance scores
         all_scores = []
         for category_results in rag_results.values():
-            all_scores.extend([r.relevance_score for r in category_results if r.relevance_score])
+            for r in category_results:
+                if isinstance(r, dict):
+                    score = r.get('relevance_score', 0)
+                    if score > 0:
+                        all_scores.append(score)
+                else:
+                    if hasattr(r, 'relevance_score') and r.relevance_score > 0:
+                        all_scores.append(r.relevance_score)
         
         if not all_scores:
             return base_threshold
@@ -329,14 +382,14 @@ Remember: You're not following rigid rules but making intelligent, context-aware
         
         # Adjust threshold based on result quality
         if max_score > 0.9 and avg_score > 0.7:
-            # High-quality results available - be more selective
-            dynamic_threshold = base_threshold + 0.15
+            # High-quality results available - slightly more selective but not too much
+            dynamic_threshold = base_threshold + 0.05
         elif max_score > 0.8 and score_range > 0.3:
             # Good spread of relevance - use standard threshold
             dynamic_threshold = base_threshold
         elif avg_score < 0.5:
             # Poor overall relevance - be more lenient to show something useful
-            dynamic_threshold = base_threshold - 0.15
+            dynamic_threshold = base_threshold - 0.10
         else:
             # Standard case
             dynamic_threshold = base_threshold
@@ -344,12 +397,12 @@ Remember: You're not following rigid rules but making intelligent, context-aware
         # Context-based adjustments
         previous_cards_shown = conversation_context.get("cards_shown_count", 0)
         
-        # If this is early in conversation, be slightly more permissive
+        # If this is early in conversation, be more permissive
         if previous_cards_shown == 0:
-            dynamic_threshold -= 0.05
-        # If many cards already shown, be more selective
+            dynamic_threshold -= 0.10
+        # If many cards already shown, be slightly more selective
         elif previous_cards_shown > 3:
-            dynamic_threshold += 0.10
+            dynamic_threshold += 0.05
         
         # Ensure reasonable bounds
         final_threshold = max(0.35, min(0.85, dynamic_threshold))
@@ -377,7 +430,15 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 rosa_logger.debug(f"🔍 Looking for session: {session_id_from_llm}", session_id, LLMInstance.UI_INTEL)
                 
                 for session_result in rag_results.get("sessions", []):
-                    if session_result.id == session_id_from_llm and session_result.relevance_score and session_result.relevance_score >= RELEVANCE_THRESHOLD:
+                    # Handle both dict and SearchResult objects
+                    if isinstance(session_result, dict):
+                        result_id = session_result.get('id', '')
+                        relevance_score = session_result.get('relevance_score', 0)
+                    else:
+                        result_id = session_result.id if hasattr(session_result, 'id') else ''
+                        relevance_score = session_result.relevance_score if hasattr(session_result, 'relevance_score') else 0
+                    
+                    if result_id == session_id_from_llm and relevance_score and relevance_score >= RELEVANCE_THRESHOLD:
                         formatted_cards.append(CardDecision(
                             card_type="session",
                             card_data=self._transform_session_for_frontend(session_result),
@@ -385,10 +446,10 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                             confidence=card.get("confidence", 0.8),
                             timing=card.get("timing", "immediate")
                         ))
-                        rosa_logger.info(f"✅ Approved session card: {session_result.id} (relevance={session_result.relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
+                        rosa_logger.info(f"✅ Approved session card: {result_id} (relevance={relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
                         break # Found our session
-                    elif session_result.id == session_id_from_llm:
-                        rosa_logger.info(f"❌ Filtered low-relevance session: {session_result.id} (relevance={session_result.relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
+                    elif result_id == session_id_from_llm:
+                        rosa_logger.info(f"❌ Filtered low-relevance session: {result_id} (relevance={relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
                         break
 
             elif card_type == "speaker":
@@ -398,8 +459,19 @@ Remember: You're not following rigid rules but making intelligent, context-aware
 
                 speaker_sessions = []
                 for session_result in rag_results.get("sessions", []):
-                    if session_result.related_speakers and any(speaker['name'] == speaker_name for speaker in session_result.related_speakers):
-                         if session_result.relevance_score and session_result.relevance_score >= RELEVANCE_THRESHOLD:
+                    # Handle both dict and SearchResult objects
+                    if isinstance(session_result, dict):
+                        related_speakers = session_result.get('related_speakers', [])
+                        relevance_score = session_result.get('relevance_score', 0)
+                    else:
+                        related_speakers = session_result.related_speakers if hasattr(session_result, 'related_speakers') else []
+                        relevance_score = session_result.relevance_score if hasattr(session_result, 'relevance_score') else 0
+                    
+                    if related_speakers and any(
+                        (speaker.get('name') if isinstance(speaker, dict) else speaker) == speaker_name 
+                        for speaker in related_speakers
+                    ):
+                        if relevance_score and relevance_score >= RELEVANCE_THRESHOLD:
                             transformed_session = self._transform_session_for_frontend(session_result)
                             if transformed_session:
                                 speaker_sessions.append(transformed_session)
@@ -417,7 +489,7 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                         timing=card.get("timing", "immediate")
                     ))
                 else:
-                    rosa_logger.warning(f"❌ No high-relevance sessions found for speaker: {speaker_name}", session_id, LLMInstance.UI_INTEL)
+                    rosa_logger.info(f"❌ No high-relevance sessions found for speaker: {speaker_name}", session_id, LLMInstance.UI_INTEL)
 
             elif card_type == "topic":
                 topic_theme = card.get("topic_theme", "")
@@ -426,8 +498,19 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 
                 related_sessions = []
                 for session_result in rag_results.get("sessions", []):
-                    if session_result.related_topics and any(topic['title'].lower() in topic_theme.lower() for topic in session_result.related_topics):
-                        if session_result.relevance_score and session_result.relevance_score >= RELEVANCE_THRESHOLD:
+                    # Handle both dict and SearchResult objects
+                    if isinstance(session_result, dict):
+                        related_topics = session_result.get('related_topics', [])
+                        relevance_score = session_result.get('relevance_score', 0)
+                    else:
+                        related_topics = session_result.related_topics if hasattr(session_result, 'related_topics') else []
+                        relevance_score = session_result.relevance_score if hasattr(session_result, 'relevance_score') else 0
+                    
+                    if related_topics and any(
+                        (topic.get('title', '') if isinstance(topic, dict) else topic).lower() in topic_theme.lower() 
+                        for topic in related_topics
+                    ):
+                        if relevance_score and relevance_score >= RELEVANCE_THRESHOLD:
                             transformed_session = self._transform_session_for_frontend(session_result)
                             if transformed_session:
                                 related_sessions.append(transformed_session)
@@ -455,10 +538,17 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 # Find sessions in this room with high relevance
                 room_sessions = []
                 for session_result in rag_results.get("sessions", []):
-                    if (session_result.related_room and 
-                        session_result.related_room.get("name", "").lower() == room_name.lower() and
-                        session_result.relevance_score and 
-                        session_result.relevance_score >= RELEVANCE_THRESHOLD):
+                    # Handle both dict and SearchResult objects
+                    if isinstance(session_result, dict):
+                        related_room = session_result.get('related_room', {})
+                        room_name_result = related_room.get('name', '') if related_room else ''
+                        relevance_score = session_result.get('relevance_score', 0)
+                    else:
+                        room_name_result = session_result.related_room.get("name", "") if session_result.related_room else ''
+                        relevance_score = session_result.relevance_score if hasattr(session_result, 'relevance_score') else 0
+                    
+                    if (room_name_result.lower() == room_name.lower() and
+                        relevance_score >= RELEVANCE_THRESHOLD):
                         
                         transformed_session = self._transform_session_for_frontend(session_result)
                         if transformed_session:
@@ -477,34 +567,53 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                         timing=card.get("timing", "immediate")
                     ))
                 else:
-                    rosa_logger.warning(f"❌ No high-relevance sessions found for room: {room_name}", session_id, LLMInstance.UI_INTEL)
+                    rosa_logger.info(f"❌ No high-relevance sessions found for room: {room_name}", session_id, LLMInstance.UI_INTEL)
         
         rosa_logger.debug(f"🎴 Returning {len(formatted_cards)} formatted cards", None, LLMInstance.UI_INTEL)
         return formatted_cards
 
-    def _transform_session_for_frontend(self, session_result: 'SearchResult') -> Optional[Dict[str, Any]]:
+    def _transform_session_for_frontend(self, session_result) -> Optional[Dict[str, Any]]:
         """
-        🔧 CRITICAL REFACTOR: Transform a SearchResult object into the JSON format expected by the frontend cards.
+        🔧 CRITICAL REFACTOR: Transform a SearchResult object or dict into the JSON format expected by the frontend cards.
         
         Converts from a flat SearchResult with 'metadata' and 'related_speakers'/'related_topics' attributes
         To a nested JSON object for the frontend cards.
         """
-        if not session_result or not isinstance(session_result, SearchResult):
+        if not session_result:
             return None
 
         try:
-            metadata = session_result.metadata
+            # Handle both dictionary and SearchResult objects
+            if isinstance(session_result, dict):
+                session_id = session_result.get('id', '')
+                title = session_result.get('title', session_result.get('name', 'Unknown Session'))
+                metadata = session_result.get('metadata', {})
+                related_room = session_result.get('related_room', {})
+                related_speakers = session_result.get('related_speakers', [])
+                related_topics = session_result.get('related_topics', [])
+                relevance_score = session_result.get('relevance_score', 0.0)
+            else:
+                # Original SearchResult object handling
+                if not isinstance(session_result, SearchResult):
+                    return None
+                session_id = session_result.id
+                title = session_result.title
+                metadata = session_result.metadata
+                related_room = session_result.related_room
+                related_speakers = session_result.related_speakers if hasattr(session_result, 'related_speakers') else []
+                related_topics = session_result.related_topics if hasattr(session_result, 'related_topics') else []
+                relevance_score = session_result.relevance_score if hasattr(session_result, 'relevance_score') else 0.0
             
             # Extract speaker names from the cross-reference
-            speaker_names = [s['name'] for s in session_result.related_speakers] if session_result.related_speakers else []
+            speaker_names = [s.get('name', s) if isinstance(s, dict) else s for s in related_speakers] if related_speakers else []
             
             # Extract topic titles from the cross-reference
-            topic_titles = [t['title'] for t in session_result.related_topics] if session_result.related_topics else []
+            topic_titles = [t.get('title', t) if isinstance(t, dict) else t for t in related_topics] if related_topics else []
 
             frontend_session = {
                 # Core session identification
-                "session_id": session_result.id,
-                "title": session_result.title,
+                "session_id": session_id,
+                "title": title,
                 
                 # Timing information from metadata
                 "date": metadata.get("date", ""),
@@ -513,7 +622,7 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 "duration": metadata.get("duration_minutes", 0),
                 
                 # Location from cross-reference or metadata
-                "venue": session_result.related_room.get("name") if session_result.related_room else metadata.get("venue", ""),
+                "venue": related_room.get("name") if related_room else metadata.get("venue", ""),
                 
                 # Session classification from metadata
                 "session_type": metadata.get("sessionType", ""),
@@ -531,7 +640,7 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 "is_technical": metadata.get("is_technical", True),
                 
                 # Metadata for debugging/tracking
-                "relevance_score": session_result.relevance_score or 0.0,
+                "relevance_score": relevance_score or 0.0,
                 
                 # Additional enhanced fields for comprehensive display
                 "day_of_week": metadata.get("day_of_week", ""),

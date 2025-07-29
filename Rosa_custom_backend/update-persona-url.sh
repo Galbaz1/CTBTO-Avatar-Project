@@ -30,7 +30,7 @@ if [ -z "$NGROK_URL" ]; then
 fi
 
 echo "🌐 Current ngrok URL: $NGROK_URL"
-echo "🧠 Updating persona pfa22a49cab9..."
+echo "�� Updating persona p9c106c443e2..."
 
 # Update persona URL
 cd backend
@@ -44,7 +44,7 @@ from dotenv import load_dotenv
 load_dotenv('../.env')
 
 tavus_api_key = os.getenv('TAVUS_API_KEY')
-persona_id = 'pfa22a49cab9'
+persona_id = 'p9c106c443e2'
 ngrok_url = '$NGROK_URL'
 
 patch_data = [{

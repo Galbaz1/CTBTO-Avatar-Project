@@ -69,6 +69,36 @@
               ]
             }
           }
+        },
+        {
+          "type": "function",
+          "function": {
+            "name": "graph_lookup",
+            "description": "Perform direct graph lookups when users ask about specific speakers, sessions, topics, or rooms by name. Use when the user mentions a specific person, session title, topic, or room explicitly.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "lookup_type": {
+                  "type": "string",
+                  "enum": [
+                    "sessions_by_speaker",
+                    "speakers_for_session", 
+                    "sessions_on_topic",
+                    "sessions_in_room"
+                  ],
+                  "description": "Type of graph lookup to perform"
+                },
+                "entity_name": {
+                  "type": "string",
+                  "description": "Exact name of the speaker, session title, topic, or room to look up"
+                }
+              },
+              "required": [
+                "lookup_type",
+                "entity_name"
+              ]
+            }
+          }
         }
       ]
     },
