@@ -1,8 +1,6 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { PremiumSessionCard, PremiumSessionCardDefault, PremiumSessionCardHero, PremiumSessionCardCompact, type PremiumTimetableSession } from './PremiumSessionCard';
-import { SpeakerCard, SpeakerCardDefault, type SnT2025Speaker } from './SpeakerCard';
+import { PremiumSessionCardDefault, PremiumSessionCardHero, PremiumSessionCardCompact, type PremiumTimetableSession } from './PremiumSessionCard';
+import { SpeakerCardDefault, type SnT2025Speaker } from './SpeakerCard';
 import { Badge } from '../compound/Badge';
 
 // === SAMPLE DATA ===
@@ -85,7 +83,7 @@ const sectionVariants = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: [0.25, 0.46, 0.45, 0.94] as const
     }
   }
 };

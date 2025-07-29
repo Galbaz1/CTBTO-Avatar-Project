@@ -1,2 +1,2 @@
-export { NewSessionCard as SessionCard } from './NewSessionCard';
-export type { TimetableSession } from './NewSessionCard'; 
+export { PremiumSessionCardDefault as SessionCard } from './PremiumSessionCard';
+export type { PremiumTimetableSession as TimetableSession } from './PremiumSessionCard'; 

@@ -70,5 +70,156 @@
     },
     
     "navigation_notes": "Again all rooms have a corresponding color coding with the program. Each room is clearly marked with the corresponding color coding, consistent with the program schedule."
+  },
+
+  "detailed_room_profiles": {
+    "festsaal": {
+      "description": "The main conference hall located on the mezzanine level within the red-outlined SnT2025 conference zone. Grand imperial space with high ceilings and formal architectural elements.",
+      "capacity": 400,
+      "layout": "Mixed theater-style and flexible seating arrangements",
+      "level": "Upper level (Mezzanine)",
+      "navigation_from_entry": "Left 15m to Feststiege → up stairs (20-25 steps) → straight 20m → large double doors on left",
+      "exact_distances": {
+        "entry_to_feststiege": "15 meters",
+        "stair_ascent": "20-25 steps (45-60 seconds)",
+        "stair_top_to_door": "20 meters",
+        "total_walking_time": "2-2.5 minutes"
+      },
+      "door_details": "Heavy carved wooden double doors with brass fittings, handles at 1.2m height, requires firm pull to open",
+      "room_characteristics": "Grand imperial hall with high ceilings and formal architectural elements",
+      "accessibility_features": ["Hearing loop compatible", "Multiple microphone systems", "Interpreting services", "Reserved front seating for assistive devices"],
+      "notable_events": ["High-level plenary (Sep 9)", "Opening and closing ceremonies", "Keynote presentations"],
+      "tactile_landmarks": ["Red carpet approach to Feststiege", "Marble stair ascent", "Heavy door weight and brass fittings", "Grand hall entrance characteristics"]
+    },
+    
+    "prinz_eugen_saal": {
+      "description": "Large presentation hall located at the far end of the ground floor exhibition area. Named after Prince Eugene of Savoy, this room maintains classical Habsburg architectural elements.",
+      "capacity": 200,
+      "layout": "Theater-style seating arrangement",
+      "level": "Ground floor (Parterre)",
+      "navigation_from_kiosk": "Turn left → walk 25m to exhibition area → continue straight 50m to far end",
+      "door_details": "Large wooden double doors with brass handles at 1.1m height",
+      "acoustic_profile": "Moderate reverberation, suitable for technical presentations",
+      "accessibility_features": ["Wheelchair accessible", "Hearing loop system", "Reserved front row seating"],
+      "notable_events": ["Technical oral sessions O3.1, O3.5, O4.4", "Seismic and monitoring presentations"],
+      "tactile_landmarks": ["Floor transition from carpet to marble at entrance", "Large door size distinguishes from smaller rooms"]
+    },
+    
+    "forum": {
+      "description": "Medium-sized conference room with flexible seating arrangement, located on the right side of the ground floor exhibition area.",
+      "capacity": 150,
+      "layout": "Classroom-style seating arrangement",
+      "level": "Ground floor (Parterre)", 
+      "navigation_from_kiosk": "Turn left → walk 25m to exhibition area → turn right 20m → standard door entrance",
+      "door_details": "Standard width door, wood veneer finish, push-to-open mechanism",
+      "acoustic_profile": "Low reverberation, optimized for oral presentations and Q&A sessions",
+      "accessibility_features": ["Wheelchair accessible", "Clear sight lines", "Assistive listening compatible"],
+      "notable_events": ["Oral sessions O3.2, O3.6", "Radionuclide presentations", "Specialized technical talks"],
+      "tactile_landmarks": ["Standard door distinguishes from larger Prinz Eugen Saal", "Carpeted approach area"]
+    },
+    
+    "wintergarten": {
+      "description": "Seminar-style conference room with large windows providing natural lighting. The name reflects its garden-facing orientation within the palace complex.",
+      "capacity": 300,
+      "layout": "Seminar-style seating with flexible arrangements",
+      "level": "Upper level (Mezzanine)",
+      "navigation_from_kiosk": "Follow route to Festsaal → continue past Festsaal 15m → next major door on left",
+      "door_details": "Standard conference room entrance, moderate width",
+      "acoustic_profile": "Moderate reverberation, excellent for presentations and workshops",
+      "accessibility_features": ["Natural lighting beneficial for low-vision users", "Hearing loop system", "Flexible seating arrangements"],
+      "notable_events": ["Technical presentations", "Workshop sessions", "Specialized seminars"],
+      "tactile_landmarks": ["Possible warmth from window solar gain", "Sound difference due to windows"]
+    },
+    
+    "zeremoniensaal": {
+      "description": "Ceremonial hall on the mezzanine level within the SnT2025 conference zone. Formal presentation space with traditional Habsburg architectural elements.",
+      "capacity": 200,
+      "layout": "Formal ceremonial hall with flexible presentation arrangements",
+      "level": "Upper level (Mezzanine)",
+      "navigation_from_entry": "Left 15m to Feststiege → up stairs → right 15m to ceremonial entrance",
+      "exact_distances": {
+        "entry_to_feststiege": "15 meters",
+        "stair_ascent": "20-25 steps (45-60 seconds)", 
+        "stair_top_to_entrance": "15 meters",
+        "total_walking_time": "1.5-2 minutes"
+      },
+      "door_details": "Large ceremonial doorway with formal entrance characteristics",
+      "room_characteristics": "Formal ceremonial space with traditional Habsburg architectural design",
+      "accessibility_features": ["Hearing loop system", "Formal presentation setup", "Clear sight lines"],
+      "notable_events": ["Ceremonial presentations", "Formal speeches", "Official conference functions"],
+      "tactile_landmarks": ["Formal doorway entrance", "Ceremonial hall architecture", "Traditional flooring materials"]
+    },
+    
+    "gardensaal": {
+      "description": "Primary ground floor venue within the SnT2025 conference zone. Flexible exhibition and meeting space with direct access from entry foyer.",
+      "capacity": "Flexible (exhibition format)",
+      "layout": "Open exhibition space with flexible arrangements",
+      "level": "Ground floor (Parterre)",
+      "navigation_from_entry": "Straight ahead 8m from information point",
+      "exact_distances": {
+        "entry_to_door": "8 meters",
+        "walking_time": "15-20 seconds"
+      },
+      "door_details": "Large doorway opening into exhibition space",
+      "room_characteristics": "Flexible exhibition space with carpeted areas and adaptable layout",
+      "accessibility_features": ["Ground floor access", "Flexible layout", "Exhibition accessibility standards"],
+      "notable_events": ["SnT2025 exhibitions", "Meeting spaces", "Conference support activities"],
+      "tactile_landmarks": ["Floor transition from marble to carpet", "Large doorway opening", "Exhibition space layout"]
+    }
+  },
+
+  "accessibility_wayfinding": {
+    "kiosk_reference_point": {
+      "description": "Information kiosk in Entry Foyer serves as primary navigation reference",
+             "clock_face_orientation": {
+         "12_oclock": "Gardensaal entrance (8m)",
+         "1_oclock": "WC facilities/restrooms (12m)",
+         "3_oclock": "Registration and cloakroom area (3-5m)",
+         "6_oclock": "Main entrance and security (behind you)",
+         "9_oclock": "Corridor toward Festsaal staircase (15m)",
+         "10_oclock": "Red carpet area leading to Feststiege (10m)"
+       },
+             "tactile_landmarks": ["Polished marble flooring", "Air flow from main entrance", "Registration activity area"]
+    },
+    
+    "vertical_circulation": {
+      "feststiege_grand_staircase": {
+        "location": "15m straight ahead from kiosk (12 o'clock direction)",
+        "description": "Historic marble staircase with ornate balustrade",
+        "tactile_features": ["Marble steps", "Ornate handrail", "Acoustic change as you ascend"]
+      },
+      "barrier_free_elevator_gardehalle": {
+        "location": "Far end of exhibition area, turn right, 15m ahead",
+        "features": ["Audio chimes on arrival", "Voice floor announcements", "Braille button panel", "Tactile floor indicators"]
+      },
+      "barrier_free_elevator_seitenhalle": {
+        "location": "End of upper level corridor, right into Seitenhalle, 20m ahead", 
+        "features": ["Secondary elevator access", "Same audio features as primary elevator"]
+      }
+    },
+    
+    "essential_services": {
+      "restrooms": {
+        "location": "Base of Feststiege stairs, turn right 5m",
+        "accessibility": ["Textured floor tiles 2m before entrances", "Audible door locks in accessible stalls"]
+      },
+      "prayer_room": {
+        "location": "Exhibition area entrance, immediate left 10m, first door",
+        "features": ["Braille signage", "Quiet space for prayer and meditation"]
+      },
+      "nursing_room": {
+        "location": "Exhibition area entrance, immediate left 10m, second door", 
+        "features": ["Comfortable seating", "Private space for nursing mothers"]
+      }
+    },
+    
+    "emergency_procedures": {
+      "evacuation_routes": {
+        "ground_floor": "Return to main entrance (6 o'clock from kiosk) or follow emergency audio beacons to secondary exits",
+        "upper_level": "Feststiege grand staircase (primary) or emergency staircase in Seitenhalle (backup)"
+      },
+      "assembly_point": "Schlossplatz square (outside main entrance)",
+      "staff_identification": "SnT2025 staff wear distinctive lanyards with tactile identification badges"
+    }
   }
 }

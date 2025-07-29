@@ -8,11 +8,12 @@ NO HARDCODED FALLBACKS - Pure AI reasoning
 import os
 import json
 import time
+import asyncio
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 from dataclasses import dataclass
 import logging
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 from dotenv import load_dotenv
 
 # Import our SearchResult dataclass from weaviate knowledge search
@@ -20,6 +21,9 @@ from backend.weaviate_knowledge_search import SearchResult
 
 # Import structured logging
 from backend.logger import logger as rosa_logger, LLMInstance
+
+# Import new structured card processor
+from backend.structured_card_processor import StructuredCardProcessor
 
 # Load environment variables
 load_dotenv()
@@ -45,6 +49,7 @@ class UIIntelligenceAgent:
     
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.structured_processor = StructuredCardProcessor()  # New processor for Responses API
         self.conversation_memory = {}  # Track conversation context
         self.user_preferences = {}     # Learn from user interactions
         self.decision_history = {}     # Track decision patterns
@@ -218,6 +223,61 @@ Respond in JSON format:
             logger.error(f"UI Intelligence analysis failed: {e}")
             # Graceful degradation - no cards rather than errors
             return []
+    
+    async def determine_cards_to_show_async(
+        self, 
+        search_results: List[SearchResult], 
+        user_message: str, 
+        conversation_context: List[Dict]
+    ) -> List[CardDecision]:
+        """Async version using structured outputs and Responses API"""
+        
+        if not search_results:
+            return []
+        
+        try:
+            # Use structured processor for parallel processing
+            cards_data = await self.structured_processor.process_search_results_parallel(
+                search_results=search_results,
+                user_query=user_message,
+                max_cards=3
+            )
+            
+            # Convert to CardDecision objects
+            decisions = []
+            for card_data in cards_data:
+                card_type = self._infer_card_type(card_data)
+                decision = CardDecision(
+                    card_type=card_type,
+                    card_data=card_data,
+                    display_reason=f"High relevance ({card_data['relevance_score']:.2f}) to user query",
+                    confidence=card_data['relevance_score'],
+                    timing="immediate"
+                )
+                decisions.append(decision)
+            
+            return decisions
+            
+        except Exception as e:
+            logger.error(f"Async card determination failed: {e}")
+            return []
+    
+    def determine_cards_to_show_structured(self, search_results: List[SearchResult], user_message: str, conversation_context: List[Dict]) -> List[CardDecision]:
+        """Sync wrapper for the new structured outputs approach"""
+        return asyncio.run(self.determine_cards_to_show_async(search_results, user_message, conversation_context))
+    
+    def _infer_card_type(self, card_data: Dict[str, Any]) -> str:
+        """Infer card type from the structured data"""
+        if 'session_id' in card_data:
+            return 'session'
+        elif 'speaker_id' in card_data:
+            return 'speaker'
+        elif 'venue_id' in card_data:
+            return 'venue'
+        elif 'topic_id' in card_data:
+            return 'topic'
+        else:
+            return 'session'  # Default fallback
     
     def _build_advanced_system_prompt(self) -> str:
         """Build the advanced system prompt with modern 2025 techniques"""

@@ -77,43 +77,15 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
         
         ui_agent = UIIntelligenceAgent()
         
-        # Build conversation context for UI Intelligence
-        conversation_context = {
-            "user_message": user_message,
-            "assistant_response": rag_data.get("formatted_response", "Searching conference information..."),
-            "turn_number": 1,  # Could be tracked from conversation history
-            "elapsed_time": "30s"  # Could be calculated from session start
-        }
+        # The new method needs the raw search results from Weaviate, not the serialized ones.
+        raw_search_results = rag_data.get("search_results", [])
         
-        # Convert SearchResult objects to dicts for JSON serialization
-        categorized_results = rag_data.get("categorized_results", {})
-        serializable_results = {}
-        
-        for category, results in categorized_results.items():
-            if isinstance(results, list):
-                serializable_results[category] = []
-                for result in results:
-                    if hasattr(result, '__dict__'):
-                        # Convert dataclass/object to dict
-                        serializable_results[category].append({
-                            'id': getattr(result, 'id', ''),
-                            'title': getattr(result, 'title', ''),
-                            'content': getattr(result, 'content', ''),
-                            'metadata': getattr(result, 'metadata', {}),
-                            'relevance_score': getattr(result, 'relevance_score', 0.0),
-                            'collection': getattr(result, 'collection', ''),
-                            'search_type': getattr(result, 'search_type', '')
-                        })
-                    else:
-                        serializable_results[category].append(result)
-            else:
-                serializable_results[category] = results
-        
-        # Get intelligent card decisions (this is the expensive part that runs async)
-        card_decisions = ui_agent.analyze_conversation_for_cards(
-            conversation_context=conversation_context,
-            rag_results=serializable_results,
-            session_id=session_id
+        # Get intelligent card decisions using the new structured output pipeline
+        # This calls the `determine_cards_to_show_async` method which uses the new `StructuredCardProcessor`
+        card_decisions = await ui_agent.determine_cards_to_show_async(
+            search_results=raw_search_results,
+            user_message=user_message,
+            conversation_context=[{"role": "user", "content": user_message}] # Pass a simple history
         )
         
         # Store card decisions for frontend polling
@@ -122,38 +94,22 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
         
         for decision in card_decisions:
             if decision.card_type == "session":
-                backend.session_rag_data[session_id]["latest_session"] = {
-                    "card_data": decision.card_data,
-                    "display_reason": decision.display_reason,
-                    "confidence": decision.confidence,
-                    "timing": decision.timing
-                }
-                # Record delta for frontend micro-update
-                backend.store_card_data_with_delta(session_id, "latest_session", backend.session_rag_data[session_id]["latest_session"])
+                backend.store_card_data_with_delta(session_id, "latest_session", decision.card_data)
                 print(f"📊 Async: Stored session card for {session_id}")
             elif decision.card_type == "speaker":
-                backend.session_rag_data[session_id]["latest_speaker"] = {
-                    "card_data": decision.card_data,
-                    "display_reason": decision.display_reason,
-                    "confidence": decision.confidence,
-                    "timing": decision.timing
-                }
-                backend.store_card_data_with_delta(session_id, "latest_speaker", backend.session_rag_data[session_id]["latest_speaker"])
+                backend.store_card_data_with_delta(session_id, "latest_speaker", decision.card_data)
                 print(f"👤 Async: Stored speaker card for {session_id}")
             elif decision.card_type == "topic":
-                backend.session_rag_data[session_id]["latest_topic"] = {
-                    "card_data": decision.card_data,
-                    "display_reason": decision.display_reason,
-                    "confidence": decision.confidence,
-                    "timing": decision.timing
-                }
-                backend.store_card_data_with_delta(session_id, "latest_topic", backend.session_rag_data[session_id]["latest_topic"])
-                print(f"🏷️ Async: Stored topic card for {session_id}")
+                backend.store_card_data_with_delta(session_id, "latest_topic", decision.card_data)
+                print(f"Topics Async: Stored topic card for {session_id}")
+            elif decision.card_type == "venue":
+                backend.store_card_data_with_delta(session_id, "latest_venue", decision.card_data)
+                print(f"🏢 Async: Stored venue card for {session_id}")
         
         print(f"🧠 Async: UI Intelligence made {len(card_decisions)} card decisions for session {session_id}")
         
     except Exception as e:
-        print(f"⚠️ Async card generation failed for session {session_id}: {e}")
+        print(f"❌ Async card generation failed for session {session_id}: {e}")
         import traceback
         traceback.print_exc()
         

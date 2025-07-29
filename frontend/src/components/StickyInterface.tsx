@@ -33,7 +33,7 @@ const interfaceVariants = {
     y: 0,
     opacity: 1,
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 300,
       damping: 30,
       mass: 0.8
@@ -44,7 +44,7 @@ const interfaceVariants = {
     opacity: 0,
     transition: {
       duration: 0.3,
-      ease: [0.4, 0, 0.2, 1]
+      ease: [0.4, 0, 0.2, 1] as const
     }
   }
 };
@@ -56,7 +56,7 @@ const suggestionVariants = {
     scale: 1,
     transition: {
       duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: [0.25, 0.46, 0.45, 0.94] as const
     }
   },
   exit: {

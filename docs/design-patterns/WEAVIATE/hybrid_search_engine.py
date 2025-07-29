@@ -297,7 +297,7 @@ class HybridSearchEngine:
             
         collection = self.client.collections.get('Speaker')
         
-        try:
+    try:
             # Use hybrid search with property weights
             response = await asyncio.to_thread(
                 collection.query.hybrid,
@@ -346,7 +346,7 @@ class HybridSearchEngine:
             
         collection = self.client.collections.get('Session')
         
-        try:
+    try:
             response = await asyncio.to_thread(
                 collection.query.hybrid,
                 query=query,
@@ -406,7 +406,7 @@ class HybridSearchEngine:
             
         collection = self.client.collections.get('Topic')
         
-        try:
+    try:
             response = await asyncio.to_thread(
                 collection.query.hybrid,
                 query=query,
@@ -451,7 +451,7 @@ class HybridSearchEngine:
             
         collection = self.client.collections.get('Venue')
         
-        try:
+    try:
             response = await asyncio.to_thread(
                 collection.query.hybrid,
                 query=query,
@@ -495,7 +495,7 @@ class HybridSearchEngine:
             
         collection = self.client.collections.get('ContentChunk')
         
-        try:
+    try:
             response = await asyncio.to_thread(
                 collection.query.hybrid,
                 query=query,
@@ -650,7 +650,7 @@ class HybridSearchEngine:
                 cached_result['cache_hit'] = True
                 return cached_result
         
-        try:
+    try:
             # Step 1: Parallel query analysis
             classification_task = self.classify_query(query)
             decomposition_task = self.decompose_query(query)
@@ -721,15 +721,15 @@ async def test_search():
     engine = HybridSearchEngine()
     
     try:
-                 # Test different query types for conference system (using real SnT2025 data)
-         test_queries = [
-             "machine learning seismic location",     # concept_seeking (Ansari's expertise)
-             "Find Anooshiravan Ansari",             # person_seeking (real speaker)
-             "What time is O3.1 session?",           # fact_seeking (real session)
-             "IMS detection capabilities",            # keyword_queries (real CTBTO term)
-             "How do I get to Prinz Eugen Saal?",    # navigation (real room)
-             "Show me T1.2 solid earth sessions",    # browsing (real topic)
-         ]
+        # Test different query types for conference system (using real SnT2025 data)
+        test_queries = [
+            "machine learning seismic location",     # concept_seeking (Ansari's expertise)
+            "Find Anooshiravan Ansari",             # person_seeking (real speaker)
+            "What time is O3.1 session?",           # fact_seeking (real session)
+            "IMS detection capabilities",            # keyword_queries (real CTBTO term)
+            "How do I get to Prinz Eugen Saal?",    # navigation (real room)
+            "Show me T1.2 solid earth sessions",    # browsing (real topic)
+        ]
         
         for query in test_queries:
             print(f"\n🔍 Testing: '{query}'")

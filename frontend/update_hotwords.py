@@ -8,7 +8,8 @@ def update_persona_hotwords():
     try:
         # Define paths relative to the script's location
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        hotwords_path = os.path.join(script_dir, 'backend', 'backend_data', 'glossaries', 'hotwords.json')
+        project_root = os.path.dirname(script_dir) # Go up one level from frontend to project root
+        hotwords_path = os.path.join(project_root, 'backend', 'backend_data', 'glossaries', 'hotwords.json')
         persona_config_path = os.path.join(script_dir, 'rosa-persona-config.json')
 
         # Read the hotwords from hotwords.json

@@ -6,6 +6,10 @@ Vector Search Tool for the SnT2025 Conference Avatar
 -   **Voice-Controlled Kiosk Ready**: Optimized for the generative UI pattern.
 """
 
+import warnings
+# Suppress protobuf version warnings from weaviate-client
+warnings.filterwarnings("ignore", message="Protobuf gencode version .* is .* older than the runtime version.*")
+
 import weaviate
 import weaviate.classes.config as wvc
 import weaviate.classes.query as wvc_query

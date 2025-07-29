@@ -325,6 +325,12 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 search_mode="comprehensive"
             )
             
+            # Extract raw search results for structured processing
+            search_results = []
+            for category, results in categorized_results.items():
+                if isinstance(results, list):
+                    search_results.extend(results)
+            
             # Format results for LLM consumption with relevance context
             formatted_results = []
             
@@ -373,6 +379,7 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 "query": query,
                 "formatted_response": formatted_response,
                 "categorized_results": categorized_results,
+                "search_results": search_results,  # Add raw results for structured processing
                 "total_results": {
                     "sessions": len(categorized_results["sessions"]),
                     "speakers": len(categorized_results["speakers"]), 
@@ -391,7 +398,9 @@ Remember: Give short and consise answers and use the tools to get the most relev
                 "error": f"Conference search failed: {str(e)}",
                 "success": False,
                 "query": query,
-                "formatted_response": "I apologize, but I'm having trouble searching the conference database right now. Please try again."
+                "formatted_response": "I apologize, but I'm having trouble searching the conference database right now. Please try again.",
+                "search_results": [],  # Empty list for error case
+                "categorized_results": {"sessions": [], "speakers": [], "topics": []}
             }
     
     def graph_lookup(self, lookup_type: str, entity_name: str) -> dict:

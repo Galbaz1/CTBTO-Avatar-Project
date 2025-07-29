@@ -47,18 +47,18 @@ build/
 .vite/
 .turbo/
 
-# -----------------------------------------------------------------------------
-# Large SVG Floorplan Files (Conference-specific)
-# -----------------------------------------------------------------------------
-# These are massive SVG files (500KB-1MB each) for Hofburg Palace floorplans
-backend/backend_data/floorplan_info/*.svg
-# Specifically the huge ones we found:
-backend/backend_data/floorplan_info/hofburg_1_mezzanine_all_areas.svg
-backend/backend_data/floorplan_info/hofburg_0_parterre_all_areas.svg
-backend/backend_data/floorplan_info/zeremonienzaal.svg
+# # -----------------------------------------------------------------------------
+# # Large SVG Floorplan Files (Conference-specific)
+# # -----------------------------------------------------------------------------
+# # These are massive SVG files (500KB-1MB each) for Hofburg Palace floorplans
+# backend/backend_data/floorplan_info/*.svg
+# # Specifically the huge ones we found:
+# backend/backend_data/floorplan_info/hofburg_1_mezzanine_all_areas.svg
+# backend/backend_data/floorplan_info/hofburg_0_parterre_all_areas.svg
+# backend/backend_data/floorplan_info/zeremonienzaal.svg
 
-# But keep the JSON config files (small and useful)
-!backend/backend_data/floorplan_info/*.json
+# # But keep the JSON config files (small and useful)
+# !backend/backend_data/floorplan_info/*.json
 
 # -----------------------------------------------------------------------------
 # Environment & Secrets

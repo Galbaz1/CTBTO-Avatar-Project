@@ -1,0 +1,117 @@
+from pydantic import BaseModel, Field, validator
+from typing import List, Optional, Union
+from datetime import datetime
+
+class SessionCard(BaseModel):
+    """Structured output for conference session cards"""
+    session_id: str = Field(
+        description="Unique session identifier from Weaviate search results"
+    )
+    title: str = Field(
+        description="Clear, descriptive session title that users can understand"
+    )
+    description: str = Field(
+        description="Comprehensive session abstract, summary, or key points"
+    )
+    speakers: List[str] = Field(
+        description="List of speaker names presenting this session",
+        default_factory=list
+    )
+    venue: Optional[str] = Field(
+        description="Room name, building, or venue location if available",
+        default=None
+    )
+    start_time: Optional[str] = Field(
+        description="Session start time in HH:MM format (24-hour)",
+        default=None
+    )
+    end_time: Optional[str] = Field(
+        description="Session end time in HH:MM format (24-hour)", 
+        default=None
+    )
+    date: Optional[str] = Field(
+        description="Session date in YYYY-MM-DD format",
+        default=None
+    )
+    theme: Optional[str] = Field(
+        description="Theme code like T1.1, T1.2, or topical category",
+        default=None
+    )
+    duration_minutes: Optional[int] = Field(
+        description="Session duration in minutes if calculable",
+        default=None
+    )
+    has_speakers: bool = Field(
+        description="Whether this session has confirmed speakers"
+    )
+    relevance_score: float = Field(
+        description="Relevance to user query on scale 0.0 to 1.0",
+        ge=0.0,
+        le=1.0
+    )
+    
+    @validator('speakers')
+    def validate_speakers(cls, v):
+        # Remove empty strings and duplicates
+        return list(set(filter(None, v)))
+    
+    @validator('has_speakers', pre=True, always=True)
+    def set_has_speakers(cls, v, values):
+        speakers = values.get('speakers', [])
+        return len(speakers) > 0
+
+class SpeakerCard(BaseModel):
+    """Structured output for speaker profile cards"""
+    speaker_id: str = Field(description="Unique speaker identifier")
+    name: str = Field(description="Full speaker name")
+    title: Optional[str] = Field(description="Professional title or position", default=None)
+    affiliation: Optional[str] = Field(description="Organization or institution", default=None)
+    bio: Optional[str] = Field(description="Speaker biography or background", default=None)
+    expertise: List[str] = Field(description="Areas of expertise or research", default_factory=list)
+    sessions: List[str] = Field(description="Session titles they are presenting", default_factory=list)
+    total_sessions: int = Field(description="Total number of sessions presenting")
+    contact_info: Optional[str] = Field(description="Contact information if available", default=None)
+    relevance_score: float = Field(description="Relevance to query (0.0-1.0)", ge=0.0, le=1.0)
+
+class VenueCard(BaseModel):
+    """Structured output for venue/room cards"""
+    venue_id: str = Field(description="Unique venue identifier")
+    name: str = Field(description="Venue or room name")
+    building: Optional[str] = Field(description="Building name if applicable", default=None)
+    level: Optional[str] = Field(description="Floor level (ground, first, etc)", default=None)
+    capacity: Optional[int] = Field(description="Room capacity if known", default=None)
+    description: Optional[str] = Field(description="Venue description or features", default=None)
+    sessions_count: int = Field(description="Number of sessions in this venue")
+    upcoming_sessions: List[str] = Field(description="Upcoming session titles", default_factory=list)
+    relevance_score: float = Field(description="Relevance to query (0.0-1.0)", ge=0.0, le=1.0)
+
+class TopicCard(BaseModel):
+    """Structured output for topic/theme cards"""
+    topic_id: str = Field(description="Unique topic identifier")
+    title: str = Field(description="Topic or theme title")
+    code: Optional[str] = Field(description="Theme code like T1.1, T1.2", default=None)
+    description: str = Field(description="Topic description or summary")
+    sessions_count: int = Field(description="Number of sessions under this topic")
+    related_sessions: List[str] = Field(description="Related session titles", default_factory=list)
+    keywords: List[str] = Field(description="Key terms or concepts", default_factory=list)
+    relevance_score: float = Field(description="Relevance to query (0.0-1.0)", ge=0.0, le=1.0)
+
+# Union type for AI to choose card type
+CardOutput = Union[SessionCard, SpeakerCard, VenueCard, TopicCard]
+
+# Wrapper models for list outputs (required for structured outputs)
+class SessionCardList(BaseModel):
+    """Wrapper for multiple session cards"""
+    cards: List[SessionCard] = Field(description="List of session cards extracted from the data")
+
+class SpeakerCardList(BaseModel):
+    """Wrapper for multiple speaker cards"""
+    cards: List[SpeakerCard] = Field(description="List of speaker cards extracted from the data")
+
+class VenueCardList(BaseModel):
+    """Wrapper for multiple venue cards"""
+    cards: List[VenueCard] = Field(description="List of venue cards extracted from the data")
+
+class TopicCardList(BaseModel):
+    """Wrapper for multiple topic cards"""
+    cards: List[TopicCard] = Field(description="List of topic cards extracted from the data")

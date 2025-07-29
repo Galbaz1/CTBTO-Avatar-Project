@@ -10,8 +10,28 @@ import { FullScreenCardContainer } from './FullScreenCardContainer';
 import type { WeatherData } from '../types/cards';
 import { StickyInterface } from './StickyInterface';
 import { timingTracker } from '../utils/timingTracker';
+import { SessionCard, SpeakerCard, TopicCard, VenueCard } from './cards/enhanced';
+import { WeatherCard } from './WeatherCard';
 
 type ConversationStatus = 'idle' | 'connecting' | 'connected' | 'disconnecting';
+
+// Component mapping for card types
+const getCardComponent = (type: string) => {
+  switch (type) {
+    case 'session':
+      return SessionCard;
+    case 'speaker':
+      return SpeakerCard;
+    case 'topic':
+      return TopicCard;
+    case 'venue':
+      return VenueCard;
+    case 'weather':
+      return WeatherCard;
+    default:
+      return SessionCard; // Fallback to session card
+  }
+};
 
 export const RosaDemo: React.FC = () => {
   const [status, setStatus] = useState<ConversationStatus>('idle');
@@ -166,11 +186,12 @@ export const RosaDemo: React.FC = () => {
       cardArray.push({
         id: sessionContent.session_id || 'current-session-card',
         type: 'session',
-        content: sessionContent,
+        data: sessionContent,
+        component: getCardComponent('session'),
         size: 'full',
       });
 
-      const cardArrayHash = JSON.stringify(cardArray.map((c) => ({ id: c.id, type: c.type, title: c.content?.title })));
+      const cardArrayHash = JSON.stringify(cardArray.map((c) => ({ id: c.id, type: c.type, title: c.data?.title })));
       if (cardArrayHash !== lastCardArrayHash.current) {
         console.log(`🎯 Session card ready: "${sessionContent.title}" @ ${sessionContent.venue}`);
         lastCardArrayHash.current = cardArrayHash;
@@ -183,7 +204,8 @@ export const RosaDemo: React.FC = () => {
         cardArray.push({
           id: 'current-speaker-card',
           type: 'speaker',
-          content: speakerData,
+          data: speakerData,
+          component: getCardComponent('speaker'),
           size: 'full',
         });
       }
@@ -193,7 +215,8 @@ export const RosaDemo: React.FC = () => {
       cardArray.push({
         id: 'current-topic-card',
         type: 'topic',
-        content: ragData.topic,
+        data: ragData.topic,
+        component: getCardComponent('topic'),
         size: 'full',
       });
     }
@@ -202,7 +225,8 @@ export const RosaDemo: React.FC = () => {
       cardArray.push({
         id: 'weather-card',
         type: 'weather',
-        content: weatherData,
+        data: weatherData,
+        component: getCardComponent('weather'),
         size: 'full',
       });
     }

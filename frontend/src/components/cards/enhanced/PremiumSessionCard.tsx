@@ -65,7 +65,7 @@ const cardVariants = {
     y: 0,
     scale: 1,
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 300,
       damping: 24,
       mass: 0.8,
@@ -77,7 +77,7 @@ const cardVariants = {
     y: -8,
     transition: {
       duration: 0.2,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: [0.25, 0.46, 0.45, 0.94] as const
     }
   }
 };
@@ -89,7 +89,7 @@ const contentVariants = {
     y: 0,
     transition: {
       duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: [0.25, 0.46, 0.45, 0.94] as const
     }
   }
 };
@@ -103,7 +103,7 @@ const badgeVariants = {
     transition: {
       delay: i * 0.06,
       duration: 0.25,
-      ease: [0.25, 0.46, 0.45, 0.94]
+      ease: [0.25, 0.46, 0.45, 0.94] as const
     }
   })
 };
@@ -263,14 +263,14 @@ function PremiumSessionCardTitle({ children, className }: { children?: React.Rea
 }
 
 function PremiumSessionCardMeta({ className }: { className?: string }) {
-  const { session, variant, animated } = usePremiumSessionCard();
+  const { session, animated } = usePremiumSessionCard();
   
   const badges = [
     { label: session.session_type, variant: 'default', color: getThemeColor(session.scientific_field) },
     { label: session.theme_code || session.theme, variant: 'outline', color: 'conference-600' },
     { label: `${session.duration_minutes}min`, variant: 'secondary', color: 'conference-500' },
-    session.priority_level && { label: session.priority_level, variant: 'outline', color: getPriorityColor(session.priority_level) },
-  ].filter(Boolean);
+    ...(session.priority_level ? [{ label: session.priority_level, variant: 'outline', color: getPriorityColor(session.priority_level) }] : []),
+  ];
   
   return (
     <div className={cn(
@@ -369,7 +369,7 @@ function PremiumSessionCardDetails({ className }: { className?: string }) {
 }
 
 function PremiumSessionCardSpeakers({ maxSpeakers = 3, className }: { maxSpeakers?: number; className?: string }) {
-  const { session, variant, animated } = usePremiumSessionCard();
+  const { session, animated } = usePremiumSessionCard();
   
   if (!session.speakers || session.speakers.length === 0) return null;
   
