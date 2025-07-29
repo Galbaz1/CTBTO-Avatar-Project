@@ -1,9 +1,16 @@
 export interface CardData {
   id: string;
-  type: 'weather' | 'session' | 'speaker' | 'topic' | 'floor-plan' | 'qr-schedule' | 'live-status';
+  type:
+    | "weather"
+    | "session"
+    | "speaker"
+    | "topic"
+    | "floor-plan"
+    | "qr-schedule"
+    | "live-status";
   content: any;
   priority?: number;
-  size?: 'compact' | 'full' | 'hero';
+  size?: "compact" | "full" | "hero";
 }
 
 export interface WeatherData {
@@ -19,4 +26,4 @@ export interface WeatherData {
   pressure?: number;
   icon: string;
   success: boolean;
-} 
+}

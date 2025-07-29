@@ -1,0 +1,11 @@
+{
+  "regions": ["fra1"],
+  "functions": {
+    "api/voice-chat/route.ts": {
+      "runtime": "edge"
+    },
+    "data-api/**/*.{js,ts}": {
+      "memory": 512
+    }
+  }
+} 

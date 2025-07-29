@@ -4,20 +4,9 @@ import { MicSelectBtn } from "../device-select";
 import { useStartHaircheck } from "../../hooks/use-start-haircheck";
 import styles from "./hair-check.module.css";
 
-const JoinBtn = ({
-  disabled,
-  onClick
-}: {
-  disabled: boolean;
-  onClick: () => void;
-}) => {
+const JoinBtn = ({ disabled }: { disabled: boolean }) => {
   return (
-    <button
-      type="button"
-      className={styles.joinBtn}
-      onClick={onClick}
-      disabled={disabled}
-    >
+    <button type="button" className={styles.joinBtn} disabled={disabled}>
       Join call
     </button>
   );
@@ -30,7 +19,8 @@ interface HairCheckProps {
 // Simplified voice-only hair check - no camera needed for Rosa
 export const HairCheck = memo<HairCheckProps>(({ onComplete }) => {
   const daily = useDaily();
-  const { isPermissionsGranted, requestPermissions } = useStartHaircheck();
+  const { isPermissionsGranted, requestPermissions: _requestPermissions } =
+    useStartHaircheck();
 
   // Auto-complete hair check for voice-only Rosa
   useEffect(() => {
@@ -40,18 +30,11 @@ export const HairCheck = memo<HairCheckProps>(({ onComplete }) => {
     }
   }, [daily, isPermissionsGranted, onComplete]);
 
-  const handleJoin = () => {
-    requestPermissions();
-    onComplete();
-  };
-
   return (
     <div className={styles.container}>
       <div className={styles.main}>
-        <div className={styles.title}>
-          🎤 Voice Check
-        </div>
-        
+        <div className={styles.title}>🎤 Voice Check</div>
+
         <div className={styles.description}>
           Rosa is voice-only. Make sure your microphone is working.
         </div>
@@ -61,10 +44,7 @@ export const HairCheck = memo<HairCheckProps>(({ onComplete }) => {
         </div>
 
         <div className={styles.actions}>
-          <JoinBtn
-            disabled={!isPermissionsGranted}
-            onClick={handleJoin}
-          />
+          <JoinBtn disabled={!isPermissionsGranted} />
         </div>
       </div>
     </div>

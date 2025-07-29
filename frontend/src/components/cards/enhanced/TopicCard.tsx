@@ -1,7 +1,7 @@
-import React, { createContext, useContext } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Badge } from '../compound/Badge';
+import React, { createContext, useContext } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Badge } from "../compound/Badge";
 
 // === TYPES & INTERFACES ===
 
@@ -18,8 +18,8 @@ interface SnT2025Topic {
   sessionTypes: string[];
   venues: string[];
   relevance_score?: number;
-  priority_level?: 'high' | 'medium' | 'low';
-  expertise_level?: 'beginner' | 'intermediate' | 'expert';
+  priority_level?: "high" | "medium" | "low";
+  expertise_level?: "beginner" | "intermediate" | "expert";
 }
 
 interface TopicSession {
@@ -45,7 +45,7 @@ const TopicCardContext = createContext<TopicCardContextValue | null>(null);
 const useTopicCard = () => {
   const context = useContext(TopicCardContext);
   if (!context) {
-    throw new Error('TopicCard components must be used within TopicCard');
+    throw new Error("TopicCard components must be used within TopicCard");
   }
   return context;
 };
@@ -54,24 +54,24 @@ const useTopicCard = () => {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.3,
-    }
-  }
+    },
+  },
 };
 
 const contentVariants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
     transition: {
       delay: 0.1,
-      duration: 0.2
-    }
-  }
+      duration: 0.2,
+    },
+  },
 };
 
 const sessionVariants = {
@@ -82,8 +82,8 @@ const sessionVariants = {
     transition: {
       delay: i * 0.05,
       duration: 0.2,
-    }
-  })
+    },
+  }),
 };
 
 // === MAIN COMPONENT ===
@@ -97,18 +97,18 @@ interface TopicCardProps {
   [key: string]: any;
 }
 
-function TopicCard({ 
-  topic, 
-  compact = false, 
-  animated = true, 
+function TopicCard({
+  topic,
+  compact = false,
+  animated = true,
   className,
-  children 
+  children,
 }: TopicCardProps) {
   const contextValue: TopicCardContextValue = {
     topic,
     compact,
     animated,
-    className
+    className,
   };
 
   return (
@@ -127,7 +127,7 @@ function TopicCard({
           "focus-within:ring-2 focus-within:ring-purple-500 focus-within:ring-offset-2",
           // Responsive sizing for kiosk displays
           compact ? "p-4" : "p-6",
-          className
+          className,
         )}
         // Voice-only: no mouse interaction handlers
         role="article"
@@ -142,9 +142,15 @@ function TopicCard({
 
 // === COMPOUND COMPONENTS ===
 
-function TopicCardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+function TopicCardHeader({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useTopicCard();
-  
+
   return (
     <motion.header
       variants={animated ? contentVariants : undefined}
@@ -155,10 +161,16 @@ function TopicCardHeader({ children, className }: { children: React.ReactNode; c
   );
 }
 
-function TopicCardTitle({ children, className }: { children?: React.ReactNode; className?: string }) {
+function TopicCardTitle({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { topic, compact } = useTopicCard();
   const displayTitle = children || topic.title;
-  
+
   return (
     <h3
       id={`topic-title-${topic.code}`}
@@ -169,7 +181,7 @@ function TopicCardTitle({ children, className }: { children?: React.ReactNode; c
         "text-gray-900",
         // Text overflow handling for long titles
         "line-clamp-2 leading-tight",
-        className
+        className,
       )}
     >
       {displayTitle}
@@ -179,13 +191,15 @@ function TopicCardTitle({ children, className }: { children?: React.ReactNode; c
 
 function TopicCardMeta({ className }: { className?: string }) {
   const { topic, compact } = useTopicCard();
-  
+
   return (
-    <div className={cn(
-      "flex flex-wrap items-center gap-2 mt-2", 
-      compact ? "text-sm" : "text-base",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-2 mt-2",
+        compact ? "text-sm" : "text-base",
+        className,
+      )}
+    >
       <Badge variant="secondary" className="text-xs font-medium">
         {topic.code}
       </Badge>
@@ -209,9 +223,15 @@ function TopicCardMeta({ className }: { className?: string }) {
   );
 }
 
-function TopicCardBody({ children, className }: { children: React.ReactNode; className?: string }) {
+function TopicCardBody({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useTopicCard();
-  
+
   return (
     <motion.div
       variants={animated ? contentVariants : undefined}
@@ -222,10 +242,16 @@ function TopicCardBody({ children, className }: { children: React.ReactNode; cla
   );
 }
 
-function TopicCardDescription({ children, className }: { children?: React.ReactNode; className?: string }) {
+function TopicCardDescription({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { topic, compact } = useTopicCard();
   const displayDescription = children || topic.description;
-  
+
   return (
     <p
       id={`topic-description-${topic.code}`}
@@ -236,7 +262,7 @@ function TopicCardDescription({ children, className }: { children?: React.ReactN
         "text-gray-700",
         // Handle long descriptions
         "line-clamp-3 leading-relaxed",
-        className
+        className,
       )}
     >
       {displayDescription}
@@ -246,40 +272,42 @@ function TopicCardDescription({ children, className }: { children?: React.ReactN
 
 function TopicCardKeywords({ className }: { className?: string }) {
   const { topic, compact } = useTopicCard();
-  
+
   if (!topic.keywords || topic.keywords.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Keywords
       </h4>
       <div className="flex flex-wrap gap-1">
         {topic.keywords.slice(0, compact ? 4 : 8).map((keyword, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs px-2 py-1" : "text-sm px-2 py-1",
               // Clear, accessible colors - no hover states
-              "bg-purple-50 text-purple-700 border-purple-200"
+              "bg-purple-50 text-purple-700 border-purple-200",
             )}
           >
             {keyword}
           </Badge>
         ))}
         {topic.keywords.length > (compact ? 4 : 8) && (
-          <Badge 
+          <Badge
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
-              "bg-gray-50 text-gray-600 border-gray-300"
+              "bg-gray-50 text-gray-600 border-gray-300",
             )}
           >
             +{topic.keywords.length - (compact ? 4 : 8)} more
@@ -290,22 +318,30 @@ function TopicCardKeywords({ className }: { className?: string }) {
   );
 }
 
-function TopicCardSessions({ maxSessions = 3, className }: { maxSessions?: number; className?: string }) {
+function TopicCardSessions({
+  maxSessions = 3,
+  className,
+}: {
+  maxSessions?: number;
+  className?: string;
+}) {
   const { topic, compact, animated } = useTopicCard();
-  
+
   if (!topic.sessions || topic.sessions.length === 0) {
     return null;
   }
-  
+
   const displaySessions = topic.sessions.slice(0, maxSessions);
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Sessions ({topic.sessionCount})
       </h4>
       <div className="space-y-2">
@@ -320,15 +356,17 @@ function TopicCardSessions({ maxSessions = 3, className }: { maxSessions?: numbe
             className={cn(
               "p-3 rounded-md border border-gray-200 bg-gray-50",
               // Voice-only: no hover effects
-              "focus-within:ring-1 focus-within:ring-purple-500"
+              "focus-within:ring-1 focus-within:ring-purple-500",
             )}
           >
             <div className="flex justify-between items-start mb-1">
-              <h5 className={cn(
-                "font-medium line-clamp-1",
-                compact ? "text-xs" : "text-sm",
-                "text-gray-900"
-              )}>
+              <h5
+                className={cn(
+                  "font-medium line-clamp-1",
+                  compact ? "text-xs" : "text-sm",
+                  "text-gray-900",
+                )}
+              >
                 {session.title}
               </h5>
               <Badge variant="outline" className="text-xs ml-2">
@@ -342,7 +380,10 @@ function TopicCardSessions({ maxSessions = 3, className }: { maxSessions?: numbe
               {session.speakers.length > 0 && (
                 <>
                   <span>•</span>
-                  <span>{session.speakers.length} speaker{session.speakers.length > 1 ? 's' : ''}</span>
+                  <span>
+                    {session.speakers.length} speaker
+                    {session.speakers.length > 1 ? "s" : ""}
+                  </span>
                 </>
               )}
             </div>
@@ -360,22 +401,30 @@ function TopicCardSessions({ maxSessions = 3, className }: { maxSessions?: numbe
   );
 }
 
-function TopicCardSpeakers({ maxSpeakers = 6, className }: { maxSpeakers?: number; className?: string }) {
+function TopicCardSpeakers({
+  maxSpeakers = 6,
+  className,
+}: {
+  maxSpeakers?: number;
+  className?: string;
+}) {
   const { topic, compact, animated } = useTopicCard();
-  
+
   if (!topic.speakers || topic.speakers.length === 0) {
     return null;
   }
-  
+
   const displaySpeakers = topic.speakers.slice(0, maxSpeakers);
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Key Speakers ({topic.speakerCount})
       </h4>
       <div className="flex flex-wrap gap-2">
@@ -388,13 +437,13 @@ function TopicCardSpeakers({ maxSpeakers = 6, className }: { maxSpeakers?: numbe
             animate={animated ? "visible" : undefined}
             layout
           >
-            <Badge 
+            <Badge
               variant="secondary"
               className={cn(
                 "font-medium",
                 compact ? "text-xs px-2 py-1" : "text-sm px-3 py-1",
                 // No hover effects - voice-only interaction
-                "bg-blue-50 text-blue-700 border-blue-200"
+                "bg-blue-50 text-blue-700 border-blue-200",
               )}
             >
               {speaker}
@@ -402,11 +451,11 @@ function TopicCardSpeakers({ maxSpeakers = 6, className }: { maxSpeakers?: numbe
           </motion.div>
         ))}
         {topic.speakers.length > maxSpeakers && (
-          <Badge 
+          <Badge
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
-              "bg-gray-50 text-gray-600"
+              "bg-gray-50 text-gray-600",
             )}
           >
             +{topic.speakers.length - maxSpeakers} more
@@ -419,29 +468,31 @@ function TopicCardSpeakers({ maxSpeakers = 6, className }: { maxSpeakers?: numbe
 
 function TopicCardVenues({ className }: { className?: string }) {
   const { topic, compact } = useTopicCard();
-  
+
   if (!topic.venues || topic.venues.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Venues
       </h4>
       <div className="flex flex-wrap gap-2">
         {topic.venues.map((venue, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
               // Clear, accessible colors - no hover states
-              "bg-green-50 text-green-700 border-green-200"
+              "bg-green-50 text-green-700 border-green-200",
             )}
           >
             {venue}
@@ -452,13 +503,19 @@ function TopicCardVenues({ className }: { className?: string }) {
   );
 }
 
-function TopicCardFooter({ children, className }: { children?: React.ReactNode; className?: string }) {
+function TopicCardFooter({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { topic, animated } = useTopicCard();
-  
+
   const defaultFooter = (
     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
       <div className="flex items-center space-x-4 text-sm text-gray-500">
-        <span>{topic.sessionTypes.join(', ')}</span>
+        <span>{topic.sessionTypes.join(", ")}</span>
         {topic.priority_level && (
           <Badge variant="outline" size="sm">
             {topic.priority_level} priority
@@ -472,7 +529,7 @@ function TopicCardFooter({ children, className }: { children?: React.ReactNode; 
       )}
     </div>
   );
-  
+
   return (
     <motion.footer
       variants={animated ? contentVariants : undefined}
@@ -498,7 +555,13 @@ TopicCard.Footer = TopicCardFooter;
 
 // === PRESET LAYOUTS ===
 
-function TopicCardDefault({ topic, className }: { topic: SnT2025Topic; className?: string }) {
+function TopicCardDefault({
+  topic,
+  className,
+}: {
+  topic: SnT2025Topic;
+  className?: string;
+}) {
   return (
     <TopicCard topic={topic} className={className}>
       <TopicCard.Header>
@@ -517,7 +580,13 @@ function TopicCardDefault({ topic, className }: { topic: SnT2025Topic; className
   );
 }
 
-function TopicCardCompact({ topic, className }: { topic: SnT2025Topic; className?: string }) {
+function TopicCardCompact({
+  topic,
+  className,
+}: {
+  topic: SnT2025Topic;
+  className?: string;
+}) {
   return (
     <TopicCard topic={topic} compact className={className}>
       <TopicCard.Header>
@@ -533,7 +602,13 @@ function TopicCardCompact({ topic, className }: { topic: SnT2025Topic; className
   );
 }
 
-function TopicCardMinimal({ topic, className }: { topic: SnT2025Topic; className?: string }) {
+function TopicCardMinimal({
+  topic,
+  className,
+}: {
+  topic: SnT2025Topic;
+  className?: string;
+}) {
   return (
     <TopicCard topic={topic} compact className={className}>
       <TopicCard.Header>
@@ -555,7 +630,7 @@ export {
   TopicCardCompact,
   TopicCardMinimal,
   type SnT2025Topic,
-  type TopicSession
+  type TopicSession,
 };
 
-export default TopicCard; 
+export default TopicCard;

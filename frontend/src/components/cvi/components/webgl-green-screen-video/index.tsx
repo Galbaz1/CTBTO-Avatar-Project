@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useCallback } from 'react';
-import { useVideoTrack } from '@daily-co/daily-react';
+import React, { useRef, useEffect, useCallback } from "react";
+import { useVideoTrack } from "@daily-co/daily-react";
 
 interface WebGLGreenScreenVideoProps {
   sessionId: string;
@@ -89,34 +89,37 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
   // Fix useRef initialization
   const animationRef = useRef<number | undefined>(undefined);
   const isInitialized = useRef(false);
-  
+
   const videoState = useVideoTrack(sessionId);
 
   // Optimized shader creation with error handling
-  const createShader = useCallback((gl: WebGLRenderingContext, type: number, source: string) => {
-    const shader = gl.createShader(type);
-    if (!shader) return null;
+  const createShader = useCallback(
+    (gl: WebGLRenderingContext, type: number, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
 
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
 
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.warn('Shader compile error:', gl.getShaderInfoLog(shader));
-      gl.deleteShader(shader);
-      return null;
-    }
-    return shader;
-  }, []);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.warn("Shader compile error:", gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    },
+    [],
+  );
 
   // Fast WebGL initialization
   const initWebGL = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return false;
 
-    const gl = canvas.getContext('webgl', { 
-      alpha: true, 
+    const gl = canvas.getContext("webgl", {
+      alpha: true,
       premultipliedAlpha: false,
-      antialias: false // Disable for better performance
+      antialias: false, // Disable for better performance
     });
     if (!gl) return false;
 
@@ -124,7 +127,11 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
 
     // Create shaders
     const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-    const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+    const fragmentShader = createShader(
+      gl,
+      gl.FRAGMENT_SHADER,
+      fragmentShaderSource,
+    );
     if (!vertexShader || !fragmentShader) return false;
 
     // Create program
@@ -136,7 +143,7 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
     gl.linkProgram(program);
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.warn('Program link error:', gl.getProgramInfoLog(program));
+      console.warn("Program link error:", gl.getProgramInfoLog(program));
       return false;
     }
 
@@ -145,17 +152,16 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
     // Create full-screen quad
     const buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-      -1, -1, 0, 1,
-       1, -1, 1, 1,
-      -1,  1, 0, 0,
-       1,  1, 1, 0,
-    ]), gl.STATIC_DRAW);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 0, 1, 1, -1, 1, 1, -1, 1, 0, 0, 1, 1, 1, 0]),
+      gl.STATIC_DRAW,
+    );
 
     // Set up attributes
-    const posLocation = gl.getAttribLocation(program, 'a_position');
-    const texLocation = gl.getAttribLocation(program, 'a_texCoord');
-    
+    const posLocation = gl.getAttribLocation(program, "a_position");
+    const texLocation = gl.getAttribLocation(program, "a_texCoord");
+
     gl.enableVertexAttribArray(posLocation);
     gl.vertexAttribPointer(posLocation, 2, gl.FLOAT, false, 16, 0);
     gl.enableVertexAttribArray(texLocation);
@@ -199,7 +205,10 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
 
     try {
       // Resize canvas if needed
-      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+      if (
+        canvas.width !== video.videoWidth ||
+        canvas.height !== video.videoHeight
+      ) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         gl.viewport(0, 0, video.videoWidth, video.videoHeight);
@@ -207,23 +216,32 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
 
       // Update texture
       gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        video,
+      );
 
       // Set uniforms
       gl.useProgram(program);
-      gl.uniform1i(gl.getUniformLocation(program, 'u_texture'), 0);
-      gl.uniform3fv(gl.getUniformLocation(program, 'u_keyColor'), keyColor);
-      gl.uniform1f(gl.getUniformLocation(program, 'u_similarity'), similarity);
-      gl.uniform1f(gl.getUniformLocation(program, 'u_smoothness'), smoothness);
-      gl.uniform1f(gl.getUniformLocation(program, 'u_spill'), spill);
+      gl.uniform1i(gl.getUniformLocation(program, "u_texture"), 0);
+      gl.uniform3fv(gl.getUniformLocation(program, "u_keyColor"), keyColor);
+      gl.uniform1f(gl.getUniformLocation(program, "u_similarity"), similarity);
+      gl.uniform1f(gl.getUniformLocation(program, "u_smoothness"), smoothness);
+      gl.uniform1f(gl.getUniformLocation(program, "u_spill"), spill);
       // Fix WebGL uniform type issue (convert boolean to number)
-      gl.uniform1i(gl.getUniformLocation(program, 'u_disableChromaKey'), disableGreenScreen ? 1 : 0);
+      gl.uniform1i(
+        gl.getUniformLocation(program, "u_disableChromaKey"),
+        disableGreenScreen ? 1 : 0,
+      );
 
       // Render
       gl.clearColor(0, 0, 0, 0);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
     } catch (error) {
       // Continue on error
     }
@@ -238,7 +256,7 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
 
     // Set up video stream
     video.srcObject = new MediaStream([videoState.track]);
-    video.crossOrigin = 'anonymous';
+    video.crossOrigin = "anonymous";
     video.play().catch(() => {}); // Auto-play, ignore errors
 
     const handleVideoReady = () => {
@@ -266,26 +284,26 @@ export const WebGLGreenScreenVideo: React.FC<WebGLGreenScreenVideoProps> = ({
   }, [videoState.track, initWebGL, renderFrame, onVideoLoad]);
 
   return (
-    <div className={className} style={{ position: 'relative' }}>
+    <div className={className} style={{ position: "relative" }}>
       {/* Hidden video element */}
       <video
         ref={videoRef}
         autoPlay
         playsInline
         muted
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
-      
+
       {/* WebGL canvas output */}
       <canvas
         ref={canvasRef}
         style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          backgroundColor: 'transparent',
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          backgroundColor: "transparent",
         }}
       />
     </div>
   );
-}; 
+};

@@ -1,0 +1,19 @@
+{
+  "milestone": 1,
+  "name": "Foundation Refactor",
+  "status": "completed",
+  "tasks": [
+    {"id":"1.1-venv","content":"Create root-level Python venv and install backend deps.","status":"completed"},
+    {"id":"1.2-remove-framer-motion","content":"Stub framer-motion and delete dependency.","status":"completed"},
+    {"id":"1.3-install-core-packages","content":"Add ai SDK, zod, @tavus/cvi-ui, etc.","status":"completed"},
+    {"id":"1.4-scaffold-core","content":"Scaffold TavusVoiceWrapper, Edge Function skeleton, FastAPI folder.","status":"completed"}
+  ],
+  "research_topics":[
+    "Tavus CVI React hooks docs",
+    "Vercel AI SDK v5 install & setup"
+  ],
+  "research_refs":[
+    "research/tavus-hooks.md",
+    "research/vercel-ai-sdk-install.md"
+  ]
+} 

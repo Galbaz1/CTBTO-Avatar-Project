@@ -1,7 +1,7 @@
-import React, { createContext, useContext } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Badge } from '../compound/Badge';
+import React, { createContext, useContext } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Badge } from "../compound/Badge";
 
 // === TYPES & INTERFACES ===
 
@@ -18,7 +18,7 @@ interface SnT2025Schedule {
   venues: string[];
   sessionTypes: string[];
   themes: string[];
-  priority_level?: 'high' | 'medium' | 'low';
+  priority_level?: "high" | "medium" | "low";
   relevance_score?: number;
 }
 
@@ -54,7 +54,7 @@ interface TimeSlot {
 
 interface ScheduleCardContextValue {
   schedule: SnT2025Schedule;
-  viewMode: 'daily' | 'time' | 'venue' | 'theme';
+  viewMode: "daily" | "time" | "venue" | "theme";
   compact?: boolean;
   animated?: boolean;
   className?: string;
@@ -62,12 +62,14 @@ interface ScheduleCardContextValue {
 
 // === CONTEXT ===
 
-const ScheduleCardContext = createContext<ScheduleCardContextValue | null>(null);
+const ScheduleCardContext = createContext<ScheduleCardContextValue | null>(
+  null,
+);
 
 const useScheduleCard = () => {
   const context = useContext(ScheduleCardContext);
   if (!context) {
-    throw new Error('ScheduleCard components must be used within ScheduleCard');
+    throw new Error("ScheduleCard components must be used within ScheduleCard");
   }
   return context;
 };
@@ -76,24 +78,24 @@ const useScheduleCard = () => {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.3,
-    }
-  }
+    },
+  },
 };
 
 const contentVariants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
     transition: {
       delay: 0.1,
-      duration: 0.2
-    }
-  }
+      duration: 0.2,
+    },
+  },
 };
 
 const sessionVariants = {
@@ -104,35 +106,35 @@ const sessionVariants = {
     transition: {
       delay: i * 0.02,
       duration: 0.2,
-    }
-  })
+    },
+  }),
 };
 
 // === MAIN COMPONENT ===
 
 interface ScheduleCardProps {
   schedule: SnT2025Schedule;
-  viewMode?: 'daily' | 'time' | 'venue' | 'theme';
+  viewMode?: "daily" | "time" | "venue" | "theme";
   compact?: boolean;
   animated?: boolean;
   className?: string;
   children: React.ReactNode;
 }
 
-function ScheduleCard({ 
-  schedule, 
-  viewMode = 'daily',
-  compact = false, 
-  animated = true, 
+function ScheduleCard({
+  schedule,
+  viewMode = "daily",
+  compact = false,
+  animated = true,
   className,
-  children 
+  children,
 }: ScheduleCardProps) {
   const contextValue: ScheduleCardContextValue = {
     schedule,
     viewMode,
     compact,
     animated,
-    className
+    className,
   };
 
   return (
@@ -151,12 +153,12 @@ function ScheduleCard({
           "focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2",
           // Responsive sizing for kiosk displays
           compact ? "p-4" : "p-6",
-          className
+          className,
         )}
         // Voice-only: no mouse interaction handlers
         role="article"
-        aria-labelledby={`schedule-title-${schedule.title.replace(/\s+/g, '-')}`}
-        aria-describedby={`schedule-description-${schedule.title.replace(/\s+/g, '-')}`}
+        aria-labelledby={`schedule-title-${schedule.title.replace(/\s+/g, "-")}`}
+        aria-describedby={`schedule-description-${schedule.title.replace(/\s+/g, "-")}`}
       >
         {children}
       </motion.article>
@@ -166,9 +168,15 @@ function ScheduleCard({
 
 // === COMPOUND COMPONENTS ===
 
-function ScheduleCardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+function ScheduleCardHeader({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useScheduleCard();
-  
+
   return (
     <motion.header
       variants={animated ? contentVariants : undefined}
@@ -179,13 +187,19 @@ function ScheduleCardHeader({ children, className }: { children: React.ReactNode
   );
 }
 
-function ScheduleCardTitle({ children, className }: { children?: React.ReactNode; className?: string }) {
+function ScheduleCardTitle({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { schedule, compact } = useScheduleCard();
   const displayTitle = children || schedule.title;
-  
+
   return (
     <h3
-      id={`schedule-title-${schedule.title.replace(/\s+/g, '-')}`}
+      id={`schedule-title-${schedule.title.replace(/\s+/g, "-")}`}
       className={cn(
         // Large, readable fonts for kiosk environment (18px+ minimum)
         compact ? "text-lg font-semibold" : "text-xl font-bold",
@@ -193,7 +207,7 @@ function ScheduleCardTitle({ children, className }: { children?: React.ReactNode
         "text-gray-900",
         // Text overflow handling for long titles
         "line-clamp-2 leading-tight",
-        className
+        className,
       )}
     >
       {displayTitle}
@@ -203,13 +217,15 @@ function ScheduleCardTitle({ children, className }: { children?: React.ReactNode
 
 function ScheduleCardMeta({ className }: { className?: string }) {
   const { schedule, compact } = useScheduleCard();
-  
+
   return (
-    <div className={cn(
-      "flex flex-wrap items-center gap-2 mt-2", 
-      compact ? "text-sm" : "text-base",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-2 mt-2",
+        compact ? "text-sm" : "text-base",
+        className,
+      )}
+    >
       <Badge variant="secondary" className="text-xs font-medium">
         {schedule.totalDays} days
       </Badge>
@@ -228,9 +244,15 @@ function ScheduleCardMeta({ className }: { className?: string }) {
   );
 }
 
-function ScheduleCardBody({ children, className }: { children: React.ReactNode; className?: string }) {
+function ScheduleCardBody({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useScheduleCard();
-  
+
   return (
     <motion.div
       variants={animated ? contentVariants : undefined}
@@ -243,15 +265,17 @@ function ScheduleCardBody({ children, className }: { children: React.ReactNode; 
 
 function ScheduleCardOverview({ className }: { className?: string }) {
   const { schedule, compact } = useScheduleCard();
-  
+
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex justify-between items-center">
-        <span className={cn(
-          "font-medium",
-          compact ? "text-sm" : "text-base",
-          "text-gray-800"
-        )}>
+        <span
+          className={cn(
+            "font-medium",
+            compact ? "text-sm" : "text-base",
+            "text-gray-800",
+          )}
+        >
           Conference Schedule
         </span>
         <span className="text-sm text-gray-500">
@@ -260,28 +284,34 @@ function ScheduleCardOverview({ className }: { className?: string }) {
       </div>
       <div className="grid grid-cols-3 gap-2">
         <div className="text-center p-2 bg-blue-50 rounded-md">
-          <div className={cn(
-            "font-bold text-blue-900",
-            compact ? "text-sm" : "text-base"
-          )}>
+          <div
+            className={cn(
+              "font-bold text-blue-900",
+              compact ? "text-sm" : "text-base",
+            )}
+          >
             {schedule.totalSessions}
           </div>
           <div className="text-xs text-blue-600">Sessions</div>
         </div>
         <div className="text-center p-2 bg-green-50 rounded-md">
-          <div className={cn(
-            "font-bold text-green-900",
-            compact ? "text-sm" : "text-base"
-          )}>
+          <div
+            className={cn(
+              "font-bold text-green-900",
+              compact ? "text-sm" : "text-base",
+            )}
+          >
             {schedule.venues.length}
           </div>
           <div className="text-xs text-green-600">Venues</div>
         </div>
         <div className="text-center p-2 bg-purple-50 rounded-md">
-          <div className={cn(
-            "font-bold text-purple-900",
-            compact ? "text-sm" : "text-base"
-          )}>
+          <div
+            className={cn(
+              "font-bold text-purple-900",
+              compact ? "text-sm" : "text-base",
+            )}
+          >
             {schedule.sessionTypes.length}
           </div>
           <div className="text-xs text-purple-600">Types</div>
@@ -291,18 +321,26 @@ function ScheduleCardOverview({ className }: { className?: string }) {
   );
 }
 
-function ScheduleCardDays({ maxDays = 3, className }: { maxDays?: number; className?: string }) {
+function ScheduleCardDays({
+  maxDays = 3,
+  className,
+}: {
+  maxDays?: number;
+  className?: string;
+}) {
   const { schedule, compact, animated } = useScheduleCard();
-  
+
   const displayDays = schedule.dailySchedules.slice(0, maxDays);
-  
+
   return (
     <div className={cn("space-y-3", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Daily Overview
       </h4>
       <div className="space-y-2">
@@ -317,16 +355,18 @@ function ScheduleCardDays({ maxDays = 3, className }: { maxDays?: number; classN
             className={cn(
               "p-3 rounded-md border border-gray-200 bg-gray-50",
               // Voice-only: no hover effects
-              "focus-within:ring-1 focus-within:ring-blue-500"
+              "focus-within:ring-1 focus-within:ring-blue-500",
             )}
           >
             <div className="flex justify-between items-start mb-2">
               <div>
-                <h5 className={cn(
-                  "font-medium",
-                  compact ? "text-sm" : "text-base",
-                  "text-gray-900"
-                )}>
+                <h5
+                  className={cn(
+                    "font-medium",
+                    compact ? "text-sm" : "text-base",
+                    "text-gray-900",
+                  )}
+                >
                   {day.day_of_week}
                 </h5>
                 <p className="text-xs text-gray-600">{day.date}</p>
@@ -341,10 +381,12 @@ function ScheduleCardDays({ maxDays = 3, className }: { maxDays?: number; classN
               <span>{Math.round(day.totalDuration / 60)}h duration</span>
               <span>•</span>
               <span>{day.venueCount} venues</span>
-              {day.sessions.some(s => s.is_keynote) && (
+              {day.sessions.some((s) => s.is_keynote) && (
                 <>
                   <span>•</span>
-                  <Badge variant="default" className="text-xs">Keynote</Badge>
+                  <Badge variant="default" className="text-xs">
+                    Keynote
+                  </Badge>
                 </>
               )}
             </div>
@@ -362,18 +404,26 @@ function ScheduleCardDays({ maxDays = 3, className }: { maxDays?: number; classN
   );
 }
 
-function ScheduleCardTimeSlots({ maxSlots = 4, className }: { maxSlots?: number; className?: string }) {
+function ScheduleCardTimeSlots({
+  maxSlots = 4,
+  className,
+}: {
+  maxSlots?: number;
+  className?: string;
+}) {
   const { schedule, compact, animated } = useScheduleCard();
-  
+
   const displaySlots = schedule.timeSlots.slice(0, maxSlots);
-  
+
   return (
     <div className={cn("space-y-3", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Key Time Slots
       </h4>
       <div className="space-y-2">
@@ -387,28 +437,32 @@ function ScheduleCardTimeSlots({ maxSlots = 4, className }: { maxSlots?: number;
             layout
             className={cn(
               "p-3 rounded-md border",
-              slot.isPrimary ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-50",
+              slot.isPrimary
+                ? "border-blue-200 bg-blue-50"
+                : "border-gray-200 bg-gray-50",
               // Voice-only: no hover effects
-              "focus-within:ring-1 focus-within:ring-blue-500"
+              "focus-within:ring-1 focus-within:ring-blue-500",
             )}
           >
             <div className="flex justify-between items-start mb-1">
-              <h5 className={cn(
-                "font-medium",
-                compact ? "text-sm" : "text-base",
-                slot.isPrimary ? "text-blue-900" : "text-gray-900"
-              )}>
+              <h5
+                className={cn(
+                  "font-medium",
+                  compact ? "text-sm" : "text-base",
+                  slot.isPrimary ? "text-blue-900" : "text-gray-900",
+                )}
+              >
                 {slot.time}
               </h5>
-              <Badge 
-                variant={slot.isPrimary ? "default" : "outline"} 
+              <Badge
+                variant={slot.isPrimary ? "default" : "outline"}
                 className="text-xs"
               >
                 {slot.sessions.length} sessions
               </Badge>
             </div>
             <div className="text-xs text-gray-600">
-              {slot.sessions.map(s => s.venue).join(', ')}
+              {slot.sessions.map((s) => s.venue).join(", ")}
             </div>
           </motion.div>
         ))}
@@ -419,25 +473,27 @@ function ScheduleCardTimeSlots({ maxSlots = 4, className }: { maxSlots?: number;
 
 function ScheduleCardVenues({ className }: { className?: string }) {
   const { schedule, compact } = useScheduleCard();
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Conference Venues
       </h4>
       <div className="flex flex-wrap gap-2">
         {schedule.venues.map((venue, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
               // Clear, accessible colors - no hover states
-              "bg-green-50 text-green-700 border-green-200"
+              "bg-green-50 text-green-700 border-green-200",
             )}
           >
             {venue}
@@ -450,25 +506,27 @@ function ScheduleCardVenues({ className }: { className?: string }) {
 
 function ScheduleCardSessionTypes({ className }: { className?: string }) {
   const { schedule, compact } = useScheduleCard();
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Session Types
       </h4>
       <div className="flex flex-wrap gap-2">
         {schedule.sessionTypes.map((type, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
               // Clear, accessible colors - no hover states
-              "bg-purple-50 text-purple-700 border-purple-200"
+              "bg-purple-50 text-purple-700 border-purple-200",
             )}
           >
             {type}
@@ -481,29 +539,31 @@ function ScheduleCardSessionTypes({ className }: { className?: string }) {
 
 function ScheduleCardThemes({ className }: { className?: string }) {
   const { schedule, compact } = useScheduleCard();
-  
+
   if (!schedule.themes || schedule.themes.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Research Themes
       </h4>
       <div className="flex flex-wrap gap-2">
         {schedule.themes.slice(0, compact ? 4 : 8).map((theme, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
               // Clear, accessible colors - no hover states
-              "bg-blue-50 text-blue-700 border-blue-200"
+              "bg-blue-50 text-blue-700 border-blue-200",
             )}
           >
             {theme}
@@ -519,13 +579,21 @@ function ScheduleCardThemes({ className }: { className?: string }) {
   );
 }
 
-function ScheduleCardFooter({ children, className }: { children?: React.ReactNode; className?: string }) {
+function ScheduleCardFooter({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { schedule, animated } = useScheduleCard();
-  
+
   const defaultFooter = (
     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
       <div className="flex items-center space-x-4 text-sm text-gray-500">
-        <span>{schedule.dateRange.start} - {schedule.dateRange.end}</span>
+        <span>
+          {schedule.dateRange.start} - {schedule.dateRange.end}
+        </span>
         {schedule.priority_level && (
           <Badge variant="outline" size="sm">
             {schedule.priority_level} priority
@@ -539,7 +607,7 @@ function ScheduleCardFooter({ children, className }: { children?: React.ReactNod
       )}
     </div>
   );
-  
+
   return (
     <motion.footer
       variants={animated ? contentVariants : undefined}
@@ -566,7 +634,13 @@ ScheduleCard.Footer = ScheduleCardFooter;
 
 // === PRESET LAYOUTS ===
 
-function ScheduleCardDefault({ schedule, className }: { schedule: SnT2025Schedule; className?: string }) {
+function ScheduleCardDefault({
+  schedule,
+  className,
+}: {
+  schedule: SnT2025Schedule;
+  className?: string;
+}) {
   return (
     <ScheduleCard schedule={schedule} className={className}>
       <ScheduleCard.Header>
@@ -584,7 +658,13 @@ function ScheduleCardDefault({ schedule, className }: { schedule: SnT2025Schedul
   );
 }
 
-function ScheduleCardCompact({ schedule, className }: { schedule: SnT2025Schedule; className?: string }) {
+function ScheduleCardCompact({
+  schedule,
+  className,
+}: {
+  schedule: SnT2025Schedule;
+  className?: string;
+}) {
   return (
     <ScheduleCard schedule={schedule} compact className={className}>
       <ScheduleCard.Header>
@@ -600,7 +680,13 @@ function ScheduleCardCompact({ schedule, className }: { schedule: SnT2025Schedul
   );
 }
 
-function ScheduleCardMinimal({ schedule, className }: { schedule: SnT2025Schedule; className?: string }) {
+function ScheduleCardMinimal({
+  schedule,
+  className,
+}: {
+  schedule: SnT2025Schedule;
+  className?: string;
+}) {
   return (
     <ScheduleCard schedule={schedule} compact className={className}>
       <ScheduleCard.Header>
@@ -624,7 +710,7 @@ export {
   type SnT2025Schedule,
   type DailySchedule,
   type ScheduleSession,
-  type TimeSlot
+  type TimeSlot,
 };
 
-export default ScheduleCard; 
+export default ScheduleCard;

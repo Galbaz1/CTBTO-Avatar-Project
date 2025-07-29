@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import type { TimetableEntry as SessionCardData } from '../../cards/enhanced/TimetableProcessor';
+import React, { useRef } from "react";
+import type { TimetableEntry as SessionCardData } from "../../cards/enhanced/TimetableProcessor";
+import { useSSE } from "../../../hooks/useSSE";
 
 interface SessionHandlerProps {
   meetingState: string;
@@ -10,37 +11,24 @@ interface SessionHandlerProps {
 export const SessionHandler: React.FC<SessionHandlerProps> = ({
   meetingState,
   conversationId,
-  onSessionUpdate
+  onSessionUpdate,
 }) => {
-  useEffect(() => {
-    if (meetingState !== 'joined-meeting') return;
+  const sseUrl =
+    meetingState === "joined-meeting"
+      ? `http://localhost:8000/sse/session/${conversationId}`
+      : null;
+  const lastSessionDataRef = useRef<SessionCardData | null>(null);
 
-    let lastSessionData: SessionCardData | null = null;
+  useSSE<SessionCardData>(sseUrl, (sessionData) => {
+    if (
+      sessionData &&
+      JSON.stringify(sessionData) !== JSON.stringify(lastSessionDataRef.current)
+    ) {
+      lastSessionDataRef.current = sessionData;
+      onSessionUpdate(sessionData);
+    }
+  });
 
-    const pollSessionData = async () => {
-      try {
-        const response = await fetch(`http://localhost:8000/latest-session/${conversationId}`);
-        if (response.ok) {
-          const sessionData = await response.json();
-          
-          // Only update if data has changed (deep comparison for session data)
-          if (sessionData && JSON.stringify(sessionData) !== JSON.stringify(lastSessionData)) {
-            lastSessionData = sessionData;
-            onSessionUpdate(sessionData);
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to fetch session data:', error);
-      }
-    };
-
-    // Start polling every 2 seconds (exact weather pattern)
-    const interval = setInterval(pollSessionData, 2000);
-
-    // Cleanup on unmount
-    return () => clearInterval(interval);
-  }, [meetingState, conversationId, onSessionUpdate]);
-
-  // This component doesn't render anything - it's just a data handler
+  // This component doesn't render anything
   return null;
-}; 
+};

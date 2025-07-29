@@ -1,7 +1,7 @@
-import React, { createContext, useContext } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Badge } from '../compound/Badge';
+import React, { createContext, useContext } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Badge } from "../compound/Badge";
 
 // === TYPES & INTERFACES ===
 
@@ -25,7 +25,7 @@ interface TimetableSession {
   has_speakers: boolean;
   is_interactive: boolean;
   keywords?: string[];
-  priority_level?: 'high' | 'medium' | 'low';
+  priority_level?: "high" | "medium" | "low";
   relevance_score?: number;
 }
 
@@ -43,7 +43,7 @@ const SessionCardContext = createContext<SessionCardContextValue | null>(null);
 const useSessionCard = () => {
   const context = useContext(SessionCardContext);
   if (!context) {
-    throw new Error('SessionCard components must be used within SessionCard');
+    throw new Error("SessionCard components must be used within SessionCard");
   }
   return context;
 };
@@ -52,25 +52,25 @@ const useSessionCard = () => {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.3,
-    }
+    },
   },
   // Removed hover variant - not applicable for voice-only kiosk
 };
 
 const contentVariants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
     transition: {
       delay: 0.1,
-      duration: 0.2
-    }
-  }
+      duration: 0.2,
+    },
+  },
 };
 
 const speakerVariants = {
@@ -81,8 +81,8 @@ const speakerVariants = {
     transition: {
       delay: i * 0.1,
       duration: 0.2,
-    }
-  })
+    },
+  }),
 };
 
 // === MAIN COMPONENT ===
@@ -95,18 +95,18 @@ interface SessionCardProps {
   children: React.ReactNode;
 }
 
-function SessionCard({ 
-  session, 
-  compact = false, 
-  animated = true, 
+function SessionCard({
+  session,
+  compact = false,
+  animated = true,
   className,
-  children 
+  children,
 }: SessionCardProps) {
   const contextValue: SessionCardContextValue = {
     session,
     compact,
     animated,
-    className
+    className,
   };
 
   return (
@@ -125,9 +125,9 @@ function SessionCard({
           "focus-within:ring-4 focus-within:ring-blue-600 focus-within:ring-offset-2",
           // Professional shadow and spacing for kiosk displays
           "shadow-[0_4px_12px_rgba(0,0,0,0.15)]",
-          // Responsive sizing for kiosk displays  
+          // Responsive sizing for kiosk displays
           compact ? "p-4" : "p-6",
-          className
+          className,
         )}
         // Voice-only: no mouse interaction handlers
         role="article"
@@ -142,9 +142,15 @@ function SessionCard({
 
 // === COMPOUND COMPONENTS ===
 
-function SessionCardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+function SessionCardHeader({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useSessionCard();
-  
+
   return (
     <motion.header
       variants={animated ? contentVariants : undefined}
@@ -155,10 +161,16 @@ function SessionCardHeader({ children, className }: { children: React.ReactNode;
   );
 }
 
-function SessionCardTitle({ children, className }: { children?: React.ReactNode; className?: string }) {
+function SessionCardTitle({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { session, compact } = useSessionCard();
   const displayTitle = children || session.title;
-  
+
   return (
     <h3
       id={`session-title-${session.session_id}`}
@@ -169,7 +181,7 @@ function SessionCardTitle({ children, className }: { children?: React.ReactNode;
         "text-gray-950",
         // Text overflow handling for long titles
         "line-clamp-2 leading-tight",
-        className
+        className,
       )}
     >
       {displayTitle}
@@ -179,24 +191,38 @@ function SessionCardTitle({ children, className }: { children?: React.ReactNode;
 
 function SessionCardMeta({ className }: { className?: string }) {
   const { session, compact } = useSessionCard();
-  
+
   return (
-    <div className={cn(
-      "flex flex-wrap items-center gap-2 mt-2", 
-      compact ? "text-sm" : "text-base",
-      className
-    )}>
-      <Badge variant="secondary" className="text-xs font-medium bg-blue-50 text-blue-800 border-blue-200">
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-2 mt-2",
+        compact ? "text-sm" : "text-base",
+        className,
+      )}
+    >
+      <Badge
+        variant="secondary"
+        className="text-xs font-medium bg-blue-50 text-blue-800 border-blue-200"
+      >
         {session.session_id}
       </Badge>
-      <Badge variant="outline" className="text-xs bg-gray-50 text-gray-800 border-gray-300">
+      <Badge
+        variant="outline"
+        className="text-xs bg-gray-50 text-gray-800 border-gray-300"
+      >
         {session.venue}
       </Badge>
-      <Badge variant="outline" className="text-xs bg-green-50 text-green-800 border-green-200">
+      <Badge
+        variant="outline"
+        className="text-xs bg-green-50 text-green-800 border-green-200"
+      >
         {session.start_time} - {session.end_time}
       </Badge>
       {session.session_type && (
-        <Badge variant="default" className="text-xs bg-purple-100 text-purple-800 border-purple-200">
+        <Badge
+          variant="default"
+          className="text-xs bg-purple-100 text-purple-800 border-purple-200"
+        >
           {session.session_type}
         </Badge>
       )}
@@ -207,28 +233,30 @@ function SessionCardMeta({ className }: { className?: string }) {
 // New component for enhanced data display
 function SessionCardThemes({ className }: { className?: string }) {
   const { session, compact } = useSessionCard();
-  
+
   const themes = [session.theme, session.track].filter(Boolean);
-  
+
   if (themes.length === 0) return null;
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-semibold",
-        compact ? "text-sm" : "text-base",
-        "text-gray-950"
-      )}>
+      <h4
+        className={cn(
+          "font-semibold",
+          compact ? "text-sm" : "text-base",
+          "text-gray-950",
+        )}
+      >
         Conference Themes
       </h4>
       <div className="flex flex-wrap gap-2">
         {themes.map((theme, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
-              "bg-orange-50 text-orange-800 border-orange-200 font-medium"
+              "bg-orange-50 text-orange-800 border-orange-200 font-medium",
             )}
           >
             {theme}
@@ -240,17 +268,25 @@ function SessionCardThemes({ className }: { className?: string }) {
 }
 
 // Enhanced description component with better formatting
-function SessionCardDescription({ children, className }: { children?: React.ReactNode; className?: string }) {
+function SessionCardDescription({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { session, compact } = useSessionCard();
   const displayDescription = children || session.description;
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-semibold",
-        compact ? "text-sm" : "text-base",
-        "text-gray-950"
-      )}>
+      <h4
+        className={cn(
+          "font-semibold",
+          compact ? "text-sm" : "text-base",
+          "text-gray-950",
+        )}
+      >
         Session Details
       </h4>
       <p
@@ -262,7 +298,7 @@ function SessionCardDescription({ children, className }: { children?: React.Reac
           "text-gray-950",
           // Handle long descriptions with better line height
           "leading-relaxed",
-          className
+          className,
         )}
       >
         {displayDescription}
@@ -271,9 +307,15 @@ function SessionCardDescription({ children, className }: { children?: React.Reac
   );
 }
 
-function SessionCardBody({ children, className }: { children: React.ReactNode; className?: string }) {
+function SessionCardBody({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useSessionCard();
-  
+
   return (
     <motion.div
       variants={animated ? contentVariants : undefined}
@@ -286,19 +328,22 @@ function SessionCardBody({ children, className }: { children: React.ReactNode; c
 
 function SessionCardSpeakers({ className }: { className?: string }) {
   const { session, compact, animated } = useSessionCard();
-  
+
   if (!session.speakers || session.speakers.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-semibold",
-        compact ? "text-sm" : "text-base",
-        "text-gray-950"
-      )}>
-        {session.speakers.length === 1 ? 'Speaker' : 'Speakers'} ({session.speakers.length})
+      <h4
+        className={cn(
+          "font-semibold",
+          compact ? "text-sm" : "text-base",
+          "text-gray-950",
+        )}
+      >
+        {session.speakers.length === 1 ? "Speaker" : "Speakers"} (
+        {session.speakers.length})
       </h4>
       <div className="flex flex-wrap gap-2">
         {session.speakers.map((speaker, index) => (
@@ -310,12 +355,12 @@ function SessionCardSpeakers({ className }: { className?: string }) {
             animate={animated ? "visible" : undefined}
             layout
           >
-            <Badge 
+            <Badge
               variant="secondary"
               className={cn(
                 "font-medium",
                 compact ? "text-xs px-2 py-1" : "text-sm px-3 py-1",
-                "bg-blue-100 text-blue-800 border-blue-200"
+                "bg-blue-100 text-blue-800 border-blue-200",
               )}
             >
               {speaker}
@@ -329,28 +374,30 @@ function SessionCardSpeakers({ className }: { className?: string }) {
 
 function SessionCardTopics({ className }: { className?: string }) {
   const { session, compact } = useSessionCard();
-  
+
   const topics = [session.theme, session.track].filter(Boolean);
-  
+
   if (topics.length === 0) return null;
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-semibold",
-        compact ? "text-sm" : "text-base",
-        "text-gray-950"
-      )}>
+      <h4
+        className={cn(
+          "font-semibold",
+          compact ? "text-sm" : "text-base",
+          "text-gray-950",
+        )}
+      >
         Topics & Categories
       </h4>
       <div className="flex flex-wrap gap-2">
         {topics.map((topic, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
-              "bg-gray-50 text-gray-800 border-gray-300 font-medium"
+              "bg-gray-50 text-gray-800 border-gray-300 font-medium",
             )}
           >
             {topic}
@@ -361,20 +408,34 @@ function SessionCardTopics({ className }: { className?: string }) {
   );
 }
 
-function SessionCardFooter({ children, className }: { children?: React.ReactNode; className?: string }) {
+function SessionCardFooter({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { session, animated } = useSessionCard();
-  
+
   const defaultFooter = (
     <div className="flex items-center justify-between pt-3 border-t border-gray-200">
       <div className="flex items-center space-x-4 text-sm text-gray-600">
         <span className="font-medium">{session.duration} minutes</span>
         {session.audience_level && (
-          <Badge variant="outline" size="sm" className="bg-gray-100 text-gray-700 border-gray-200">
+          <Badge
+            variant="outline"
+            size="sm"
+            className="bg-gray-100 text-gray-700 border-gray-200"
+          >
             {session.audience_level}
           </Badge>
         )}
         {session.is_interactive && (
-          <Badge variant="outline" size="sm" className="bg-green-100 text-green-700 border-green-200">
+          <Badge
+            variant="outline"
+            size="sm"
+            className="bg-green-100 text-green-700 border-green-200"
+          >
             Interactive
           </Badge>
         )}
@@ -386,7 +447,7 @@ function SessionCardFooter({ children, className }: { children?: React.ReactNode
       )}
     </div>
   );
-  
+
   return (
     <motion.footer
       variants={animated ? contentVariants : undefined}
@@ -411,7 +472,13 @@ SessionCard.Footer = SessionCardFooter;
 
 // === PRESET LAYOUTS ===
 
-function SessionCardDefault({ session, className }: { session: TimetableSession; className?: string }) {
+function SessionCardDefault({
+  session,
+  className,
+}: {
+  session: TimetableSession;
+  className?: string;
+}) {
   return (
     <SessionCard session={session} className={className}>
       <SessionCard.Header>
@@ -429,7 +496,13 @@ function SessionCardDefault({ session, className }: { session: TimetableSession;
   );
 }
 
-function SessionCardCompact({ session, className }: { session: TimetableSession; className?: string }) {
+function SessionCardCompact({
+  session,
+  className,
+}: {
+  session: TimetableSession;
+  className?: string;
+}) {
   return (
     <SessionCard session={session} compact className={className}>
       <SessionCard.Header>
@@ -444,7 +517,13 @@ function SessionCardCompact({ session, className }: { session: TimetableSession;
   );
 }
 
-function SessionCardMinimal({ session, className }: { session: TimetableSession; className?: string }) {
+function SessionCardMinimal({
+  session,
+  className,
+}: {
+  session: TimetableSession;
+  className?: string;
+}) {
   return (
     <SessionCard session={session} compact className={className}>
       <SessionCard.Header>
@@ -462,9 +541,9 @@ export {
   SessionCardDefault,
   SessionCardCompact,
   SessionCardMinimal,
-  type TimetableSession
+  type TimetableSession,
 };
 
 export const NewSessionCard = SessionCardDefault;
 
-export default SessionCard; 
+export default SessionCard;

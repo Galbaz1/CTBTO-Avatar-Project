@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import type { VenueCardData } from '../../cards/enhanced/TimetableProcessor';
+import React, { useRef } from "react";
+import type { VenueCardData } from "../../cards/enhanced/TimetableProcessor";
+import { useSSE } from "../../../hooks/useSSE";
 
 interface VenueHandlerProps {
   meetingState: string;
@@ -10,37 +11,25 @@ interface VenueHandlerProps {
 export const VenueHandler: React.FC<VenueHandlerProps> = ({
   meetingState,
   conversationId,
-  onVenueUpdate
+  onVenueUpdate,
 }) => {
-  useEffect(() => {
-    if (meetingState !== 'joined-meeting') return;
+  const sseUrl =
+    meetingState === "joined-meeting"
+      ? `http://localhost:8000/sse/venue/${conversationId}`
+      : null;
 
-    let lastVenueData: VenueCardData | null = null;
+  const lastVenueDataRef = useRef<VenueCardData | null>(null);
 
-    const pollVenueData = async () => {
-      try {
-        const response = await fetch(`http://localhost:8000/latest-venue/${conversationId}`);
-        if (response.ok) {
-          const venueData = await response.json();
-          
-          // Only update if data has changed (deep comparison for venue data)
-          if (venueData && JSON.stringify(venueData) !== JSON.stringify(lastVenueData)) {
-            lastVenueData = venueData;
-            onVenueUpdate(venueData);
-          }
-        }
-      } catch (error) {
-        console.warn('Failed to fetch venue data:', error);
-      }
-    };
+  useSSE<VenueCardData>(sseUrl, (venueData) => {
+    if (
+      venueData &&
+      JSON.stringify(venueData) !== JSON.stringify(lastVenueDataRef.current)
+    ) {
+      lastVenueDataRef.current = venueData;
+      onVenueUpdate(venueData);
+    }
+  });
 
-    // Start polling every 2 seconds (exact weather pattern)
-    const interval = setInterval(pollVenueData, 2000);
-
-    // Cleanup on unmount
-    return () => clearInterval(interval);
-  }, [meetingState, conversationId, onVenueUpdate]);
-
-  // This component doesn't render anything - it's just a data handler
+  // This component doesn't render anything
   return null;
-}; 
+};

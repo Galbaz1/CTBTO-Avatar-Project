@@ -1,0 +1,18 @@
+{
+  "milestone": 4,
+  "name": "Performance, Accessibility & Deployment",
+  "status": "completed",
+  "tasks": [
+    {"id":"4.1-vite-opt","content":"Chunk split and minify to target <500 KB bundle.","status":"completed"},
+    {"id":"4.2-lighthouse-axe","content":"Add scripts and run audits.","status":"completed"},
+    {"id":"4.3-vercel-config","content":"Create vercel.json with fra1 region and Edge runtime.","status":"completed"}
+  ],
+  "research_topics":[
+    "Lighthouse performance scoring",
+    "Axe-core CLI usage"
+  ],
+  "research_refs":[
+    "research/lighthouse-scoring.md",
+    "research/axe-cli.md"
+  ]
+} 

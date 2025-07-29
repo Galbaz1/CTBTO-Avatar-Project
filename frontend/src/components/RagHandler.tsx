@@ -1,69 +1,52 @@
-import React, { useEffect } from 'react';
-import { loggers } from '../utils/logger';
+import React, { useCallback } from "react";
+import { useSSE } from "../hooks/useSSE";
+import type { ConferenceRAGData } from "../types/tavus-cvi-ui";
 
+/**
+ * Props for the RagHandler component
+ */
 interface RagHandlerProps {
+  /** Unique conversation identifier for SSE endpoint */
   conversationId: string;
-  onRagUpdate?: (data: any) => void;
+  /** Callback function when RAG data is updated via SSE */
+  onRagUpdate?: (data: ConferenceRAGData) => void;
 }
 
-export const RagHandler: React.FC<RagHandlerProps> = ({ 
-  conversationId, 
-  onRagUpdate 
+/**
+ * RagHandler - Server-Sent Events handler for conference RAG data
+ *
+ * This component establishes an SSE connection to receive real-time updates
+ * for conference-related data including speakers, sessions, topics, and venues.
+ * It replaces the previous polling mechanism with efficient SSE streaming.
+ *
+ * @param props - Component props
+ * @returns null (handler component with no visual output)
+ *
+ * @example
+ * ```tsx
+ * <RagHandler
+ *   conversationId={sessionId}
+ *   onRagUpdate={(data) => setConferenceData(data)}
+ * />
+ * ```
+ */
+export const RagHandler: React.FC<RagHandlerProps> = ({
+  conversationId,
+  onRagUpdate,
 }) => {
-  useEffect(() => {
-    if (!conversationId || conversationId === '') {
-      return;
-    }
-    
-    // Set session ID for correlation
-    loggers.connection.setSessionId(conversationId);
-    loggers.connection.sessionState('RAG polling started');
+  const handleRagMessage = useCallback(
+    (data: ConferenceRAGData) => {
+      if (!data) return;
+      onRagUpdate?.(data);
+    },
+    [onRagUpdate],
+  );
 
-    const pollRagData = async () => {
-      try {
-        // Silent polling - only log meaningful events
-        const [sessionRes, speakerRes, topicRes] = await Promise.all([
-          fetch(`http://localhost:8000/latest-session/${conversationId}`),
-          fetch(`http://localhost:8000/latest-speaker/${conversationId}`),
-          fetch(`http://localhost:8000/latest-topic/${conversationId}`)
-        ]).catch(error => {
-          loggers.connection.error(`RAG polling failed: ${error.message}`);
-          return [null, null, null];
-        });
-        
-        if (!sessionRes || !speakerRes || !topicRes) {
-          return;
-        }
+  const sseUrl = conversationId
+    ? `http://localhost:8000/sse/rag/${conversationId}`
+    : null;
 
-        const [sessionData, speakerData, topicData] = await Promise.all([
-          sessionRes.ok ? sessionRes.json() : null,
-          speakerRes.ok ? speakerRes.json() : null,
-          topicRes.ok ? topicRes.json() : null
-        ]);
-
-        // Only trigger update if there is new data
-        if (sessionData || speakerData || topicData) {
-          onRagUpdate?.({
-            session: sessionData,
-            speaker: speakerData,
-            topic: topicData
-          });
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        loggers.connection.error(`RAG polling error: ${errorMessage}`);
-      }
-    };
-
-    // Poll every 2 seconds
-    const interval = setInterval(pollRagData, 2000);
-    pollRagData(); // Initial poll
-
-    return () => {
-      loggers.connection.sessionState('RAG polling stopped');
-      clearInterval(interval);
-    };
-  }, [conversationId, onRagUpdate]);
+  useSSE(sseUrl, handleRagMessage);
 
   return null; // Handler component renders nothing
-}; 
+};

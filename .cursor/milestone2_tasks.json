@@ -1,0 +1,18 @@
+{
+  "milestone": 2,
+  "name": "Component Transformation & Generative UI",
+  "status": "completed",
+  "tasks": [
+    {"id":"2.1-convert-components","content":"Replace interactive cards with voice-first versions.","status":"completed"},
+    {"id":"2.2-message-renderer","content":"Implement MessageRenderer to render UIMessage parts.","status":"completed"},
+    {"id":"2.3-sse-hook","content":"Create useSSE hook and swap polling for SSE.","status":"completed"}
+  ],
+  "research_topics":[
+    "Vercel Generative UI tool states",
+    "React accessibility patterns for aria-live updates"
+  ],
+  "research_refs":[
+    "research/vercel-generative-ui.md",
+    "research/react-aria-live.md"
+  ]
+} 

@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { useDailyEvent, useMeetingState } from '@daily-co/daily-react';
-import { loggers } from '../utils/logger';
-import { timingTracker } from '../utils/timingTracker';
+import { useEffect, useRef } from "react";
+import { useDailyEvent, useMeetingState } from "@daily-co/daily-react";
+import { loggers } from "../utils/logger";
+import { timingTracker } from "../utils/timingTracker";
 
 interface SimpleConversationLoggerProps {
   conversationId?: string;
@@ -11,63 +11,62 @@ interface SimpleConversationLoggerProps {
 // Enhanced logger instance for conversation tracking
 const conversationLogger = loggers.conversation;
 
-export const SimpleConversationLogger: React.FC<SimpleConversationLoggerProps> = ({ 
-  conversationId, 
-  enabled = true 
-}) => {
+export const SimpleConversationLogger: React.FC<
+  SimpleConversationLoggerProps
+> = ({ conversationId, enabled = true }) => {
   const meetingState = useMeetingState();
-  const lastUtteranceRef = useRef<string>('');
+  const lastUtteranceRef = useRef<string>("");
   const isUserSpeakingRef = useRef<boolean>(false);
 
   if (!enabled) return null;
 
   // Log important connection status changes only
   useEffect(() => {
-    if (meetingState === 'joined-meeting') {
-      console.info('✅ Connected to ROSA');
-    } else if (meetingState === 'left-meeting') {
-      console.info('❌ Disconnected from ROSA');
-    } else if (meetingState === 'error') {
-      console.error('🚨 Connection error');
+    if (meetingState === "joined-meeting") {
+      console.info("✅ Connected to ROSA");
+    } else if (meetingState === "left-meeting") {
+      console.info("❌ Disconnected from ROSA");
+    } else if (meetingState === "error") {
+      console.error("🚨 Connection error");
     }
   }, [meetingState]);
 
   // Listen for conversation events - focus on actual content
-  useDailyEvent('app-message', (event: any) => {
+  useDailyEvent("app-message", (event: any) => {
     const data = event.data;
-    
+
     // Track who's speaking and capture timing
-    if (data?.event_type === 'conversation.user.started_speaking') {
+    if (data?.event_type === "conversation.user.started_speaking") {
       isUserSpeakingRef.current = true;
-    } else if (data?.event_type === 'conversation.user.stopped_speaking') {
+    } else if (data?.event_type === "conversation.user.stopped_speaking") {
       isUserSpeakingRef.current = false;
       // ⏱️ TIMING: User stopped speaking - start of response latency measurement
-      timingTracker.recordUserStoppedSpeaking(conversationId || '');
-    } else if (data?.event_type === 'conversation.replica.started_speaking') {
+      timingTracker.recordUserStoppedSpeaking(conversationId || "");
+    } else if (data?.event_type === "conversation.replica.started_speaking") {
       isUserSpeakingRef.current = false;
       // ⏱️ TIMING: Avatar started speaking - end of total response latency
-      timingTracker.recordAvatarStartedSpeaking(conversationId || '');
+      timingTracker.recordAvatarStartedSpeaking(conversationId || "");
     }
-    
+
     // Extract actual conversation text from utterances
-    if (data?.event_type === 'conversation.utterance') {
+    if (data?.event_type === "conversation.utterance") {
       const text = data.properties?.speech; // ✅ Fixed: Use 'speech' instead of 'text'
-      const role = data.properties?.role;   // ✅ Use provided role instead of guessing
-      
+      const role = data.properties?.role; // ✅ Use provided role instead of guessing
+
       if (text && text !== lastUtteranceRef.current && text.length > 3) {
         lastUtteranceRef.current = text;
-        
+
         // Use the provided role to identify speaker
-        if (role === 'user') {
+        if (role === "user") {
           conversationLogger.user(text);
-        } else if (role === 'replica') {
+        } else if (role === "replica") {
           conversationLogger.assistant(text);
         }
       }
     }
 
     // Also capture conversation.respond events (our tool responses)
-    if (data?.event_type === 'conversation.respond' && data.properties?.text) {
+    if (data?.event_type === "conversation.respond" && data.properties?.text) {
       const text = data.properties.text;
       if (text !== lastUtteranceRef.current) {
         lastUtteranceRef.current = text;
@@ -76,14 +75,14 @@ export const SimpleConversationLogger: React.FC<SimpleConversationLoggerProps> =
     }
 
     // Log tool calls with essential details
-    if (data?.event_type === 'conversation.tool_call') {
+    if (data?.event_type === "conversation.tool_call") {
       const toolName = data.properties?.name;
       const args = data.properties?.arguments;
       conversationLogger.toolCall(toolName, args);
     }
 
     // Log errors
-    if (data?.event_type?.includes('error')) {
+    if (data?.event_type?.includes("error")) {
       conversationLogger.error(`Conversation error: ${data.event_type}`);
     }
   });
@@ -93,17 +92,19 @@ export const SimpleConversationLogger: React.FC<SimpleConversationLoggerProps> =
     if (conversationId && enabled) {
       // Set session ID for correlation with backend logs
       conversationLogger.setSessionId(conversationId);
-      
+
       console.clear(); // Clear previous logs for fresh start
-      conversationLogger.sessionState('started');
-      console.log('%c💡 Enhanced Logging - Session Correlated with Backend', 
-        'color: #ffa502; font-style: italic;');
-      console.log(''); // Empty line
+      conversationLogger.sessionState("started");
+      console.log(
+        "%c💡 Enhanced Logging - Session Correlated with Backend",
+        "color: #ffa502; font-style: italic;",
+      );
+      console.log(""); // Empty line
     }
 
     return () => {
       if (conversationId) {
-        conversationLogger.sessionState('ended');
+        conversationLogger.sessionState("ended");
         conversationLogger.setSessionId(null);
         // Clean up timing data
         timingTracker.cleanup(conversationId);
@@ -112,4 +113,4 @@ export const SimpleConversationLogger: React.FC<SimpleConversationLoggerProps> =
   }, [conversationId, enabled]);
 
   return null;
-}; 
+};

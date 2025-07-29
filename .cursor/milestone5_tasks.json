@@ -1,0 +1,48 @@
+{
+  "milestone": 5,
+  "name": "Automated Review & Polish",
+  "status": "pending",
+  "tasks": [
+    {
+      "id": "5.1-interactive-props-cleanup",
+      "content": "Delete residual onClick, hover Tailwind classes flagged in .cursor/plan.json and verify no interactive props remain.",
+      "status": "pending"
+    },
+    {
+      "id": "5.2-bundle-verification",
+      "content": "Run `npm run build` and ensure total JS bundle < 500 KB; adjust manualChunks in vite.config.ts if needed.",
+      "status": "pending"
+    },
+    {
+      "id": "5.3-type-hygiene",
+      "content": "Replace remaining TypeScript `any` placeholders and add JSDoc for public APIs. References: research/tavus_cvi_research.md, research/openai_structured_outputs_api_research.md",
+      "status": "pending"
+    },
+    {
+      "id": "5.4-accessibility-audit",
+      "content": "Run `npm run report:a11y` + Lighthouse. Fix violations, target Lighthouse score ≥ 95.",
+      "status": "pending"
+    },
+    {
+      "id": "5.5-repository-hygiene",
+      "content": "Move obsolete files (legacy Weather components, etc.) into /archive/2025-07-29/ and ensure no imports remain.",
+      "status": "pending"
+    },
+    {
+      "id": "5.6-prettier-eslint",
+      "content": "Run Prettier and ESLint repo-wide. Fix lint errors.",
+      "status": "pending"
+    },
+    {
+      "id": "5.7-automated-tests",
+      "content": "Add integration tests for Edge Function (streamText + tool call) and FastAPI endpoints using Pytest and React Testing Library. References: research/vercel_ai_sdk_v5_research.md, research/weaviate_v4_client_research.md",
+      "status": "pending"
+    }
+  ],
+  "learned_insights": [
+    "Environment separation: root .env for backend, frontend .env for React + Edge Functions.",
+    "Vercel Dev is required for AI SDK v5 Edge Functions locally (port 3000).",
+    "Data API must run concurrently on port 8000 for tool calls.",
+    "AI SDK v5 breaking changes handled: useChat status, sendMessage, UIMessage parts parsing."
+  ]
+} 

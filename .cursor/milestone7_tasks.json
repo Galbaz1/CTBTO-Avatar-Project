@@ -1,0 +1,47 @@
+{
+  "milestone": 7,
+  "name": "Final Integration Testing & Production Readiness",
+  "status": "pending",
+  "tasks": [
+    {
+      "id": "7.1-end-to-end-testing",
+      "content": "Simulate complete voice interactions using Tavus testing tools or mocks. Verify utterance → tool invocation → UI rendering pipeline.",
+      "status": "pending"
+    },
+    {
+      "id": "7.2-performance-stress-testing",
+      "content": "Use JMeter or k6 to simulate multiple concurrent sessions. Monitor SSE stream stability and memory usage under load.",
+      "status": "pending"
+    },
+    {
+      "id": "7.3-security-validation",
+      "content": "Ensure only authenticated Tavus calls reach Edge Function. Validate inputs to prevent injection attacks and enforce rate limiting.",
+      "status": "pending"
+    },
+    {
+      "id": "7.4-accessibility-final-audit",
+      "content": "Manual testing with screen readers (VoiceOver, NVDA). Confirm ARIA announcements, focus order, and 0 Axe violations.",
+      "status": "pending"
+    },
+    {
+      "id": "7.5-deployment-verification",
+      "content": "Deploy to Vercel production environment. Verify Vienna region latency <150ms and all environment variables are properly configured.",
+      "status": "pending"
+    },
+    {
+      "id": "7.6-tavus-persona-configuration",
+      "content": "Final configuration of Tavus persona with minimal system prompt and get_assistant_response tool pointing to production Edge Function.",
+      "status": "pending"
+    }
+  ],
+  "research_topics": [
+    "Tavus production persona configuration",
+    "Vercel Edge Function production deployment",
+    "Load testing best practices for SSE streams",
+    "Screen reader testing methodology"
+  ],
+  "research_refs": [
+    "research/tavus_cvi_research.md",
+    "research/vercel_ai_sdk_v5_research.md"
+  ]
+} 

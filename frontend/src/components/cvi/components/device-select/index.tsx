@@ -30,8 +30,20 @@ export const SelectDevice = ({
         ))}
       </select>
       <span className={styles.selectArrow}>
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 6L8 10L12 6" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M4 6L8 10L12 6"
+            stroke="#fff"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </span>
     </div>
@@ -39,14 +51,13 @@ export const SelectDevice = ({
 };
 
 export const MicSelectBtn = memo(() => {
-  const { onToggleMicrophone, isMicReady, isMicMuted } = useLocalMicrophone();
+  const { isMicReady, isMicMuted } = useLocalMicrophone();
   const { microphones, currentMic, setMicrophone } = useDevices();
 
   return (
     <div className={styles.deviceButtonContainer}>
       <button
         type="button"
-        onClick={onToggleMicrophone}
         disabled={!isMicReady}
         className={styles.deviceButton}
       >
@@ -133,12 +144,11 @@ MicSelectBtn.displayName = "MicSelectBtn";
 // CameraSelectBtn removed - no camera needed
 
 export const ScreenShareButton = memo(() => {
-  const { onToggleScreenshare, isScreenSharing } = useLocalScreenshare();
+  const { isScreenSharing } = useLocalScreenshare();
 
   return (
     <button
       type="button"
-      onClick={onToggleScreenshare}
       className={`${styles.deviceButtonContainer} ${styles.screenShareButton}`}
     >
       <span>

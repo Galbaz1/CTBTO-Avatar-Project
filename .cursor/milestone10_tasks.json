@@ -1,0 +1,47 @@
+{
+  "milestone": 10,
+  "name": "Archive & Repository Cleanup",
+  "status": "pending",
+  "tasks": [
+    {
+      "id": "10.1-identify-unused-files",
+      "content": "Scan entire repository for files, assets, scripts, and directories no longer referenced in the active codebase.",
+      "status": "pending"
+    },
+    {
+      "id": "10.2-create-archive-structure",
+      "content": "Create /archive/YYYY-MM-DD/ folder at repo root using actual execution date and preserve original sub-paths inside archive.",
+      "status": "pending"
+    },
+    {
+      "id": "10.3-move-obsolete-artifacts",
+      "content": "Move all unused files into archive folder while maintaining original directory structure for traceability.",
+      "status": "pending"
+    },
+    {
+      "id": "10.4-verify-no-imports",
+      "content": "Run static analysis to confirm no code outside /archive/ imports or references anything inside /archive/.",
+      "status": "pending"
+    },
+    {
+      "id": "10.5-clean-empty-directories",
+      "content": "Delete resulting empty directories to keep the active repository tree tidy.",
+      "status": "pending"
+    },
+    {
+      "id": "10.6-final-verification",
+      "content": "Perform final verification that repository contains only actively used code and documentation.",
+      "status": "pending"
+    }
+  ],
+  "research_topics": [
+    "Repository hygiene best practices",
+    "Static analysis tools for import detection",
+    "Archive folder organization strategies"
+  ],
+  "research_refs": [],
+  "notes": [
+    "This milestone implements the mandatory Repository Hygiene & Archiving Policy from development_plan.md Section 1.2",
+    "Failure to archive unused artifacts is considered a violation of the development plan"
+  ]
+} 

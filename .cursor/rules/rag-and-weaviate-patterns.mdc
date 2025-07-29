@@ -1,5 +1,6 @@
 ---
-alwaysApply: true
+description: Always apply this rule when you touch anything weaviate related or even think about weaviate. As soon as weaviate is mentioned in your context, you must load this rule.
+alwaysApply: false
 ---
 # Rules for RAG and Weaviate Development
 

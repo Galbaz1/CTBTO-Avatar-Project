@@ -1,0 +1,25 @@
+{
+  "milestone": 0,
+  "name": "Pre-Flight Scan & Plan",
+  "status": "completed",
+  "tasks": [
+    {
+      "id": "0.1-scan-codebase",
+      "content": "Repo-wide grep for interactive props, framer-motion imports, polling intervals; store results in .cursor/plan.json.",
+      "status": "completed"
+    },
+    {
+      "id": "0.2-generate-plan",
+      "content": "Produce development_plan.md with phased execution strategy and cost guard-rails.",
+      "status": "completed"
+    }
+  ],
+  "research_topics": [
+    "WCAG AAA text & contrast guidelines (w3.org)",
+    "PubNub white-paper on SSE vs Polling"
+  ],
+  "research_refs": [
+    "research/wcag-contrast.md",
+    "research/sse-vs-polling.md"
+  ]
+} 

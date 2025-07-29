@@ -1,7 +1,7 @@
-import React, { createContext, useContext } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Badge } from '../compound/Badge';
+import React, { createContext, useContext } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Badge } from "../compound/Badge";
 
 // === TYPES & INTERFACES ===
 
@@ -20,8 +20,8 @@ interface SnT2025Speaker {
   totalDuration: number;
   isKeynote: boolean;
   research_areas?: string[];
-  experience_level?: 'junior' | 'senior' | 'expert';
-  priority_level?: 'high' | 'medium' | 'low';
+  experience_level?: "junior" | "senior" | "expert";
+  priority_level?: "high" | "medium" | "low";
   relevance_score?: number;
 }
 
@@ -51,7 +51,7 @@ const SpeakerCardContext = createContext<SpeakerCardContextValue | null>(null);
 const useSpeakerCard = () => {
   const context = useContext(SpeakerCardContext);
   if (!context) {
-    throw new Error('SpeakerCard components must be used within SpeakerCard');
+    throw new Error("SpeakerCard components must be used within SpeakerCard");
   }
   return context;
 };
@@ -60,24 +60,24 @@ const useSpeakerCard = () => {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.3,
-    }
-  }
+    },
+  },
 };
 
 const contentVariants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
     transition: {
       delay: 0.1,
-      duration: 0.2
-    }
-  }
+      duration: 0.2,
+    },
+  },
 };
 
 const sessionVariants = {
@@ -88,8 +88,8 @@ const sessionVariants = {
     transition: {
       delay: i * 0.05,
       duration: 0.2,
-    }
-  })
+    },
+  }),
 };
 
 // === MAIN COMPONENT ===
@@ -103,18 +103,18 @@ interface SpeakerCardProps {
   [key: string]: any;
 }
 
-function SpeakerCard({ 
-  speaker, 
-  compact = false, 
-  animated = true, 
+function SpeakerCard({
+  speaker,
+  compact = false,
+  animated = true,
   className,
-  children 
+  children,
 }: SpeakerCardProps) {
   const contextValue: SpeakerCardContextValue = {
     speaker,
     compact,
     animated,
-    className
+    className,
   };
 
   return (
@@ -133,12 +133,12 @@ function SpeakerCard({
           "focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-offset-2",
           // Responsive sizing for kiosk displays
           compact ? "p-4" : "p-6",
-          className
+          className,
         )}
         // Voice-only: no mouse interaction handlers
         role="article"
-        aria-labelledby={`speaker-title-${speaker.name.replace(/\s+/g, '-')}`}
-        aria-describedby={`speaker-bio-${speaker.name.replace(/\s+/g, '-')}`}
+        aria-labelledby={`speaker-title-${speaker.name.replace(/\s+/g, "-")}`}
+        aria-describedby={`speaker-bio-${speaker.name.replace(/\s+/g, "-")}`}
       >
         {children}
       </motion.article>
@@ -148,9 +148,15 @@ function SpeakerCard({
 
 // === COMPOUND COMPONENTS ===
 
-function SpeakerCardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+function SpeakerCardHeader({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useSpeakerCard();
-  
+
   return (
     <motion.header
       variants={animated ? contentVariants : undefined}
@@ -161,13 +167,19 @@ function SpeakerCardHeader({ children, className }: { children: React.ReactNode;
   );
 }
 
-function SpeakerCardName({ children, className }: { children?: React.ReactNode; className?: string }) {
+function SpeakerCardName({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { speaker, compact } = useSpeakerCard();
   const displayName = children || speaker.name;
-  
+
   return (
     <h3
-      id={`speaker-title-${speaker.name.replace(/\s+/g, '-')}`}
+      id={`speaker-title-${speaker.name.replace(/\s+/g, "-")}`}
       className={cn(
         // Large, readable fonts for kiosk environment (18px+ minimum)
         compact ? "text-lg font-semibold" : "text-xl font-bold",
@@ -175,7 +187,7 @@ function SpeakerCardName({ children, className }: { children?: React.ReactNode; 
         "text-gray-900",
         // Text overflow handling for long names
         "line-clamp-1 leading-tight",
-        className
+        className,
       )}
     >
       {displayName}
@@ -185,13 +197,15 @@ function SpeakerCardName({ children, className }: { children?: React.ReactNode; 
 
 function SpeakerCardMeta({ className }: { className?: string }) {
   const { speaker, compact } = useSpeakerCard();
-  
+
   return (
-    <div className={cn(
-      "flex flex-wrap items-center gap-2 mt-2", 
-      compact ? "text-sm" : "text-base",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-2 mt-2",
+        compact ? "text-sm" : "text-base",
+        className,
+      )}
+    >
       {speaker.title && (
         <Badge variant="secondary" className="text-xs font-medium">
           {speaker.title}
@@ -219,9 +233,15 @@ function SpeakerCardMeta({ className }: { className?: string }) {
   );
 }
 
-function SpeakerCardBody({ children, className }: { children: React.ReactNode; className?: string }) {
+function SpeakerCardBody({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useSpeakerCard();
-  
+
   return (
     <motion.div
       variants={animated ? contentVariants : undefined}
@@ -232,15 +252,21 @@ function SpeakerCardBody({ children, className }: { children: React.ReactNode; c
   );
 }
 
-function SpeakerCardBio({ children, className }: { children?: React.ReactNode; className?: string }) {
+function SpeakerCardBio({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { speaker, compact } = useSpeakerCard();
   const displayBio = children || speaker.bio;
-  
+
   if (!displayBio) return null;
-  
+
   return (
     <p
-      id={`speaker-bio-${speaker.name.replace(/\s+/g, '-')}`}
+      id={`speaker-bio-${speaker.name.replace(/\s+/g, "-")}`}
       className={cn(
         // Readable text size for kiosk
         compact ? "text-sm" : "text-base",
@@ -248,7 +274,7 @@ function SpeakerCardBio({ children, className }: { children?: React.ReactNode; c
         "text-gray-700",
         // Handle long bios
         "line-clamp-3 leading-relaxed",
-        className
+        className,
       )}
     >
       {displayBio}
@@ -258,40 +284,42 @@ function SpeakerCardBio({ children, className }: { children?: React.ReactNode; c
 
 function SpeakerCardExpertise({ className }: { className?: string }) {
   const { speaker, compact } = useSpeakerCard();
-  
+
   if (!speaker.expertise || speaker.expertise.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Expertise
       </h4>
       <div className="flex flex-wrap gap-1">
         {speaker.expertise.slice(0, compact ? 3 : 6).map((area, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs px-2 py-1" : "text-sm px-2 py-1",
               // Clear, accessible colors - no hover states
-              "bg-blue-50 text-blue-700 border-blue-200"
+              "bg-blue-50 text-blue-700 border-blue-200",
             )}
           >
             {area}
           </Badge>
         ))}
         {speaker.expertise.length > (compact ? 3 : 6) && (
-          <Badge 
+          <Badge
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
-              "bg-gray-50 text-gray-600 border-gray-300"
+              "bg-gray-50 text-gray-600 border-gray-300",
             )}
           >
             +{speaker.expertise.length - (compact ? 3 : 6)} more
@@ -302,22 +330,30 @@ function SpeakerCardExpertise({ className }: { className?: string }) {
   );
 }
 
-function SpeakerCardSessions({ maxSessions = 3, className }: { maxSessions?: number; className?: string }) {
+function SpeakerCardSessions({
+  maxSessions = 3,
+  className,
+}: {
+  maxSessions?: number;
+  className?: string;
+}) {
   const { speaker, compact, animated } = useSpeakerCard();
-  
+
   if (!speaker.sessions || speaker.sessions.length === 0) {
     return null;
   }
-  
+
   const displaySessions = speaker.sessions.slice(0, maxSessions);
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Sessions ({speaker.sessionCount})
       </h4>
       <div className="space-y-2">
@@ -332,15 +368,17 @@ function SpeakerCardSessions({ maxSessions = 3, className }: { maxSessions?: num
             className={cn(
               "p-3 rounded-md border border-gray-200 bg-gray-50",
               // Voice-only: no hover effects
-              "focus-within:ring-1 focus-within:ring-blue-500"
+              "focus-within:ring-1 focus-within:ring-blue-500",
             )}
           >
             <div className="flex justify-between items-start mb-1">
-              <h5 className={cn(
-                "font-medium line-clamp-1",
-                compact ? "text-xs" : "text-sm",
-                "text-gray-900"
-              )}>
+              <h5
+                className={cn(
+                  "font-medium line-clamp-1",
+                  compact ? "text-xs" : "text-sm",
+                  "text-gray-900",
+                )}
+              >
                 {session.title}
               </h5>
               <Badge variant="outline" className="text-xs ml-2">
@@ -356,7 +394,10 @@ function SpeakerCardSessions({ maxSessions = 3, className }: { maxSessions?: num
               {session.co_speakers && session.co_speakers.length > 0 && (
                 <>
                   <span>•</span>
-                  <span>{session.co_speakers.length} co-speaker{session.co_speakers.length > 1 ? 's' : ''}</span>
+                  <span>
+                    {session.co_speakers.length} co-speaker
+                    {session.co_speakers.length > 1 ? "s" : ""}
+                  </span>
                 </>
               )}
             </div>
@@ -376,29 +417,31 @@ function SpeakerCardSessions({ maxSessions = 3, className }: { maxSessions?: num
 
 function SpeakerCardThemes({ className }: { className?: string }) {
   const { speaker, compact } = useSpeakerCard();
-  
+
   if (!speaker.themes || speaker.themes.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Research Themes
       </h4>
       <div className="flex flex-wrap gap-2">
         {speaker.themes.map((theme, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
               // Clear, accessible colors - no hover states
-              "bg-purple-50 text-purple-700 border-purple-200"
+              "bg-purple-50 text-purple-700 border-purple-200",
             )}
           >
             {theme}
@@ -411,29 +454,31 @@ function SpeakerCardThemes({ className }: { className?: string }) {
 
 function SpeakerCardVenues({ className }: { className?: string }) {
   const { speaker, compact } = useSpeakerCard();
-  
+
   if (!speaker.venues || speaker.venues.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Speaking Venues
       </h4>
       <div className="flex flex-wrap gap-2">
         {speaker.venues.map((venue, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
               // Clear, accessible colors - no hover states
-              "bg-green-50 text-green-700 border-green-200"
+              "bg-green-50 text-green-700 border-green-200",
             )}
           >
             {venue}
@@ -446,31 +491,37 @@ function SpeakerCardVenues({ className }: { className?: string }) {
 
 function SpeakerCardStats({ className }: { className?: string }) {
   const { speaker, compact } = useSpeakerCard();
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Speaking Profile
       </h4>
       <div className="grid grid-cols-2 gap-2">
         <div className="text-center p-2 bg-blue-50 rounded-md">
-          <div className={cn(
-            "font-bold text-blue-900",
-            compact ? "text-sm" : "text-base"
-          )}>
+          <div
+            className={cn(
+              "font-bold text-blue-900",
+              compact ? "text-sm" : "text-base",
+            )}
+          >
             {speaker.sessionCount}
           </div>
           <div className="text-xs text-blue-600">Sessions</div>
         </div>
         <div className="text-center p-2 bg-green-50 rounded-md">
-          <div className={cn(
-            "font-bold text-green-900",
-            compact ? "text-sm" : "text-base"
-          )}>
+          <div
+            className={cn(
+              "font-bold text-green-900",
+              compact ? "text-sm" : "text-base",
+            )}
+          >
             {Math.round(speaker.totalDuration / 60)}h
           </div>
           <div className="text-xs text-green-600">Speaking</div>
@@ -480,13 +531,19 @@ function SpeakerCardStats({ className }: { className?: string }) {
   );
 }
 
-function SpeakerCardFooter({ children, className }: { children?: React.ReactNode; className?: string }) {
+function SpeakerCardFooter({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { speaker, animated } = useSpeakerCard();
-  
+
   const defaultFooter = (
     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
       <div className="flex items-center space-x-4 text-sm text-gray-500">
-        <span>{speaker.sessionTypes.join(', ')}</span>
+        <span>{speaker.sessionTypes.join(", ")}</span>
         {speaker.priority_level && (
           <Badge variant="outline" size="sm">
             {speaker.priority_level} priority
@@ -500,7 +557,7 @@ function SpeakerCardFooter({ children, className }: { children?: React.ReactNode
       )}
     </div>
   );
-  
+
   return (
     <motion.footer
       variants={animated ? contentVariants : undefined}
@@ -527,7 +584,13 @@ SpeakerCard.Footer = SpeakerCardFooter;
 
 // === PRESET LAYOUTS ===
 
-function SpeakerCardDefault({ speaker, className }: { speaker: SnT2025Speaker; className?: string }) {
+function SpeakerCardDefault({
+  speaker,
+  className,
+}: {
+  speaker: SnT2025Speaker;
+  className?: string;
+}) {
   return (
     <SpeakerCard speaker={speaker} className={className}>
       <SpeakerCard.Header>
@@ -546,7 +609,13 @@ function SpeakerCardDefault({ speaker, className }: { speaker: SnT2025Speaker; c
   );
 }
 
-function SpeakerCardCompact({ speaker, className }: { speaker: SnT2025Speaker; className?: string }) {
+function SpeakerCardCompact({
+  speaker,
+  className,
+}: {
+  speaker: SnT2025Speaker;
+  className?: string;
+}) {
   return (
     <SpeakerCard speaker={speaker} compact className={className}>
       <SpeakerCard.Header>
@@ -562,7 +631,13 @@ function SpeakerCardCompact({ speaker, className }: { speaker: SnT2025Speaker; c
   );
 }
 
-function SpeakerCardMinimal({ speaker, className }: { speaker: SnT2025Speaker; className?: string }) {
+function SpeakerCardMinimal({
+  speaker,
+  className,
+}: {
+  speaker: SnT2025Speaker;
+  className?: string;
+}) {
   return (
     <SpeakerCard speaker={speaker} compact className={className}>
       <SpeakerCard.Header>
@@ -584,7 +659,7 @@ export {
   SpeakerCardCompact,
   SpeakerCardMinimal,
   type SnT2025Speaker,
-  type SpeakerSession
+  type SpeakerSession,
 };
 
-export default SpeakerCard; 
+export default SpeakerCard;

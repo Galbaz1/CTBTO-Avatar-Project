@@ -718,3 +718,159 @@ For complex research requiring multiple sources:
 ## 11. Conclusion
 
 This development plan provides a concrete roadmap for building the CTBTO Avatar kiosk on a modern, voice‑first foundation.  By combining Tavus’ voice pipeline with Vercel’s generative UI and a thin data API, the app achieves real‑time interactivity, accessibility and maintainability.  Following the patterns and guidelines herein ensures a successful migration and sets a template for future AI‑driven kiosks.
+
+### 9.1 Progress Log (Automated)
+
+| Milestone | Status | Key Outcomes |
+|-----------|--------|--------------|
+| 0 – Pre-Flight Scan & Plan | ✅ Completed (2025-07-29) | `.cursor/plan.json` generated with interactive prop list & polling detections |
+| 1 – Foundation Refactor | ✅ Completed | Python `venv/`, base deps, Edge Function skeleton, TavusVoiceWrapper scaffold |
+| 2 – Component Transformation & Generative UI | ✅ Completed | `useSSE` hook, VoiceSpeakerCard, MessageRenderer, removed polling & framer-motion stub |
+| 3 – Voice Integration & Data Tools | ✅ Completed | FastAPI data API, Zod tools, VoiceFirstKiosk, end-to-end voice pipeline |
+| 4 – Performance, Accessibility & Deployment | ✅ Completed | Vite chunk split, <500 KB bundle target, Axe & Lighthouse scripts, `vercel.json` (fra1) |
+| 5.1 – Interactive-Props Cleanup | ✅ Completed (2025-01-29) | All `onClick`, `hover:*`, `whileHover`, polling intervals removed; SSE migration complete |
+
+### 9.2 Milestone 5 Progress & Learnings (2025-01-29)
+
+**✅ Task 5.1 – Interactive-Props Cleanup (COMPLETED)**
+
+**Key Achievements:**
+- **Complete Voice-First Compliance:** Successfully eliminated all interactive UI elements across 10+ components
+- **Polling to SSE Migration:** Replaced `setInterval` polling in `RagHandler.tsx` with existing `useSSE` hook
+- **Systematic Cleanup:** Used `.cursor/plan.json` findings to target all flagged interactive elements
+- **Zero Interactive Violations:** Confirmed no remaining `onClick=` or `hover:` utilities in TypeScript files
+
+**Critical Learnings:**
+1. **SSE Over Polling:** The existing `useSSE` hook proved robust for replacing 2-second polling cycles
+2. **Voice-First Architecture:** Non-interactive UI significantly reduces cognitive load and improves accessibility
+3. **Component Isolation:** Each component cleanly separated from interactive concerns without breaking functionality
+4. **Research-Driven Approach:** `/research` folder documentation provided essential patterns for voice-first compliance
+
+**Architecture Insights:**
+- **Form Submission Pattern:** Converted `onClick` to semantic `onSubmit` handlers where appropriate
+- **Accessibility Focus:** Removed cursor-pointer and hover states while maintaining semantic structure
+- **Performance Gains:** Eliminated unnecessary hover animations and state transitions
+
+### 9.3 Future Vision & Remaining Tasks
+
+**🎯 Bundle Verification (Task 5.2) – Strategic Focus**
+- **Target:** Achieve <500 KB total JavaScript bundle for optimal voice-first performance
+- **Approach:** Leverage Vite's `manualChunks` for intelligent code splitting
+- **Expected Challenges:** AI SDK v5 and Tavus CVI dependencies may require careful chunking
+- **Success Metrics:** Bundle analyzer showing <500 KB total, <200 KB initial load
+
+**🔍 Type Hygiene (Task 5.3) – Quality Foundation**
+- **Research Integration:** Apply TypeScript patterns from `/research/openai_structured_outputs_api_research.md`
+- **JSDoc Standards:** Document all public APIs with comprehensive examples
+- **Tavus Types:** Replace `any` placeholders with proper interfaces from `/research/tavus_cvi_research.md`
+- **Tool Validation:** Ensure Zod schemas align with OpenAI Structured Outputs best practices
+
+**♿ Accessibility Audit (Task 5.4) – WCAG AAA Excellence**
+- **Comprehensive Testing:** Implement patterns from `/research/wcag_aaa_accessibility_research.md`
+- **Target Standards:** 7:1 contrast ratios, 18px minimum fonts, semantic ARIA structure
+- **Voice-First Validation:** Ensure screen reader compatibility with dynamic content updates
+- **Lighthouse Goal:** Achieve ≥95 accessibility score across all pages
+
+**🗂️ Repository Hygiene (Task 5.5) – Clean Architecture**
+- **Archive Strategy:** Move obsolete components to `/archive/2025-01-29/` with full path preservation
+- **Import Analysis:** Static verification that no active code references archived files
+- **Documentation Update:** Ensure all references in documentation reflect current structure
+
+**✨ Code Quality (Task 5.6) – Professional Standards**
+- **Prettier Integration:** Consistent formatting across all TypeScript, CSS, and JSON files
+- **ESLint Rules:** Voice-first specific linting rules to prevent interactive regressions
+- **Pre-commit Hooks:** Automated quality gates for future development
+
+**🧪 Integration Testing (Task 5.7) – Confidence Pipeline**
+- **Edge Function Testing:** Validate `streamText` + tool calling pipeline from `/research/vercel_ai_sdk_v5_research.md`
+- **FastAPI Validation:** Test Weaviate v4 search patterns from `/research/weaviate_v4_implementation_patterns_research.md`
+- **Voice Pipeline E2E:** Mock Tavus CVI interactions for complete flow testing
+- **Performance Benchmarks:** Establish response time baselines for voice interactions
+
+### 9.4 Strategic Architecture Vision
+
+**Voice-First Ecosystem Maturity:**
+The CTBTO Avatar represents a paradigm shift toward truly accessible, voice-driven interfaces. The systematic removal of interactive elements creates a foundation for:
+
+1. **Universal Accessibility:** Compliance with WCAG AAA ensures the system serves users with diverse abilities
+2. **Cognitive Simplicity:** Non-interactive UI reduces decision fatigue and focuses attention on voice interaction
+3. **Performance Excellence:** Optimized bundles and SSE streaming provide sub-second response times
+4. **Maintainable Architecture:** Clean separation of concerns between voice logic and data presentation
+
+**Future Enhancement Opportunities:**
+- **Multi-language Support:** Leverage the clean architecture for internationalization
+- **Advanced Voice Analytics:** Integration points for conversation quality metrics
+- **Adaptive UI:** Context-aware information density based on user patterns
+- **Edge Computing:** Further optimization for global conference deployments
+
+**Development Methodology Success:**
+The research-driven approach using `/research` documentation proved invaluable for:
+- **Best Practice Adoption:** Direct application of vendor documentation patterns
+- **Quality Assurance:** Systematic validation against established standards
+- **Knowledge Retention:** Permanent reference for future voice-first projects
+
+### 9.5 Risk Mitigation & Quality Gates
+
+**Remaining Technical Risks:**
+1. **Bundle Size Overflow:** AI SDK v5 dependencies may exceed 500 KB target
+2. **Type Safety Gaps:** Complex Tavus event types may require careful interface design
+3. **Accessibility Edge Cases:** Dynamic content updates need robust ARIA live region management
+4. **Performance Regression:** Ensure optimizations don't impact voice interaction latency
+
+**Quality Assurance Strategy:**
+- **Automated Testing:** Comprehensive test coverage for critical voice pathways
+- **Performance Monitoring:** Continuous bundle size and response time tracking
+- **Accessibility Validation:** Regular audits with assistive technology testing
+- **Documentation Maintenance:** Keep research documentation current with implementation
+
+### 9.6 Upcoming – Milestone 6 (Cross-Model Audit & Guardrails)
+
+Milestone 6 focuses on **multi-model robustness** and **safety guardrails** before the production freeze.
+
+1. **Cross-Model Output Audit**  
+   • Evaluate OpenAI GPT-4o vs Anthropic Claude 3 vs Google Gemini using identical RAG prompts  
+   • Compare factual consistency, hallucination rate, latency, and cost  
+   • Success Metric: ≤1% factual error rate across models on 200 test prompts
+
+2. **Safety & Red-Zone Guardrails**  
+   • Integrate red-zone JSON guides from `/source_data/red_zone_json/*` into moderation pipeline  
+   • Implement streaming content filter that blocks disallowed topics in real-time  
+   • Success Metric: 100% block rate on the guardrail test suite; 0 false positives on whitelist set
+
+3. **Security Hardening**  
+   • Apply HTTP Security Headers (CSP, HSTS, X-Frame-Options) via Vercel middleware  
+   • 💡 Reference `/research/wcag_aaa_accessibility_research.md` for secure ARIA best-practices  
+   • Pen-test with OWASP ZAP; patch any high/critical findings
+
+4. **Observability & Alerting**  
+   • Add OpenTelemetry tracing to Edge Function + FastAPI endpoints  
+   • Ship logs to Grafana Cloud; create dashboards for latency and error rates  
+   • Alert thresholds: p95 latency > 200 ms, error rate > 1%
+
+### 9.7 Upcoming – Milestone 7 (Global Launch & Operational Readiness)
+
+Milestone 7 delivers **production-grade deployment** for the SnT 2025 conference.
+
+1. **Edge Global Deployment**  
+   • Deploy to Vercel regions `fra1`, `cdg1`, `iad1` with automatic region routing  
+   • Success Metric: p90 TTFB < 80 ms globally (VPN test from 5 continents)
+
+2. **Multi-Lingual Roll-Out**  
+   • Add language packs for French & Spanish using server-side translation functions  
+   • Screen reader testing in localised languages  
+   • Success Metric: Lighthouse i18n ≥ 95
+
+3. **Conference Venue Kiosk Hardening**  
+   • Offline cache for critical assets using `workbox`  
+   • HDMI monitor auto-refresh watchdog script  
+   • Physical kiosk checklist (audio, network, power)
+
+4. **Incident Response Playbook**  
+   • Define run-book for AI hallucinations, API outages, hardware faults  
+   • Table-top drill with CTBTO IT team  
+   • Success Metric: Mean Time To Mitigate < 5 min during drill
+
+5. **Final Accessibility & Performance Re-Audit**  
+   • Run Lighthouse v12 full audit; target scores: P≥90, A≥95, BP≥100, SEO≥95  
+   • Axe-core CLI batch test across all pages  
+   • Confirm WCAG AAA certificate

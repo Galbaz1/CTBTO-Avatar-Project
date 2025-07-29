@@ -1,14 +1,14 @@
-import React, { createContext, useContext } from 'react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Badge } from '../compound/Badge';
+import React, { createContext, useContext } from "react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { Badge } from "../compound/Badge";
 
 // === TYPES & INTERFACES ===
 
 interface SnT2025Venue {
   name: string;
   location: string;
-  floor: 'ground' | 'upper';
+  floor: "ground" | "upper";
   description: string;
   capacity?: number;
   facilities: string[];
@@ -20,7 +20,7 @@ interface SnT2025Venue {
   dailySchedule: DailySchedule[];
   utilization_rate?: number;
   accessibility?: string;
-  priority_level?: 'high' | 'medium' | 'low';
+  priority_level?: "high" | "medium" | "low";
   relevance_score?: number;
 }
 
@@ -56,7 +56,7 @@ const VenueCardContext = createContext<VenueCardContextValue | null>(null);
 const useVenueCard = () => {
   const context = useContext(VenueCardContext);
   if (!context) {
-    throw new Error('VenueCard components must be used within VenueCard');
+    throw new Error("VenueCard components must be used within VenueCard");
   }
   return context;
 };
@@ -65,24 +65,24 @@ const useVenueCard = () => {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.3,
-    }
-  }
+    },
+  },
 };
 
 const contentVariants = {
   hidden: { opacity: 0 },
-  visible: { 
+  visible: {
     opacity: 1,
     transition: {
       delay: 0.1,
-      duration: 0.2
-    }
-  }
+      duration: 0.2,
+    },
+  },
 };
 
 const scheduleVariants = {
@@ -93,8 +93,8 @@ const scheduleVariants = {
     transition: {
       delay: i * 0.05,
       duration: 0.2,
-    }
-  })
+    },
+  }),
 };
 
 // === MAIN COMPONENT ===
@@ -107,18 +107,18 @@ interface VenueCardProps {
   children: React.ReactNode;
 }
 
-function VenueCard({ 
-  venue, 
-  compact = false, 
-  animated = true, 
+function VenueCard({
+  venue,
+  compact = false,
+  animated = true,
   className,
-  children 
+  children,
 }: VenueCardProps) {
   const contextValue: VenueCardContextValue = {
     venue,
     compact,
     animated,
-    className
+    className,
   };
 
   return (
@@ -137,12 +137,12 @@ function VenueCard({
           "focus-within:ring-2 focus-within:ring-green-500 focus-within:ring-offset-2",
           // Responsive sizing for kiosk displays
           compact ? "p-4" : "p-6",
-          className
+          className,
         )}
         // Voice-only: no mouse interaction handlers
         role="article"
-        aria-labelledby={`venue-title-${venue.name.replace(/\s+/g, '-')}`}
-        aria-describedby={`venue-description-${venue.name.replace(/\s+/g, '-')}`}
+        aria-labelledby={`venue-title-${venue.name.replace(/\s+/g, "-")}`}
+        aria-describedby={`venue-description-${venue.name.replace(/\s+/g, "-")}`}
       >
         {children}
       </motion.article>
@@ -152,9 +152,15 @@ function VenueCard({
 
 // === COMPOUND COMPONENTS ===
 
-function VenueCardHeader({ children, className }: { children: React.ReactNode; className?: string }) {
+function VenueCardHeader({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useVenueCard();
-  
+
   return (
     <motion.header
       variants={animated ? contentVariants : undefined}
@@ -165,13 +171,19 @@ function VenueCardHeader({ children, className }: { children: React.ReactNode; c
   );
 }
 
-function VenueCardTitle({ children, className }: { children?: React.ReactNode; className?: string }) {
+function VenueCardTitle({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { venue, compact } = useVenueCard();
   const displayTitle = children || venue.name;
-  
+
   return (
     <h3
-      id={`venue-title-${venue.name.replace(/\s+/g, '-')}`}
+      id={`venue-title-${venue.name.replace(/\s+/g, "-")}`}
       className={cn(
         // Large, readable fonts for kiosk environment (18px+ minimum)
         compact ? "text-lg font-semibold" : "text-xl font-bold",
@@ -179,7 +191,7 @@ function VenueCardTitle({ children, className }: { children?: React.ReactNode; c
         "text-gray-900",
         // Text overflow handling for long titles
         "line-clamp-1 leading-tight",
-        className
+        className,
       )}
     >
       {displayTitle}
@@ -189,13 +201,15 @@ function VenueCardTitle({ children, className }: { children?: React.ReactNode; c
 
 function VenueCardMeta({ className }: { className?: string }) {
   const { venue, compact } = useVenueCard();
-  
+
   return (
-    <div className={cn(
-      "flex flex-wrap items-center gap-2 mt-2", 
-      compact ? "text-sm" : "text-base",
-      className
-    )}>
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-2 mt-2",
+        compact ? "text-sm" : "text-base",
+        className,
+      )}
+    >
       <Badge variant="secondary" className="text-xs font-medium">
         {venue.floor} floor
       </Badge>
@@ -219,9 +233,15 @@ function VenueCardMeta({ className }: { className?: string }) {
   );
 }
 
-function VenueCardBody({ children, className }: { children: React.ReactNode; className?: string }) {
+function VenueCardBody({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   const { animated } = useVenueCard();
-  
+
   return (
     <motion.div
       variants={animated ? contentVariants : undefined}
@@ -232,13 +252,19 @@ function VenueCardBody({ children, className }: { children: React.ReactNode; cla
   );
 }
 
-function VenueCardDescription({ children, className }: { children?: React.ReactNode; className?: string }) {
+function VenueCardDescription({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { venue, compact } = useVenueCard();
   const displayDescription = children || venue.description;
-  
+
   return (
     <p
-      id={`venue-description-${venue.name.replace(/\s+/g, '-')}`}
+      id={`venue-description-${venue.name.replace(/\s+/g, "-")}`}
       className={cn(
         // Readable text size for kiosk
         compact ? "text-sm" : "text-base",
@@ -246,7 +272,7 @@ function VenueCardDescription({ children, className }: { children?: React.ReactN
         "text-gray-700",
         // Handle long descriptions
         "line-clamp-2 leading-relaxed",
-        className
+        className,
       )}
     >
       {displayDescription}
@@ -256,40 +282,42 @@ function VenueCardDescription({ children, className }: { children?: React.ReactN
 
 function VenueCardFacilities({ className }: { className?: string }) {
   const { venue, compact } = useVenueCard();
-  
+
   if (!venue.facilities || venue.facilities.length === 0) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Facilities
       </h4>
       <div className="flex flex-wrap gap-1">
         {venue.facilities.slice(0, compact ? 3 : 6).map((facility, index) => (
-          <Badge 
+          <Badge
             key={index}
             variant="outline"
             className={cn(
               compact ? "text-xs px-2 py-1" : "text-sm px-2 py-1",
               // Clear, accessible colors - no hover states
-              "bg-green-50 text-green-700 border-green-200"
+              "bg-green-50 text-green-700 border-green-200",
             )}
           >
             {facility}
           </Badge>
         ))}
         {venue.facilities.length > (compact ? 3 : 6) && (
-          <Badge 
+          <Badge
             variant="outline"
             className={cn(
               compact ? "text-xs" : "text-sm",
-              "bg-gray-50 text-gray-600 border-gray-300"
+              "bg-gray-50 text-gray-600 border-gray-300",
             )}
           >
             +{venue.facilities.length - (compact ? 3 : 6)} more
@@ -302,62 +330,70 @@ function VenueCardFacilities({ className }: { className?: string }) {
 
 function VenueCardUtilization({ className }: { className?: string }) {
   const { venue, compact } = useVenueCard();
-  
+
   if (!venue.utilization_rate && !venue.dailySchedule?.length) {
     return null;
   }
-  
-  const utilizationColor = venue.utilization_rate && venue.utilization_rate > 0.8 
-    ? "bg-red-50 text-red-700 border-red-200"
-    : venue.utilization_rate && venue.utilization_rate > 0.6
-    ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-    : "bg-green-50 text-green-700 border-green-200";
-  
+
+  const utilizationColor =
+    venue.utilization_rate && venue.utilization_rate > 0.8
+      ? "bg-red-50 text-red-700 border-red-200"
+      : venue.utilization_rate && venue.utilization_rate > 0.6
+        ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+        : "bg-green-50 text-green-700 border-green-200";
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Utilization
       </h4>
       <div className="flex items-center gap-2">
         {venue.utilization_rate && (
-          <Badge 
+          <Badge
             variant="outline"
-            className={cn(
-              compact ? "text-xs" : "text-sm",
-              utilizationColor
-            )}
+            className={cn(compact ? "text-xs" : "text-sm", utilizationColor)}
           >
             {(venue.utilization_rate * 100).toFixed(0)}% utilized
           </Badge>
         )}
         <Badge variant="outline" className="text-xs">
-          {venue.sessionTypes.join(', ')}
+          {venue.sessionTypes.join(", ")}
         </Badge>
       </div>
     </div>
   );
 }
 
-function VenueCardSchedule({ maxDays = 2, className }: { maxDays?: number; className?: string }) {
+function VenueCardSchedule({
+  maxDays = 2,
+  className,
+}: {
+  maxDays?: number;
+  className?: string;
+}) {
   const { venue, compact, animated } = useVenueCard();
-  
+
   if (!venue.dailySchedule || venue.dailySchedule.length === 0) {
     return null;
   }
-  
+
   const displayDays = venue.dailySchedule.slice(0, maxDays);
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Daily Schedule
       </h4>
       <div className="space-y-2">
@@ -372,15 +408,17 @@ function VenueCardSchedule({ maxDays = 2, className }: { maxDays?: number; class
             className={cn(
               "p-3 rounded-md border border-gray-200 bg-gray-50",
               // Voice-only: no hover effects
-              "focus-within:ring-1 focus-within:ring-green-500"
+              "focus-within:ring-1 focus-within:ring-green-500",
             )}
           >
             <div className="flex justify-between items-center mb-2">
-              <h5 className={cn(
-                "font-medium",
-                compact ? "text-xs" : "text-sm",
-                "text-gray-900"
-              )}>
+              <h5
+                className={cn(
+                  "font-medium",
+                  compact ? "text-xs" : "text-sm",
+                  "text-gray-900",
+                )}
+              >
                 {day.date}
               </h5>
               <div className="flex gap-2">
@@ -392,13 +430,18 @@ function VenueCardSchedule({ maxDays = 2, className }: { maxDays?: number; class
                 </Badge>
               </div>
             </div>
-            {day.sessions.slice(0, compact ? 2 : 3).map((session, _sessionIndex) => (
-              <div key={session.session_id} className="text-xs text-gray-600 mb-1">
-                <span className="font-medium">{session.time}</span>
-                <span className="mx-2">•</span>
-                <span className="line-clamp-1">{session.title}</span>
-              </div>
-            ))}
+            {day.sessions
+              .slice(0, compact ? 2 : 3)
+              .map((session, _sessionIndex) => (
+                <div
+                  key={session.session_id}
+                  className="text-xs text-gray-600 mb-1"
+                >
+                  <span className="font-medium">{session.time}</span>
+                  <span className="mx-2">•</span>
+                  <span className="line-clamp-1">{session.title}</span>
+                </div>
+              ))}
             {day.sessions.length > (compact ? 2 : 3) && (
               <div className="text-xs text-gray-500">
                 +{day.sessions.length - (compact ? 2 : 3)} more sessions
@@ -420,33 +463,43 @@ function VenueCardSchedule({ maxDays = 2, className }: { maxDays?: number; class
 
 function VenueCardAccessibility({ className }: { className?: string }) {
   const { venue, compact } = useVenueCard();
-  
+
   if (!venue.accessibility) {
     return null;
   }
-  
+
   return (
     <div className={cn("space-y-2", className)}>
-      <h4 className={cn(
-        "font-medium",
-        compact ? "text-sm" : "text-base",
-        "text-gray-800"
-      )}>
+      <h4
+        className={cn(
+          "font-medium",
+          compact ? "text-sm" : "text-base",
+          "text-gray-800",
+        )}
+      >
         Accessibility
       </h4>
-      <p className={cn(
-        compact ? "text-xs" : "text-sm",
-        "text-gray-600 leading-relaxed"
-      )}>
+      <p
+        className={cn(
+          compact ? "text-xs" : "text-sm",
+          "text-gray-600 leading-relaxed",
+        )}
+      >
         {venue.accessibility}
       </p>
     </div>
   );
 }
 
-function VenueCardFooter({ children, className }: { children?: React.ReactNode; className?: string }) {
+function VenueCardFooter({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
   const { venue, animated } = useVenueCard();
-  
+
   const defaultFooter = (
     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
       <div className="flex items-center space-x-4 text-sm text-gray-500">
@@ -464,7 +517,7 @@ function VenueCardFooter({ children, className }: { children?: React.ReactNode; 
       )}
     </div>
   );
-  
+
   return (
     <motion.footer
       variants={animated ? contentVariants : undefined}
@@ -490,7 +543,13 @@ VenueCard.Footer = VenueCardFooter;
 
 // === PRESET LAYOUTS ===
 
-function VenueCardDefault({ venue, className }: { venue: SnT2025Venue; className?: string }) {
+function VenueCardDefault({
+  venue,
+  className,
+}: {
+  venue: SnT2025Venue;
+  className?: string;
+}) {
   return (
     <VenueCard venue={venue} className={className}>
       <VenueCard.Header>
@@ -509,7 +568,13 @@ function VenueCardDefault({ venue, className }: { venue: SnT2025Venue; className
   );
 }
 
-function VenueCardCompact({ venue, className }: { venue: SnT2025Venue; className?: string }) {
+function VenueCardCompact({
+  venue,
+  className,
+}: {
+  venue: SnT2025Venue;
+  className?: string;
+}) {
   return (
     <VenueCard venue={venue} compact className={className}>
       <VenueCard.Header>
@@ -525,7 +590,13 @@ function VenueCardCompact({ venue, className }: { venue: SnT2025Venue; className
   );
 }
 
-function VenueCardMinimal({ venue, className }: { venue: SnT2025Venue; className?: string }) {
+function VenueCardMinimal({
+  venue,
+  className,
+}: {
+  venue: SnT2025Venue;
+  className?: string;
+}) {
   return (
     <VenueCard venue={venue} compact className={className}>
       <VenueCard.Header>
@@ -548,7 +619,7 @@ export {
   VenueCardMinimal,
   type SnT2025Venue,
   type VenueSession,
-  type DailySchedule
+  type DailySchedule,
 };
 
-export default VenueCard; 
+export default VenueCard;

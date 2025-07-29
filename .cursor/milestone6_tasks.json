@@ -1,0 +1,27 @@
+{
+  "milestone": 6,
+  "name": "Cross-Model Audit",
+  "status": "pending",
+  "tasks": [
+    {
+      "id": "6.1-run-cross-model-diff",
+      "content": "Use Claude Sonnet-thinking-max to diff feature branch against main; surface risky regex edits and provide deep links to affected files.",
+      "status": "pending"
+    },
+    {
+      "id": "6.2-generate-audit-report",
+      "content": "Compile audit findings into a markdown report (docs_important/deep-research-report.md) highlighting critical issues and recommended fixes.",
+      "status": "pending"
+    },
+    {
+      "id": "6.3-prioritise-fixes",
+      "content": "Prioritise and add follow-up tasks for any high-risk findings if monthly spend remains under the 70% $150 guard-rail.",
+      "status": "pending"
+    }
+  ],
+  "research_topics": [
+    "Claude Sonnet-thinking-max diff capabilities",
+    "Best practices for branch audit and static analysis"
+  ],
+  "research_refs": []
+} 

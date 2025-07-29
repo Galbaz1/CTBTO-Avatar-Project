@@ -1,0 +1,72 @@
+[
+  {
+    "file": "frontend/src/components/WelcomeScreen/index.tsx",
+    "lines": [76],
+    "fix_type": "remove onClick (interactive control)"
+  },
+  {
+    "file": "frontend/src/components/StickyInterface.tsx",
+    "lines": [232,235,253,255,96],
+    "fix_type": "remove onClick, hover classes, polling interval"
+  },
+  {
+    "file": "frontend/src/components/cvi/components/conversation/index.tsx",
+    "lines": [123],
+    "fix_type": "remove onClick"
+  },
+  {
+    "file": "frontend/src/components/cvi/components/hair-check/index.tsx",
+    "lines": [17,65],
+    "fix_type": "remove onClick"
+  },
+  {
+    "file": "frontend/src/components/cvi/components/device-select/index.tsx",
+    "lines": [48,140],
+    "fix_type": "remove onClick"
+  },
+  {
+    "file": "frontend/src/components/RosaDemo.tsx",
+    "lines": [301],
+    "fix_type": "remove onClick"
+  },
+  {
+    "file": "frontend/src/components/cards/enhanced/PremiumSessionCard.tsx",
+    "lines": [131,50,129,136,138],
+    "fix_type": "remove onClick, hover, framer-motion whileHover"
+  },
+  {
+    "file": "frontend/src/components/handlers/rag/*.tsx",
+    "lines": [37],
+    "fix_type": "replace polling setInterval with SSE"
+  },
+  {
+    "file": "frontend/src/components/UIDeltaHandler.tsx",
+    "lines": [205],
+    "fix_type": "replace polling setInterval with SSE"
+  },
+  {
+    "file": "frontend/src/components/BrandedRightCanvas.tsx",
+    "lines": [1],
+    "fix_type": "remove framer-motion import"
+  },
+  {
+    "file": "frontend/src/components/CompleteLayoutDemo.tsx",
+    "lines": [1],
+    "fix_type": "remove framer-motion import"
+  },
+  {
+    "file": "frontend/src/components/FullScreenCardContainer.tsx",
+    "lines": [2],
+    "fix_type": "remove framer-motion import"
+  },
+  {
+    "file": "frontend/src/components/cards/enhanced/*.tsx",
+    "lines": [1],
+    "fix_type": "remove framer-motion import"
+  },
+  {
+    "file": "frontend/src/components/cards/compound/Card.tsx",
+    "lines": [1,63],
+    "fix_type": "remove framer-motion import and hover variant"
+  }
+] 

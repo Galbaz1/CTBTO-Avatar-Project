@@ -1,14 +1,19 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import BrandedRightCanvas from './BrandedRightCanvas';
-import { PremiumSessionCardDefault, type PremiumTimetableSession } from './cards/enhanced/PremiumSessionCard';
+import React from "react";
+import { motion } from "framer-motion";
+import BrandedRightCanvas from "./BrandedRightCanvas";
+import {
+  PremiumSessionCardDefault,
+  type PremiumTimetableSession,
+} from "./cards/enhanced/PremiumSessionCard";
 
 // Real SnT2025 session data
 const realSessions: PremiumTimetableSession[] = [
   {
     session_id: "O3.1-803",
-    title: "Seismic, Hydroacoustic and Infrasound Technologies and Applications",
-    description: "This session covers advances in seismic, hydroacoustic and infrasound technologies for monitoring CTBT compliance, including machine learning applications for rapid earthquake localization and detection capabilities of the International Monitoring System.",
+    title:
+      "Seismic, Hydroacoustic and Infrasound Technologies and Applications",
+    description:
+      "This session covers advances in seismic, hydroacoustic and infrasound technologies for monitoring CTBT compliance, including machine learning applications for rapid earthquake localization and detection capabilities of the International Monitoring System.",
     start_time: "2025-09-09T13:30:00Z",
     end_time: "2025-09-09T14:50:00Z",
     duration: 80,
@@ -24,12 +29,14 @@ const realSessions: PremiumTimetableSession[] = [
     duration_minutes: 80,
     has_speakers: true,
     is_important: true,
-    relevance_score: 0.95
+    relevance_score: 0.95,
   },
   {
     session_id: "O5.1-403",
-    title: "Monitoring whale populations from acoustic data over large temporal and spatial scales",
-    description: "Advanced techniques for processing and analyzing large-scale acoustic datasets to monitor marine mammal populations, with applications to ocean monitoring systems and acoustic interference studies.",
+    title:
+      "Monitoring whale populations from acoustic data over large temporal and spatial scales",
+    description:
+      "Advanced techniques for processing and analyzing large-scale acoustic datasets to monitor marine mammal populations, with applications to ocean monitoring systems and acoustic interference studies.",
     start_time: "2025-09-10T09:00:00Z",
     end_time: "2025-09-10T10:20:00Z",
     duration: 80,
@@ -45,12 +52,13 @@ const realSessions: PremiumTimetableSession[] = [
     duration_minutes: 80,
     has_speakers: true,
     is_important: false,
-    relevance_score: 0.78
+    relevance_score: 0.78,
   },
   {
     session_id: "keynote-myanmar",
     title: "Keynote on Myanmar earthquake",
-    description: "Comprehensive analysis of the recent Myanmar earthquake event, covering seismic characteristics, monitoring system response, and implications for regional nuclear test monitoring capabilities.",
+    description:
+      "Comprehensive analysis of the recent Myanmar earthquake event, covering seismic characteristics, monitoring system response, and implications for regional nuclear test monitoring capabilities.",
     start_time: "2025-09-08T13:30:00Z",
     end_time: "2025-09-08T14:30:00Z",
     duration: 60,
@@ -66,8 +74,8 @@ const realSessions: PremiumTimetableSession[] = [
     duration_minutes: 60,
     has_speakers: true,
     is_important: true,
-    relevance_score: 0.92
-  }
+    relevance_score: 0.92,
+  },
 ];
 
 const CompleteLayoutDemo: React.FC = () => {
@@ -93,7 +101,7 @@ const CompleteLayoutDemo: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">
                 SnT2025 Sessions
               </h2>
-              
+
               {realSessions.map((session, index) => (
                 <motion.div
                   key={session.session_id}
@@ -115,4 +123,4 @@ const CompleteLayoutDemo: React.FC = () => {
   );
 };
 
-export default CompleteLayoutDemo; 
+export default CompleteLayoutDemo;

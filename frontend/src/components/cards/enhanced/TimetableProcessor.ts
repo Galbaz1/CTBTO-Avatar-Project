@@ -157,8 +157,8 @@ export class TimetableProcessor {
   getAllSpeakers(): SpeakerCardData[] {
     const speakerMap = new Map<string, SpeakerCardData>();
 
-    this.timetableData.entries.forEach(session => {
-      session.speakers.forEach(speakerName => {
+    this.timetableData.entries.forEach((session) => {
+      session.speakers.forEach((speakerName) => {
         if (!speakerMap.has(speakerName)) {
           speakerMap.set(speakerName, {
             name: speakerName,
@@ -167,7 +167,7 @@ export class TimetableProcessor {
             tracks: [],
             themes: [],
             bio: this.generateSpeakerBio(speakerName),
-            organization: this.extractOrganization(speakerName)
+            organization: this.extractOrganization(speakerName),
           });
         }
 
@@ -182,7 +182,7 @@ export class TimetableProcessor {
           session_type: session.session_type,
           theme: session.theme,
           track: session.track,
-          is_keynote: session.session_type === 'Keynote'
+          is_keynote: session.session_type === "Keynote",
         });
 
         // Update aggregated data
@@ -196,18 +196,20 @@ export class TimetableProcessor {
     });
 
     // Finalize speaker data
-    speakerMap.forEach(speaker => {
+    speakerMap.forEach((speaker) => {
       speaker.totalSessions = speaker.sessions.length;
     });
 
-    return Array.from(speakerMap.values()).sort((a, b) => b.totalSessions - a.totalSessions);
+    return Array.from(speakerMap.values()).sort(
+      (a, b) => b.totalSessions - a.totalSessions,
+    );
   }
 
   // Process all venues from timetable
   getAllVenues(): VenueCardData[] {
     const venueMap = new Map<string, VenueCardData>();
 
-    this.timetableData.entries.forEach(session => {
+    this.timetableData.entries.forEach((session) => {
       if (!venueMap.has(session.venue)) {
         venueMap.set(session.venue, {
           name: session.venue,
@@ -216,9 +218,9 @@ export class TimetableProcessor {
           sessionTypes: [],
           tracks: [],
           capacity: this.getVenueCapacity(session.venue),
-          location: 'Hofburg Palace, Vienna',
+          location: "Hofburg Palace, Vienna",
           facilities: this.getVenueFacilities(session.venue),
-          description: this.getVenueDescription(session.venue)
+          description: this.getVenueDescription(session.venue),
         });
       }
 
@@ -238,7 +240,7 @@ export class TimetableProcessor {
         duration_minutes: session.duration_minutes,
         is_interactive: session.is_interactive,
         is_technical: session.is_technical,
-        audience_level: session.audience_level
+        audience_level: session.audience_level,
       });
 
       // Update aggregated data
@@ -251,18 +253,20 @@ export class TimetableProcessor {
     });
 
     // Finalize venue data
-    venueMap.forEach(venue => {
+    venueMap.forEach((venue) => {
       venue.totalSessions = venue.sessions.length;
     });
 
-    return Array.from(venueMap.values()).sort((a, b) => b.totalSessions - a.totalSessions);
+    return Array.from(venueMap.values()).sort(
+      (a, b) => b.totalSessions - a.totalSessions,
+    );
   }
 
   // Process all topics/themes from timetable
   getAllTopics(): TopicCardData[] {
     const topicMap = new Map<string, TopicCardData>();
 
-    this.timetableData.entries.forEach(session => {
+    this.timetableData.entries.forEach((session) => {
       if (!topicMap.has(session.theme)) {
         topicMap.set(session.theme, {
           theme: session.theme,
@@ -274,7 +278,7 @@ export class TimetableProcessor {
           totalSpeakers: 0,
           sessionTypes: [],
           description: this.getTopicDescription(session.theme),
-          popularityScore: this.calculatePopularityScore(session.theme)
+          popularityScore: this.calculatePopularityScore(session.theme),
         });
       }
 
@@ -293,16 +297,16 @@ export class TimetableProcessor {
         duration_minutes: session.duration_minutes,
         is_interactive: session.is_interactive,
         is_technical: session.is_technical,
-        audience_level: session.audience_level
+        audience_level: session.audience_level,
       });
 
       // Update aggregated data
-      session.speakers.forEach(speaker => {
+      session.speakers.forEach((speaker) => {
         if (!topic.speakers.includes(speaker)) {
           topic.speakers.push(speaker);
         }
       });
-      
+
       if (!topic.tracks.includes(session.track)) {
         topic.tracks.push(session.track);
       }
@@ -312,18 +316,23 @@ export class TimetableProcessor {
     });
 
     // Finalize topic data and add related topics
-    topicMap.forEach(topic => {
+    topicMap.forEach((topic) => {
       topic.totalSessions = topic.sessions.length;
       topic.totalSpeakers = topic.speakers.length;
-      topic.relatedTopics = this.findRelatedTopics(topic.theme, Array.from(topicMap.keys()));
+      topic.relatedTopics = this.findRelatedTopics(
+        topic.theme,
+        Array.from(topicMap.keys()),
+      );
     });
 
-    return Array.from(topicMap.values()).sort((a, b) => b.totalSessions - a.totalSessions);
+    return Array.from(topicMap.values()).sort(
+      (a, b) => b.totalSessions - a.totalSessions,
+    );
   }
 
   // Create schedule data
   getScheduleData(): ScheduleCardData {
-    const sessions = this.timetableData.entries.map(session => ({
+    const sessions = this.timetableData.entries.map((session) => ({
       session_id: session.session_id,
       title: session.title,
       start_time: session.start_time,
@@ -340,62 +349,64 @@ export class TimetableProcessor {
       is_interactive: session.is_interactive,
       is_technical: session.is_technical,
       is_social: session.is_social,
-      audience_level: session.audience_level
+      audience_level: session.audience_level,
     }));
 
     // Calculate date range
-    const dates = sessions.map(s => s.date).sort();
+    const dates = sessions.map((s) => s.date).sort();
     const uniqueDates = [...new Set(dates)];
 
     return {
-      title: 'CTBT: Science and Technology Conference 2025',
+      title: "CTBT: Science and Technology Conference 2025",
       sessions,
       dateRange: {
         start: dates[0],
-        end: dates[dates.length - 1]
+        end: dates[dates.length - 1],
       },
       totalDays: uniqueDates.length,
-      totalSessions: sessions.length
+      totalSessions: sessions.length,
     };
   }
 
   // Get specific session by ID
   getSessionById(sessionId: string): SessionCardData | undefined {
-    return this.timetableData.entries.find(session => session.session_id === sessionId);
+    return this.timetableData.entries.find(
+      (session) => session.session_id === sessionId,
+    );
   }
 
   // Get sessions by speaker
   getSessionsBySpeaker(speakerName: string): SessionCardData[] {
-    return this.timetableData.entries.filter(session => 
-      session.speakers.includes(speakerName)
+    return this.timetableData.entries.filter((session) =>
+      session.speakers.includes(speakerName),
     );
   }
 
   // Get sessions by venue
   getSessionsByVenue(venueName: string): SessionCardData[] {
-    return this.timetableData.entries.filter(session => 
-      session.venue === venueName
+    return this.timetableData.entries.filter(
+      (session) => session.venue === venueName,
     );
   }
 
   // Get sessions by theme
   getSessionsByTheme(theme: string): SessionCardData[] {
-    return this.timetableData.entries.filter(session => 
-      session.theme === theme
+    return this.timetableData.entries.filter(
+      (session) => session.theme === theme,
     );
   }
 
   // Helper methods for enriching data
   private generateSpeakerBio(speakerName: string): string {
-    const titles = ['Dr.', 'Prof.', 'Ambassador', 'CEO', 'CTO', 'Col.'];
-    const hasTitle = titles.some(title => speakerName.includes(title));
-    
+    const titles = ["Dr.", "Prof.", "Ambassador", "CEO", "CTO", "Col."];
+    const hasTitle = titles.some((title) => speakerName.includes(title));
+
     if (hasTitle) {
-      if (speakerName.includes('Dr.') || speakerName.includes('Prof.')) {
+      if (speakerName.includes("Dr.") || speakerName.includes("Prof.")) {
         return `Renowned expert in nuclear monitoring and verification technologies with extensive research experience.`;
-      } else if (speakerName.includes('Ambassador')) {
+      } else if (speakerName.includes("Ambassador")) {
         return `Distinguished diplomat with expertise in international nuclear policy and verification frameworks.`;
-      } else if (speakerName.includes('CEO') || speakerName.includes('CTO')) {
+      } else if (speakerName.includes("CEO") || speakerName.includes("CTO")) {
         return `Technology leader driving innovation in nuclear monitoring and detection systems.`;
       }
     }
@@ -405,84 +416,127 @@ export class TimetableProcessor {
   private extractOrganization(speakerName: string): string {
     // In a real implementation, this could use NLP or a database lookup
     // For now, provide generic organizations based on title
-    if (speakerName.includes('Prof.') || speakerName.includes('Dr.')) {
-      return 'Research Institution';
-    } else if (speakerName.includes('Ambassador')) {
-      return 'Government Representative';
-    } else if (speakerName.includes('CEO') || speakerName.includes('CTO')) {
-      return 'Technology Company';
+    if (speakerName.includes("Prof.") || speakerName.includes("Dr.")) {
+      return "Research Institution";
+    } else if (speakerName.includes("Ambassador")) {
+      return "Government Representative";
+    } else if (speakerName.includes("CEO") || speakerName.includes("CTO")) {
+      return "Technology Company";
     }
-    return 'CTBTO Organization';
+    return "CTBTO Organization";
   }
 
   private getVenueCapacity(venueName: string): number {
     const capacityMap: { [key: string]: number } = {
-      'Festsaal': 500,
-      'Forum': 300,
-      'Conference Room A': 150,
-      'Conference Room B': 150,
-      'Computer Lab': 50,
-      'Training Center': 100,
-      'Exhibition Hall': 400,
-      'Banquet Hall': 300,
-      'Innovation Hub': 75,
-      'Simulation Center': 80,
-      'Cultural Hall': 250
+      Festsaal: 500,
+      Forum: 300,
+      "Conference Room A": 150,
+      "Conference Room B": 150,
+      "Computer Lab": 50,
+      "Training Center": 100,
+      "Exhibition Hall": 400,
+      "Banquet Hall": 300,
+      "Innovation Hub": 75,
+      "Simulation Center": 80,
+      "Cultural Hall": 250,
     };
     return capacityMap[venueName] || 100;
   }
 
   private getVenueFacilities(venueName: string): string[] {
     const facilityMap: { [key: string]: string[] } = {
-      'Computer Lab': ['High-speed Internet', 'Workstations', 'Projection', 'Audio/Visual'],
-      'Training Center': ['Interactive Whiteboards', 'Breakout Rooms', 'Equipment Storage'],
-      'Exhibition Hall': ['Display Space', 'Catering Area', 'Storage'],
-      'Festsaal': ['Stage', 'Audio System', 'Live Streaming', 'VIP Seating'],
-      'Innovation Hub': ['Demo Stations', 'Networking Area', 'Flexible Seating']
+      "Computer Lab": [
+        "High-speed Internet",
+        "Workstations",
+        "Projection",
+        "Audio/Visual",
+      ],
+      "Training Center": [
+        "Interactive Whiteboards",
+        "Breakout Rooms",
+        "Equipment Storage",
+      ],
+      "Exhibition Hall": ["Display Space", "Catering Area", "Storage"],
+      Festsaal: ["Stage", "Audio System", "Live Streaming", "VIP Seating"],
+      "Innovation Hub": [
+        "Demo Stations",
+        "Networking Area",
+        "Flexible Seating",
+      ],
     };
-    return facilityMap[venueName] || ['Standard A/V Equipment', 'WiFi', 'Climate Control'];
+    return (
+      facilityMap[venueName] || [
+        "Standard A/V Equipment",
+        "WiFi",
+        "Climate Control",
+      ]
+    );
   }
 
   private getVenueDescription(venueName: string): string {
     const descriptionMap: { [key: string]: string } = {
-      'Festsaal': 'Grand ceremonial hall perfect for keynotes and major presentations.',
-      'Forum': 'Modern conference space designed for panel discussions and collaborative sessions.',
-      'Computer Lab': 'State-of-the-art computer laboratory equipped for hands-on technical workshops.',
-      'Training Center': 'Dedicated training facility with specialized equipment for practical exercises.',
-      'Innovation Hub': 'Dynamic space designed to showcase cutting-edge technologies and startup innovations.'
+      Festsaal:
+        "Grand ceremonial hall perfect for keynotes and major presentations.",
+      Forum:
+        "Modern conference space designed for panel discussions and collaborative sessions.",
+      "Computer Lab":
+        "State-of-the-art computer laboratory equipped for hands-on technical workshops.",
+      "Training Center":
+        "Dedicated training facility with specialized equipment for practical exercises.",
+      "Innovation Hub":
+        "Dynamic space designed to showcase cutting-edge technologies and startup innovations.",
     };
-    return descriptionMap[venueName] || 'Professional conference venue with modern amenities.';
+    return (
+      descriptionMap[venueName] ||
+      "Professional conference venue with modern amenities."
+    );
   }
 
   private getTopicDescription(theme: string): string {
     const descriptionMap: { [key: string]: string } = {
-      'Nuclear Monitoring': 'Advanced techniques and technologies for detecting and monitoring nuclear activities.',
-      'Quantum Technology': 'Revolutionary quantum sensors and computing applications for nuclear verification.',
-      'AI Ethics': 'Ethical considerations and frameworks for deploying AI in nuclear monitoring systems.',
-      'Seismic Analysis': 'Seismic detection and analysis methods for nuclear test monitoring.',
-      'Signal Processing': 'Advanced signal processing techniques for nuclear monitoring data.',
-      'Data Science': 'Data fusion, analysis, and machine learning applications in nuclear verification.'
+      "Nuclear Monitoring":
+        "Advanced techniques and technologies for detecting and monitoring nuclear activities.",
+      "Quantum Technology":
+        "Revolutionary quantum sensors and computing applications for nuclear verification.",
+      "AI Ethics":
+        "Ethical considerations and frameworks for deploying AI in nuclear monitoring systems.",
+      "Seismic Analysis":
+        "Seismic detection and analysis methods for nuclear test monitoring.",
+      "Signal Processing":
+        "Advanced signal processing techniques for nuclear monitoring data.",
+      "Data Science":
+        "Data fusion, analysis, and machine learning applications in nuclear verification.",
     };
-    return descriptionMap[theme] || `Comprehensive exploration of ${theme} in nuclear monitoring context.`;
+    return (
+      descriptionMap[theme] ||
+      `Comprehensive exploration of ${theme} in nuclear monitoring context.`
+    );
   }
 
   private calculatePopularityScore(theme: string): number {
     // Calculate based on number of sessions, keynotes, etc.
-    const themeSessions = this.timetableData.entries.filter(s => s.theme === theme);
-    const hasKeynote = themeSessions.some(s => s.session_type === 'Keynote');
+    const themeSessions = this.timetableData.entries.filter(
+      (s) => s.theme === theme,
+    );
+    const hasKeynote = themeSessions.some((s) => s.session_type === "Keynote");
     const sessionCount = themeSessions.length;
-    
+
     return hasKeynote ? sessionCount * 1.5 : sessionCount;
   }
 
-  private findRelatedTopics(currentTheme: string, allThemes: string[]): string[] {
+  private findRelatedTopics(
+    currentTheme: string,
+    allThemes: string[],
+  ): string[] {
     // Simple keyword-based relationship detection
-    const keywords = currentTheme.toLowerCase().split(' ');
+    const keywords = currentTheme.toLowerCase().split(" ");
     return allThemes
-      .filter(theme => theme !== currentTheme)
-      .filter(theme => {
-        const themeWords = theme.toLowerCase().split(' ');
-        return keywords.some(keyword => themeWords.some(word => word.includes(keyword)));
+      .filter((theme) => theme !== currentTheme)
+      .filter((theme) => {
+        const themeWords = theme.toLowerCase().split(" ");
+        return keywords.some((keyword) =>
+          themeWords.some((word) => word.includes(keyword)),
+        );
       })
       .slice(0, 3); // Limit to 3 related topics
   }
@@ -491,13 +545,13 @@ export class TimetableProcessor {
   getOverallStats() {
     const sessions = this.timetableData.entries;
     const totalSessions = sessions.length;
-    const uniqueSpeakers = new Set(sessions.flatMap(s => s.speakers)).size;
-    const uniqueVenues = new Set(sessions.map(s => s.venue)).size;
-    const uniqueThemes = new Set(sessions.map(s => s.theme)).size;
-    const uniqueTracks = new Set(sessions.map(s => s.track)).size;
-    const interactiveSessions = sessions.filter(s => s.is_interactive).length;
-    const technicalSessions = sessions.filter(s => s.is_technical).length;
-    const socialSessions = sessions.filter(s => s.is_social).length;
+    const uniqueSpeakers = new Set(sessions.flatMap((s) => s.speakers)).size;
+    const uniqueVenues = new Set(sessions.map((s) => s.venue)).size;
+    const uniqueThemes = new Set(sessions.map((s) => s.theme)).size;
+    const uniqueTracks = new Set(sessions.map((s) => s.track)).size;
+    const interactiveSessions = sessions.filter((s) => s.is_interactive).length;
+    const technicalSessions = sessions.filter((s) => s.is_technical).length;
+    const socialSessions = sessions.filter((s) => s.is_social).length;
 
     return {
       totalSessions,
@@ -508,7 +562,9 @@ export class TimetableProcessor {
       interactiveSessions,
       technicalSessions,
       socialSessions,
-      averageDuration: sessions.reduce((sum, s) => sum + s.duration_minutes, 0) / totalSessions
+      averageDuration:
+        sessions.reduce((sum, s) => sum + s.duration_minutes, 0) /
+        totalSessions,
     };
   }
-} 
+}

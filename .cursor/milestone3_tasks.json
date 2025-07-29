@@ -1,0 +1,18 @@
+{
+  "milestone": 3,
+  "name": "Voice Integration & Data Tools",
+  "status": "completed",
+  "tasks": [
+    {"id":"3.1-tavus-integration","content":"Wire TavusVoiceWrapper to handle utterances & replies.","status":"completed"},
+    {"id":"3.2-edge-tools","content":"Implement showSpeaker, showSession, ragSearch tools with zod.","status":"completed"},
+    {"id":"3.3-data-api","content":"Build FastAPI endpoints and basic RAG search.","status":"completed"}
+  ],
+  "research_topics":[
+    "OpenAI structured outputs / function calling",
+    "FastAPI CORS best practices"
+  ],
+  "research_refs":[
+    "research/openai-structured-outputs.md",
+    "research/fastapi-cors.md"
+  ]
+} 
