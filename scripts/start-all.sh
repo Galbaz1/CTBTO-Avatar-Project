@@ -30,8 +30,8 @@ fail_if_port_busy "$NGROK_PORT" || true # ngrok API port is optional
 
 # -------- START SERVICES --------
 
-# 1) Backend (FastAPI)
-uvicorn backend.rosa_api_server:app --host 0.0.0.0 --port "$BACKEND_PORT" --reload &
+# 1) Backend (FastAPI) - Activate venv first
+source backend/rosa/bin/activate && uvicorn backend.rosa_api_server:app --host 0.0.0.0 --port "$BACKEND_PORT" --reload &
 BACK_PID=$!
 echo "🚀 Backend running on http://localhost:$BACKEND_PORT  (PID $BACK_PID)"
 
@@ -40,11 +40,20 @@ echo "🚀 Backend running on http://localhost:$BACKEND_PORT  (PID $BACK_PID)"
 FRONT_PID=$!
 echo "🎨 Frontend running on http://localhost:$FRONTEND_PORT  (PID $FRONT_PID)"
 
-# 3) Ngrok (optional)
+# 3) Ngrok (optional) - Tunnel backend for Tavus integration
 if command -v ngrok >/dev/null 2>&1; then
-  ngrok http "$FRONTEND_PORT" --log=stdout > /tmp/ngrok.log 2>&1 &
+  ngrok http "$BACKEND_PORT" --log=stdout > /tmp/ngrok.log 2>&1 &
   NGROK_PID=$!
-  echo "🌐 Ngrok tunnel starting (PID $NGROK_PID). Logs in /tmp/ngrok.log"
+  echo "🌐 Ngrok tunnel starting for backend (PID $NGROK_PID). Logs in /tmp/ngrok.log"
+  
+  # Wait for ngrok to start and auto-sync persona
+  echo "⏳ Waiting for ngrok tunnel to establish..."
+  sleep 5
+  if [ -f "scripts/sync-persona.sh" ]; then
+    echo "🔄 Auto-syncing Rosa persona with new ngrok URL..."
+    chmod +x scripts/sync-persona.sh
+    ./scripts/sync-persona.sh
+  fi
 else
   echo "ℹ️  Ngrok not found; skipping tunnel startup."
   NGROK_PID=""
