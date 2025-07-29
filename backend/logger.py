@@ -325,6 +325,22 @@ class ROSABackendLogger:
         """Get current card generation metrics"""
         return self.card_metrics.copy()
 
+    # Assistant response logging
+    def assistant_response(self, session_id: str, instance: LLMInstance, response: str):
+        """Log the complete assistant response"""
+        # Truncate very long responses for readability
+        max_length = 500
+        if len(response) > max_length:
+            truncated_response = response[:max_length] + "..."
+            display_response = truncated_response
+        else:
+            display_response = response
+            
+        # Replace newlines with spaces for cleaner log output
+        clean_response = display_response.replace('\n', ' ').strip()
+        
+        self.info(f"🤖 Assistant: {clean_response}", session_id, instance)
+
 # Global logger instance
 logger = ROSABackendLogger()
 
@@ -435,6 +451,10 @@ def log_card_task_started(session_id: str, task_type: str = "generate_cards"):
 def log_card_task_completed(session_id: str, task_type: str, duration: float):
     """Log card generation task completion"""
     logger.card_task_completed(session_id, task_type, duration)
+
+def log_assistant_response(session_id: str, instance: LLMInstance, response: str):
+    """Log assistant response"""
+    logger.assistant_response(session_id, instance, response)
 
 def log_card_task_failed(session_id: str, task_type: str, error: str, duration: float = 0.0):
     """Log card generation task failure"""

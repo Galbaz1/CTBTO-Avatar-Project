@@ -63,8 +63,8 @@ backend/backend_data/floorplan_info/zeremonienzaal.svg
 # -----------------------------------------------------------------------------
 # Environment & Secrets
 # -----------------------------------------------------------------------------
-.env
-.env.*
+# .env
+# .env.*
 *.key
 *.pem
 .rosa_persona_id

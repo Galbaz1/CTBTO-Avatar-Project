@@ -3,9 +3,10 @@ import React, { useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CardData } from '../types/cards';
 import { WeatherCard } from './WeatherCard';
-import { SessionCard } from './cards/enhanced';
-import { SpeakerCard } from './cards/enhanced/SpeakerCard';
-import { TopicCard } from './cards/enhanced/TopicCard';
+import { SessionCardDefault } from './cards/enhanced/NewSessionCard';
+import { SpeakerCardDefault } from './cards/enhanced/SpeakerCard';
+import { TopicCardDefault } from './cards/enhanced/TopicCard';
+import { VenueCardDefault } from './cards/enhanced/VenueCard';
 
 interface FullScreenCardContainerProps {
   cards: CardData[];
@@ -28,6 +29,19 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
     const cardSummary = cards.map(c => `${c.type}(${c.id})`).join(', ');
     console.log(`🎯 Cards: [${cardSummary}] (${cards.length})`);
     console.log(`🎯 Container position: right half (50vw), top: 60px, height: calc(85vh - 60px)`);
+    
+    // Machine-readable logging for AI agents
+    if (process.env.NODE_ENV === 'development') {
+      cards.forEach(card => {
+        console.log('[CARD_RENDER]', JSON.stringify({
+          type: card.type,
+          id: card.id,
+          size: card.size,
+          timestamp: Date.now()
+        }));
+      });
+    }
+    
     lastCardHash.current = currentCardHash;
   }
 
@@ -167,40 +181,33 @@ export const FullScreenCardContainer: React.FC<FullScreenCardContainerProps> = (
       case 'session':
         // 🎨 NEW: Use the new, cleaner, data-rich SessionCard
         return (
-          <SessionCard
+          <SessionCardDefault
             session={card.content}
-            compact={compact}
-            onClose={onCloseRag}
-            // Future interactions can be wired up here
-            onSpeakerClick={(speaker) => console.log('Speaker clicked:', speaker)}
-            onVenueClick={(venue) => console.log('Venue clicked:', venue)}
+            className="w-full"
           />
         );
         
       case 'speaker':
         return (
-          <SpeakerCard
+          <SpeakerCardDefault
             speaker={card.content}
-            compact={compact}
-            showSessions={!compact}
-            onSessionClick={(session) => console.log('Session clicked:', session)}
-            onTopicClick={(topic) => console.log('Topic clicked:', topic)}
-            onClose={onCloseRag}
+            className="w-full"
           />
         );
         
       case 'topic':
         return (
-          <TopicCard
+          <TopicCardDefault
             topic={card.content}
-            compact={compact}
-            onClose={onCloseRag}
-            style={{
-              width: '100%',
-              height: '100%',
-              border: 'none',
-              borderRadius: '16px'
-            }}
+            className="w-full"
+          />
+        );
+        
+      case 'venue':
+        return (
+          <VenueCardDefault
+            venue={card.content}
+            className="w-full"
           />
         );
         

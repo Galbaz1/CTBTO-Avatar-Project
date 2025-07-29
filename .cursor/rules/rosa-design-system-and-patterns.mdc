@@ -1,3 +1,7 @@
+---
+alwaysApply: true
+---
+
 
 # Rosa Kiosk: Professional Design System & Patterns (2025)
 
@@ -73,9 +77,6 @@ import { Card } from './Card';
 - [ ] **ARIA**: Use `aria-labelledby` and other roles where necessary.
 
 ---
-
-
-
 
 
 

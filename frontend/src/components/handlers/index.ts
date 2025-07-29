@@ -2,5 +2,5 @@ export * from './rag';
 export { HandlerIntegrationManager } from './HandlerIntegrationManager';
 export { IntegrationExample } from './IntegrationExample';
 
-// Test components
-export { UIDeltaHandlerTest } from '../tests/UIDeltaHandlerTest'; 
+// Test components moved to tests directory
+// export { UIDeltaHandlerTest } from '../tests/UIDeltaHandlerTest'; 

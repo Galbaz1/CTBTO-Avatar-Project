@@ -78,11 +78,15 @@ export const UIDeltaHandler: React.FC<UIDeltaHandlerProps> = ({
             break;
             
           case 'add':
-            // Handle array additions (e.g., adding speakers)
-            if (pathParts.length === 2) {
+            if (pathParts.length === 1) {
+              // Root-level add (initial card insertion)
+              const cardType = pathParts[0] as keyof CardState;
+              draft[cardType] = operation.value;
+            } else if (pathParts.length === 2) {
+              // Nested add – typically array push (e.g., speakers array)
               const cardType = pathParts[0] as keyof CardState;
               const property = pathParts[1];
-              
+
               if (draft[cardType]) {
                 const currentValue = (draft[cardType] as any)[property];
                 if (Array.isArray(currentValue)) {
@@ -90,6 +94,9 @@ export const UIDeltaHandler: React.FC<UIDeltaHandlerProps> = ({
                 } else {
                   (draft[cardType] as any)[property] = operation.value;
                 }
+              } else {
+                // If the parent card doesn’t exist yet, create it with the property
+                draft[cardType] = { [property]: Array.isArray(operation.value) ? [...operation.value] : operation.value } as any;
               }
             }
             break;
@@ -141,6 +148,16 @@ export const UIDeltaHandler: React.FC<UIDeltaHandlerProps> = ({
       lastDeltaCount: deltaResponse.deltas.length,
       lastUpdateType: Array.from(cardTypesUpdated).join(', ')
     });
+
+    // Machine-readable logging for AI agents
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[UIDELTA]', JSON.stringify({ 
+        ts: Date.now(), 
+        session: deltaResponse.session_id,
+        ops: deltaResponse.deltas.map(d => ({ op: d.op, path: d.path })),
+        cardTypes: Array.from(cardTypesUpdated)
+      }));
+    }
 
     // Notify parent component of updates for each card type
     for (const cardType of cardTypesUpdated) {

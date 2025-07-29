@@ -160,32 +160,8 @@ export const RosaDemo: React.FC = () => {
         lastSessionDataHash.current = sessionDataHash;
       }
 
-      const sessionContent = sessionData.card_data
-        ? {
-            session_id: sessionData.card_data.metadata?.session_id || sessionData.card_data.id,
-            title: sessionData.card_data.title || sessionData.card_data.metadata?.title,
-            description: sessionData.card_data.metadata?.description || sessionData.card_data.content,
-            start_time: sessionData.card_data.metadata?.start_time,
-            end_time: sessionData.card_data.metadata?.end_time,
-            duration_minutes: sessionData.card_data.metadata?.duration_minutes,
-            date: sessionData.card_data.metadata?.date,
-            venue: sessionData.card_data.metadata?.venue,
-            session_type: sessionData.card_data.metadata?.session_type,
-            speakers: sessionData.card_data.metadata?.speakers || [],
-            theme: sessionData.card_data.metadata?.theme,
-            track: sessionData.card_data.metadata?.track,
-            audience_level: sessionData.card_data.metadata?.audience_level,
-            day_of_week: sessionData.card_data.metadata?.day_of_week,
-            time_of_day: sessionData.card_data.metadata?.time_of_day,
-            has_speakers: sessionData.card_data.metadata?.has_speakers,
-            is_interactive: sessionData.card_data.metadata?.is_interactive,
-            is_social: sessionData.card_data.metadata?.is_social,
-            is_technical: sessionData.card_data.metadata?.is_technical,
-            speaker_count: sessionData.card_data.metadata?.speaker_count,
-            related_topics: sessionData.card_data.metadata?.related_topics,
-            practical_info: sessionData.card_data.metadata?.practical_info,
-          }
-        : sessionData;
+      // Use the backend-transformed data directly (it's now properly formatted)
+      const sessionContent = sessionData.card_data || sessionData;
 
       cardArray.push({
         id: sessionContent.session_id || 'current-session-card',

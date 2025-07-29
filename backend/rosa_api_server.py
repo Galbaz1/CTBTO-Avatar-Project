@@ -68,7 +68,12 @@ async def generate_cards_async(user_message: str, rag_data: dict, session_id: st
     try:
         print(f"🤖 Starting async card generation for session {session_id}")
         
-        from smart_card_manager import UIIntelligenceAgent
+        # Import the UI intelligence agent using the fully-qualified package path so that
+        # it resolves correctly when the backend is executed from the project root.
+        # The backend package is already a proper Python package (it contains an
+        # __init__.py file), therefore using the absolute import path avoids
+        # ModuleNotFoundError in production and when running via `scripts/start-all.sh`.
+        from backend.smart_card_manager import UIIntelligenceAgent
         
         ui_agent = UIIntelligenceAgent()
         
@@ -268,6 +273,16 @@ class RosaBackend:
             self.session_ui_deltas[session_id].append(delta_op)
             # Update stored state (deep copy to avoid reference mutation)
             self.session_ui_state[session_id][card_key] = copy.deepcopy(new_data)
+
+            # Machine-readable logging for AI agents
+            import json
+            print(json.dumps({
+                "event": "delta_queued",
+                "session": session_id,
+                "path": card_key,
+                "op": op_type,
+                "timestamp": _time.time()
+            }))
 
             return [delta_op]
 
@@ -498,7 +513,10 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                     
                     return None
                 
-                # Use enhanced conversation stream with comprehensive error handling
+                # Track complete response for logging
+                complete_response = ""
+                
+                # Stream conversation response
                 try:
                     for chunk in rosa_backend.ctbto_agent.process_conversation_stream(
                         user_message,
@@ -509,6 +527,9 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                     ):
                         try:
                             if chunk:  # Only yield non-empty chunks
+                                # Add to complete response for logging
+                                complete_response += chunk
+                                
                                 # Format as OpenAI streaming response
                                 data = {
                                     "id": f"rosa-{int(time.time())}",
@@ -529,6 +550,10 @@ async def chat_completions(request: ChatCompletionRequest, http_request: Request
                             traceback.print_exc()
                             # Continue with next chunk instead of crashing
                             continue
+                    
+                    # Log the complete assistant response
+                    if complete_response.strip():
+                        logger.assistant_response(session_id, LLMInstance.MAIN_ROSA, complete_response)
                             
                 except Exception as e:
                     print(f"🚨 CONVERSATION STREAM FATAL ERROR: {e}")

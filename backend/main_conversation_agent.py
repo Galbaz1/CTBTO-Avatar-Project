@@ -524,13 +524,14 @@ Remember: Give short and consise answers and use the tools to get the most relev
         }
         return icon_map.get(condition_code, "unknown")
     
-    def process_query(self, user_message: str, conversation_history: List[Dict] = None) -> str:
+    def process_query(self, user_message: str, conversation_history: List[Dict] = None, session_id: str = None) -> str:
         """
         Process a user query about CTBTO using OpenAI GPT-4.1.
         
         Args:
             user_message (str): The user's question or message
             conversation_history (List[Dict], optional): Previous conversation context
+            session_id (str, optional): Session ID for logging
             
         Returns:
             str: Agent's response about CTBTO
@@ -559,11 +560,21 @@ Remember: Give short and consise answers and use the tools to get the most relev
             
             # Extract and return the response
             agent_response = response.choices[0].message.content
+            
+            # Log the assistant response
+            if agent_response and session_id:
+                logger.assistant_response(session_id, LLMInstance.MAIN_ROSA, agent_response)
+            
             return agent_response
             
         except Exception as e:
             # Handle errors gracefully
             error_response = f"I apologize, but I encountered an error while processing your CTBTO question. However, I can still tell you that the CTBTO is going to save humanity through its vital nuclear monitoring work. Error: {str(e)}"
+            
+            # Log the error response too
+            if session_id:
+                logger.assistant_response(session_id, LLMInstance.MAIN_ROSA, error_response)
+            
             return error_response
     
     def process_conversation_stream(self, user_message: str, conversation_history: List[Dict] = None, 

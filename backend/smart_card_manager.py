@@ -84,6 +84,14 @@ class UIIntelligenceAgent:
             },
             "available_information": {
                 "rag_results": {category: [r.get('title', r.get('name', 'Unknown')) if isinstance(r, dict) else r.title for r in results] for category, results in rag_results.items() if results},
+                "sessions_with_ids": [
+                    {
+                        "id": r.get('id', '') if isinstance(r, dict) else r.id,
+                        "title": r.get('title', r.get('name', 'Unknown')) if isinstance(r, dict) else r.title,
+                        "relevance": r.get('relevance_score', 0) if isinstance(r, dict) else r.relevance_score
+                    }
+                    for r in rag_results.get("sessions", [])
+                ],
                 "relevance_scores": {
                     "highest": max([r.get('relevance_score', 0) if isinstance(r, dict) else r.relevance_score for r in rag_results.get("sessions", [])], default=0),
                     "average": sum([r.get('relevance_score', 0) if isinstance(r, dict) else r.relevance_score for r in rag_results.get("sessions", [])]) / len(rag_results.get("sessions", [])) if rag_results.get("sessions") else 0
@@ -164,10 +172,17 @@ Respond in JSON format:
 
                     if top_session:
                         if isinstance(top_session, dict):
-                            meta = top_session.get("metadata", {})
+                            # Extract the primary ID first, then fall back to metadata
+                            session_id_to_use = top_session.get("id")
+                            if not session_id_to_use:
+                                meta = top_session.get("metadata", {})
+                                session_id_to_use = meta.get("uuid") or meta.get("id") or "unknown"
+                            else:
+                                meta = top_session.get("metadata", {})
+                            
                             cards_to_format = [{
                                 "type": "session",
-                                "id": meta.get("uuid") or top_session.get("id"),
+                                "id": session_id_to_use,  # Use the primary ID, not metadata UUID
                                 "title": top_session.get("title") or meta.get("title"),
                                 "description": meta.get("description", ""),
                                 "speakers": [s.get("name") for s in top_session.get("related_speakers", [])] if top_session.get("related_speakers") else [],
@@ -176,17 +191,22 @@ Respond in JSON format:
                             }]
                         else:
                             # Handle SearchResult dataclass
+                            # Extract the primary ID first  
+                            session_id_to_use = getattr(top_session, "id", None)
                             meta = getattr(top_session, "metadata", {})
+                            if not session_id_to_use:
+                                session_id_to_use = meta.get("uuid") or meta.get("id") or "unknown"
+                            
                             cards_to_format = [{
                                 "type": "session",
-                                "id": getattr(top_session, "id", None),
+                                "id": session_id_to_use,  # Use the primary ID
                                 "title": getattr(top_session, "title", meta.get("title")),
                                 "description": meta.get("description", ""),
                                 "speakers": [s.name if hasattr(s, "name") else s.get("name") for s in getattr(top_session, "related_speakers", [])] if getattr(top_session, "related_speakers", None) else [],
                                 "time": f"{meta.get('day', '')} {meta.get('startTime', '')}",
                                 "venue": meta.get("related_room", {}).get("name", "")
                             }]
-                        rosa_logger.info("⚠️ Fallback: generated 1 session card because LLM omitted cards array", session_id, LLMInstance.UI_INTEL)
+                        rosa_logger.info(f"⚠️ Fallback: generated 1 session card (id={session_id_to_use}) because LLM omitted cards array", session_id, LLMInstance.UI_INTEL)
                 rosa_logger.card_decision(session_id, True, len(cards_to_format), confidence)
                 formatted_cards = self._format_cards_for_display(cards_to_format, rag_results, conversation_context, session_id)
                 return formatted_cards
@@ -290,10 +310,12 @@ Return a decision object with reasoning FIRST (chain-of-thought structure):
 
 When including cards in your decision, use these EXACT formats:
 
+IMPORTANT: For session cards, use the exact ID from the 'sessions_with_ids' array in available_information.
+
 ### Session Card
 {
   "type": "session",
-  "id": "[Use the exact session_id from metadata, e.g., 'session-2025-09-10-0900']",
+  "id": "[Use the exact ID from sessions_with_ids array, which is a UUID]",
   "title": "Session title",
   "description": "Brief description",
   "speakers": ["Speaker names"],
@@ -423,28 +445,47 @@ Remember: You're not following rigid rules but making intelligent, context-aware
 
                 rosa_logger.debug(f"🔍 Looking for session: {session_id_from_llm}", session_id, LLMInstance.UI_INTEL)
                 
+                # Add detailed debugging
+                rosa_logger.debug(f"📋 Available sessions in RAG results: {len(rag_results.get('sessions', []))}", session_id, LLMInstance.UI_INTEL)
+                
+                session_found = False
                 for session_result in rag_results.get("sessions", []):
                     # Handle both dict and SearchResult objects
                     if isinstance(session_result, dict):
                         result_id = session_result.get('id', '')
                         relevance_score = session_result.get('relevance_score', 0)
+                        # Also check metadata for alternative ID fields
+                        if not result_id:
+                            metadata = session_result.get('metadata', {})
+                            result_id = metadata.get('uuid') or metadata.get('id') or ''
                     else:
                         result_id = session_result.id if hasattr(session_result, 'id') else ''
                         relevance_score = session_result.relevance_score if hasattr(session_result, 'relevance_score') else 0
+                        # Also check metadata for alternative ID fields
+                        if not result_id and hasattr(session_result, 'metadata'):
+                            metadata = session_result.metadata
+                            result_id = metadata.get('uuid') or metadata.get('id') or ''
                     
-                    if result_id == session_id_from_llm and relevance_score and relevance_score >= RELEVANCE_THRESHOLD:
-                        formatted_cards.append(CardDecision(
-                            card_type="session",
-                            card_data=self._transform_session_for_frontend(session_result),
-                            display_reason=card.get("display_reason", ""),
-                            confidence=card.get("confidence", 0.8),
-                            timing=card.get("timing", "immediate")
-                        ))
-                        rosa_logger.info(f"✅ Approved session card: {result_id} (relevance={relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
+                    # Log all session IDs for debugging
+                    rosa_logger.debug(f"  - Session ID in results: '{result_id}' (looking for: '{session_id_from_llm}')", session_id, LLMInstance.UI_INTEL)
+                    
+                    if result_id == session_id_from_llm:
+                        session_found = True
+                        if relevance_score and relevance_score >= RELEVANCE_THRESHOLD:
+                            formatted_cards.append(CardDecision(
+                                card_type="session",
+                                card_data=self._transform_session_for_frontend(session_result),
+                                display_reason=card.get("display_reason", ""),
+                                confidence=card.get("confidence", 0.8),
+                                timing=card.get("timing", "immediate")
+                            ))
+                            rosa_logger.info(f"✅ Approved session card: {result_id} (relevance={relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
+                        else:
+                            rosa_logger.info(f"❌ Filtered low-relevance session: {result_id} (relevance={relevance_score:.2f} < threshold={RELEVANCE_THRESHOLD:.2f})", session_id, LLMInstance.UI_INTEL)
                         break # Found our session
-                    elif result_id == session_id_from_llm:
-                        rosa_logger.info(f"❌ Filtered low-relevance session: {result_id} (relevance={relevance_score:.2f})", session_id, LLMInstance.UI_INTEL)
-                        break
+                
+                if not session_found:
+                    rosa_logger.warning(f"⚠️ Session ID '{session_id_from_llm}' not found in RAG results!", session_id, LLMInstance.UI_INTEL)
 
             elif card_type == "speaker":
                 speaker_name = card.get("name", "")
@@ -512,13 +553,51 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 if related_sessions:
                     avg_relevance = sum(s.get('relevance_score', 0) for s in related_sessions) / len(related_sessions)
                     rosa_logger.info(f"✅ Approved topic card: {topic_theme} ({len(related_sessions)} sessions, avg_relevance={avg_relevance:.2f})", session_id, LLMInstance.UI_INTEL)
+                    
+                    # Extract aggregated data from sessions for TopicCard
+                    speakers = set()
+                    venues = set()
+                    session_types = set()
+                    keywords = set()
+                    
+                    for session in related_sessions:
+                        if session.get('speakers'):
+                            speakers.update(session['speakers'])
+                        if session.get('venue'):
+                            venues.add(session['venue'])
+                        if session.get('session_type'):
+                            session_types.add(session['session_type'])
+                        if session.get('themes'):
+                            keywords.update(session.get('themes', []))
+                    
+                    # Build SnT2025Topic-compatible data structure
+                    topic_data = {
+                        # Core identity (required by TopicCard)
+                        "code": f"TOPIC-{topic_theme.replace(' ', '-').upper()[:20]}",  # Generate topic code
+                        "title": topic_theme,
+                        "theme": topic_theme,
+                        "description": f"Comprehensive topic covering {len(related_sessions)} session{'s' if len(related_sessions) != 1 else ''} with {len(speakers)} speaker{'s' if len(speakers) != 1 else ''}.",
+                        
+                        # Keywords and content
+                        "keywords": list(keywords)[:10],  # Limit to top 10 keywords
+                        
+                        # Session data (TopicCard expects this structure)
+                        "sessions": related_sessions,  # Already properly formatted session array
+                        "sessionCount": len(related_sessions),
+                        "speakers": list(speakers),  # List of speaker names
+                        "speakerCount": len(speakers),
+                        "sessionTypes": list(session_types),
+                        "venues": list(venues),
+                        
+                        # Additional metadata for card intelligence
+                        "priority_level": "high" if len(related_sessions) > 5 else "medium" if len(related_sessions) > 2 else "low",
+                        "expertise_level": "expert" if avg_relevance > 0.8 else "intermediate" if avg_relevance > 0.6 else "beginner",
+                        "relevance_score": avg_relevance
+                    }
+                    
                     formatted_cards.append(CardDecision(
                         card_type="topic",
-                        card_data={
-                            "theme": topic_theme,
-                            "sessions": related_sessions,
-                            "overview": card.get("overview", "")
-                        },
+                        card_data=topic_data,
                         display_reason=card.get("display_reason", ""),
                         confidence=card.get("confidence", 0.8),
                         timing=card.get("timing", "immediate")
@@ -616,31 +695,36 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 "duration": metadata.get("duration_minutes", 0),
                 
                 # Location from cross-reference or metadata
-                "venue": related_room.get("name") if related_room else metadata.get("venue", ""),
-                
-                # Session classification from metadata
-                "session_type": metadata.get("sessionType", ""),
+                "venue": related_room.get("name", "") if related_room else metadata.get("venue", ""),
+
+                # Speaker & topic relationships
+                "speakers": speaker_names,
+                "topics": topic_titles,
+
+                # Relevance information
+                "relevance_score": relevance_score,
+
+                # Raw metadata passthrough for legacy frontend compatibility
+                "metadata": metadata,
+
+                # Additional fields required by NewSessionCard interface
+                "description": session_result.content if hasattr(session_result, 'content') else metadata.get("description", ""),
+                "session_type": metadata.get("sessionType", metadata.get("session_type", "")),
                 "theme": metadata.get("theme", ""),
                 "track": metadata.get("track", ""),
                 "audience_level": metadata.get("audience_level", ""),
-                
-                # Content
-                "description": session_result.content,
-                "speakers": speaker_names, # Use extracted speaker names
-                
-                # Flags
-                "is_keynote": metadata.get("sessionType", "") == "Keynote",
-                "is_interactive": metadata.get("is_interactive", False),
-                "is_technical": metadata.get("is_technical", True),
-                
-                # Metadata for debugging/tracking
-                "relevance_score": relevance_score or 0.0,
-                
-                # Additional enhanced fields for comprehensive display
                 "day_of_week": metadata.get("day_of_week", ""),
                 "time_of_day": metadata.get("time_of_day", ""),
+                "duration_minutes": metadata.get("duration_minutes", 0),
+                "has_speakers": len(speaker_names) > 0,
+                "is_interactive": metadata.get("is_interactive", False),
+                "is_social": metadata.get("is_social", False),
+                "is_technical": metadata.get("is_technical", True),
                 "speaker_count": len(speaker_names),
-                "related_topics": topic_titles # Use extracted topic titles
+                "related_topics": topic_titles,
+                "practical_info": metadata.get("practical_info", ""),
+                "keywords": metadata.get("keywords", []),
+                "priority_level": "high" if relevance_score > 0.8 else "medium" if relevance_score > 0.5 else "low"
             }
             
             rosa_logger.debug(f"✅ Transformed session: {frontend_session['session_id']} - {frontend_session['title']}")
@@ -708,48 +792,44 @@ Remember: You're not following rigid rules but making intelligent, context-aware
         if keynote_count > 0:
             inferred_role = f"Keynote Speaker{' & ' + inferred_role if inferred_role else ''}"
         
-        # Create comprehensive speaker data structure
-        comprehensive_speaker_data = {
+        # Create comprehensive speaker data structure matching SnT2025Speaker interface
+        speaker_data = {
             # Core identity (required by SpeakerCard)
             "name": speaker_name,
-            "sessions": sessions,  # Properly formatted session array
-            
-            # Aggregated metadata
-            "totalSessions": len(sessions),
-            "themes": list(themes),
-            "tracks": list(tracks),
-            
-            # Enhanced professional profile
-            "organization": inferred_org,
-            "current_role": inferred_role,
+            "title": inferred_role,  # Maps to SpeakerCard.title
+            "organization": inferred_org,  # Maps to SpeakerCard.organization
+            "country": None,  # Could be enhanced with speaker metadata
             "bio": f"Speaking at {len(sessions)} session{'s' if len(sessions) != 1 else ''} covering {', '.join(list(themes)[:3])}{'...' if len(themes) > 3 else ''}.",
             
-            # Conference participation metrics
-            "keynote_sessions": keynote_count,
-            "total_speaking_time": total_duration,
-            "venues_spoken": list(venues),
-            "session_types": list(session_types),
-            
-            # Professional estimates (for display enhancement)
-            "years_experience": 10 + keynote_count * 5,  # Rough estimate based on keynotes
+            # Expertise and research
             "expertise": list(themes),  # Use themes as expertise areas
             "research_areas": list(themes),  # Themes are research areas
             
-            # Conference context
-            "conference_participation": {
-                "total_sessions": len(sessions),
-                "keynote_sessions": keynote_count,
-                "tracks": list(tracks),
-                "venues": list(venues)
-            }
+            # Session data (SpeakerCard expects this structure)
+            "sessions": sessions,  # Already properly formatted session array
+            "sessionCount": len(sessions),  # Matches SpeakerCard interface
+            "themes": list(themes),
+            "venues": list(venues),  # Matches SpeakerCard interface
+            "sessionTypes": list(session_types),  # Matches SpeakerCard interface
+            
+            # Duration and keynote status
+            "totalDuration": total_duration,  # Matches SpeakerCard interface
+            "isKeynote": keynote_count > 0,  # Boolean for keynote status
+            
+            # Experience and priority levels
+            "experience_level": "expert" if keynote_count > 0 else "senior" if len(sessions) > 2 else "junior",
+            "priority_level": "high" if keynote_count > 0 else "medium" if len(sessions) > 3 else "low",
+            
+            # Relevance score based on session relevance
+            "relevance_score": sum(s.get('relevance_score', 0) for s in sessions) / len(sessions) if sessions else 0.0
         }
         
-        return comprehensive_speaker_data
+        return speaker_data
 
     def _aggregate_room_data(self, room_name: str, sessions: List[Dict[str, Any]]) -> Dict[str, Any]:
         """
         Aggregate room/venue data from multiple sessions for VenueCard display.
-        Creates a comprehensive room profile including session metrics and themes.
+        Creates a comprehensive room profile matching the SnT2025Venue interface.
         """
         if not sessions:
             return {}
@@ -767,51 +847,52 @@ Remember: You're not following rigid rules but making intelligent, context-aware
                 tracks.add(session['track'])
             if session.get('speakers'):
                 speakers.update(session['speakers'])
-            if session.get('sessionType'):
-                session_types.add(session['sessionType'])
+            if session.get('session_type'):
+                session_types.add(session['session_type'])
         
         # Calculate room utilization metrics
         total_duration = sum(session.get('duration', 0) for session in sessions if session.get('duration'))
         avg_duration = total_duration / len(sessions) if sessions else 0
+        utilization_rate = min(1.0, len(sessions) / 20.0)  # Assume max 20 sessions per room
         
-        # Build comprehensive room data structure
-        comprehensive_room_data = {
+        # Build VenueCard-compatible data structure
+        venue_data = {
             # Core identity (required by VenueCard)
             "name": room_name,
-            "sessions": sessions,  # Properly formatted session array
-            
-            # Aggregated metadata
-            "totalSessions": len(sessions),
-            "themes": list(themes),
-            "tracks": list(tracks),
-            "speakers": list(speakers),
-            
-            # Room utilization metrics
-            "utilization": {
-                "total_sessions": len(sessions),
-                "total_duration_minutes": total_duration,
-                "average_session_duration": avg_duration,
-                "session_types": list(session_types)
-            },
-            
-            # Room characteristics inferred from sessions
-            "primary_track": list(tracks)[0] if tracks else "General",
-            "capacity_level": "large" if len(sessions) > 10 else "medium" if len(sessions) > 5 else "small",
-            
-            # Content analysis
-            "content_focus": list(themes)[:3],  # Top 3 themes for this room
+            "location": "CTBTO Conference Center",  # Default location
+            "floor": "ground",  # Default floor - could be enhanced with room metadata
             "description": f"Hosting {len(sessions)} session{'s' if len(sessions) != 1 else ''} across {len(tracks)} track{'s' if len(tracks) != 1 else ''}, focusing on {', '.join(list(themes)[:2])}{'...' if len(themes) > 2 else ''}.",
             
-            # Conference context
-            "conference_participation": {
-                "total_sessions": len(sessions),
-                "unique_speakers": len(speakers),
-                "tracks_covered": list(tracks),
-                "session_types": list(session_types)
-            }
+            # Optional enhanced data
+            "capacity": None,  # Could be added from room metadata
+            "facilities": ["Audio/Visual Equipment", "Seating"],  # Default facilities
+            "color_coding": None,
+            
+            # Session data (VenueCard expects this structure)
+            "sessions": sessions,  # Already properly formatted session array
+            "sessionCount": len(sessions),
+            "sessionTypes": list(session_types),
+            "speakerCount": len(speakers),
+            
+            # Schedule data (simplified for VenueCard)
+            "dailySchedule": [
+                {
+                    "day": "Conference Day",
+                    "sessionCount": len(sessions),
+                    "timeSlots": []  # Could be enhanced with actual time slots
+                }
+            ],
+            
+            # Utilization metrics
+            "utilization_rate": utilization_rate,
+            "accessibility": "Standard accessibility features",  # Default
+            
+            # Additional metadata for card intelligence
+            "priority_level": "high" if len(sessions) > 10 else "medium" if len(sessions) > 5 else "low",
+            "relevance_score": sum(s.get('relevance_score', 0) for s in sessions) / len(sessions) if sessions else 0.0
         }
         
-        return comprehensive_room_data
+        return venue_data
 
 class ContextualIntelligenceEngine:
     """Deep contextual understanding using multiple signals"""

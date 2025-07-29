@@ -1,7 +1,7 @@
 ---
-alwaysApply: true
+description: You must always use this rule when you have a conversation with the user about Weaviate or RAG or if you want to edit any related code.
+alwaysApply: false
 ---
-
 # Rules for RAG and Weaviate Development
 
 This document outlines the core principles for developing the advanced RAG system for the SnT2025 conference. All development must adhere to the detailed architectural patterns defined in the `design-patterns/WEAVIATE/` directory.
