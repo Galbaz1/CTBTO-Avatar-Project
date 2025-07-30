@@ -13,6 +13,10 @@ const logApiCall = (event: string, data: any, level: 'info' | 'warn' | 'error' =
   console.groupEnd();
 };
 
+// 🛡️ RATE LIMITING: Prevent rapid conversation creation
+let lastConversationTime = 0;
+const MIN_CONVERSATION_INTERVAL = 5000; // 5 seconds between conversations
+
 export const createConversation = async (
   apiKey: string
 ): Promise<IConversation> => {
@@ -25,13 +29,29 @@ export const createConversation = async (
       throw new Error('API key is required');
     }
 
+    // 🛡️ RATE LIMITING: Prevent conversation spam
+    const now = Date.now();
+    const timeSinceLastConversation = now - lastConversationTime;
+    
+    if (timeSinceLastConversation < MIN_CONVERSATION_INTERVAL) {
+      const waitTime = MIN_CONVERSATION_INTERVAL - timeSinceLastConversation;
+      logApiCall('rate-limit-protection', {
+        waitTimeMs: waitTime,
+        lastConversationTime: new Date(lastConversationTime).toISOString(),
+        message: 'Preventing rapid conversation creation'
+      }, 'warn');
+      throw new Error(`Rate limit: Please wait ${Math.ceil(waitTime / 1000)} seconds before creating another conversation`);
+    }
+    
+    lastConversationTime = now;
+
     // NEW: Clean Rosa persona created from scratch (no video conference text)
     // This persona is configured with:
     // - base_url: "http://localhost:8000"
     // - api_key: "rosa-backend-key-2025" 
     // - model: "rosa-ctbto-agent"
     // - perception: "off" (privacy compliant)
-    const personaId = 'p9c106c443e2'; // Rosa Clean Diplomatic Assistant
+    const personaId = 'pfa22a49cab9'; // Rosa Clean Diplomatic Assistant (PROVEN WORKING)
 
     const requestPayload = {
       persona_id: personaId,
@@ -41,7 +61,7 @@ export const createConversation = async (
         apply_greenscreen: true,
         max_call_duration: 1800, // 30 minutes max
         participant_left_timeout: 60, // End call 60s after participant leaves
-      }
+      },
       // NO TOOLS - Pattern 1 uses custom LLM backend instead
     };
 
@@ -113,9 +133,16 @@ export const createConversation = async (
         statusText: response.statusText,
         errorText,
         headers: Object.fromEntries(response.headers.entries()),
-        requestDuration: `${requestDuration}ms`
+        requestDuration: `${requestDuration}ms`,
+        requestPayload: requestPayload
       }, 'error');
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.error('❌ Tavus API Error Details:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorResponse: errorText,
+        sentPayload: requestPayload
+      });
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
